@@ -3,7 +3,7 @@ project:
 
 website:
   title: "notebooks"
-  site-url: "https://andrewlook.github.io/notebooks"
+  site-url: "https://notebooks.andrewlook.com/notebooks"
   description: "Jupyter Notebooks"
   repo-branch: main
   repo-url: "https://github.com/andrewlook/notebooks"

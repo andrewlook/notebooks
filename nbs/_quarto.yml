@@ -16,6 +16,9 @@ website:
     search: true
   sidebar:
     style: floating
+    left:
+      - text: "Blog"
+        href: blog/index.qmd
 
 resources:
   - CNAME

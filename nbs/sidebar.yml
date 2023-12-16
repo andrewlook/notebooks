@@ -1,0 +1,19 @@
+website:
+  sidebar:
+    contents:
+      - index.ipynb
+      - 00_core.ipynb
+      - section: blog
+        contents:
+          - section: 2023-12-14-sketchbook-data-e2e
+            contents:
+              - blog/2023-12-14-sketchbook-data-e2e/10_e2e.ipynb
+              - blog/2023-12-14-sketchbook-data-e2e/11_viz_subclusters.ipynb
+              - blog/2023-12-14-sketchbook-data-e2e/13_vectorize.ipynb
+          - section: 2023-12-15-sketchbook-embedding-projector
+            contents:
+              - blog/2023-12-15-sketchbook-embedding-projector/12_projector.ipynb
+          - section: 2023-12-16-stroke3-bounding-boxes
+            contents:
+              - blog/2023-12-16-stroke3-bounding-boxes/05_analysis.ipynb
+        href: blog/index.qmd
