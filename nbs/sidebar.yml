@@ -14,6 +14,6 @@ website:
             contents:
               - blog/2023-12-15-sketchbook-embedding-projector/12_projector.ipynb
           - section: 2023-12-16-stroke3-bounding-boxes
-            contents:
-              - blog/2023-12-16-stroke3-bounding-boxes/05_analysis.ipynb
+            contents: []
+            href: blog/2023-12-16-stroke3-bounding-boxes/index.ipynb
         href: blog/index.qmd
