@@ -11,8 +11,8 @@ website:
               - blog/2023-12-14-sketchbook-data-e2e/11_viz_subclusters.ipynb
               - blog/2023-12-14-sketchbook-data-e2e/13_vectorize.ipynb
           - section: 2023-12-15-sketchbook-embedding-projector
-            contents:
-              - blog/2023-12-15-sketchbook-embedding-projector/12_projector.ipynb
+            contents: []
+            href: blog/2023-12-15-sketchbook-embedding-projector/index.ipynb
           - section: 2023-12-16-stroke3-bounding-boxes
             contents: []
             href: blog/2023-12-16-stroke3-bounding-boxes/index.ipynb
