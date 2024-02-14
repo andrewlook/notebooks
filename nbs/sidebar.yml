@@ -4,8 +4,10 @@ website:
       - index.ipynb
       - 00_core.ipynb
       - section: blog
-        contents:
-          - section: singleline_sketchrnn
-            contents:
-              - blog/singleline_sketchrnn/singleline_sketchrnn.ipynb
+        contents: []
         href: blog/index.qmd
+      - section: singleline_sketchrnn
+        contents:
+          - singleline_sketchrnn/20_e2e_new_classifier.ipynb
+          - singleline_sketchrnn/singleline_sketchrnn.ipynb
+        href: singleline_sketchrnn/index.qmd
