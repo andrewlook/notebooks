@@ -2,12 +2,12 @@ website:
   sidebar:
     contents:
       - index.ipynb
-      - 00_core.ipynb
       - section: blog
         contents: []
         href: blog/index.qmd
       - section: singleline_sketchrnn
         contents:
-          - singleline_sketchrnn/20_e2e_new_classifier.ipynb
+          - singleline_sketchrnn/20_singleline_dataset_first_attempt.ipynb
+          - singleline_sketchrnn/30_singleline_dataset_second_attempt.ipynb
           - singleline_sketchrnn/singleline_sketchrnn.ipynb
         href: singleline_sketchrnn/index.qmd
