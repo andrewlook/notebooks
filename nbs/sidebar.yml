@@ -7,7 +7,8 @@ website:
         href: blog/index.qmd
       - section: singleline_sketchrnn
         contents:
-          - singleline_sketchrnn/20_singleline_dataset_first_attempt.ipynb
+          - singleline_sketchrnn/00_overview.ipynb
+          - singleline_sketchrnn/20_part1_computing_embeddings.ipynb
+          - singleline_sketchrnn/21_part2_exploring_embeddings.ipynb
           - singleline_sketchrnn/30_singleline_dataset_second_attempt.ipynb
-          - singleline_sketchrnn/singleline_sketchrnn.ipynb
         href: singleline_sketchrnn/index.qmd
