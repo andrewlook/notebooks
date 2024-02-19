@@ -3,7 +3,7 @@ title: Single-Line ML
 subtitle: Machine Learning on Single-line drawings
 listing:
   sort: "date desc"
-  contents: "posts"
+  contents: "*.ipynb"
   sort-ui: false
   filter-ui: false
   categories: true
