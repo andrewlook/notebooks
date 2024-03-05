@@ -14,11 +14,10 @@ website:
   navbar:
     background: primary
     search: true
-  sidebar:
-    style: floating
     left:
       - text: "Blog"
         href: blog/index.qmd
+  sidebar: false
 
 resources:
   - CNAME
