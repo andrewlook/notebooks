@@ -1,0 +1,91 @@
+---
+title: Andrew Look's Resume 
+page-layout: article
+sidebar: false
+toc: false
+---
+
+## Summary
+
+15+ years experience building technology, teams, companies.
+
+Passionate about machine learning and creativity.
+
+Looking for a technical role in AI / ML, especially in generative AI and creativity.
+
+Y Combinator and UCLA CS alum.
+
+## Experience
+
+### Aesthetic (YC S’18)
+
+**LLM-powered Language Learning Tools** *(June 2023 - October 2023)*
+
+- Developed a prototype for an audio-centric language learning application, leveraging LLMs to generate multilingual educational content.
+- Implemented a prompt testing system to evaluate and enhance the quality of prompt engineering modifications incrementally.
+
+**AI Assistant for Artists / Designers** *(July 2022 - May 2023)*
+
+- Created a user-friendly app enabling artists to fine-tune generative models with their portfolios, facilitating rapid creation of new images using their own style.
+- Managed backend processes to train and deploy models to an inference API.
+- Automated analysis of LoRA hyper-parameters for artistic style fine-tuning.
+- Expanded the capabilities of the Dreambooth trainer to accommodate various concepts.
+
+**Token-Gated Platform for NFT creators** *(Feb 2021 - June 2022)*
+
+- Developed a self-service platform enabling NFT creators to form their communities, conduct token sales, and offer exclusive features to token holders.
+- Authored versatile smart contracts allowing creators to independently manage collections and sales beyond conventional exchanges.
+
+**API for Generating Design Assets** *(Jan 2020 - Jan 2021)*
+
+- Crafted a “Zapier for Design” API to produce on-demand templated social media images and animations using React for templating and Puppeteer/ffmpeg for rendering.
+
+**Software-augmented design agency** (June 2018 - October 2019)
+
+- Developed a workflow system to monitor tasks and payments, catering to freelancers involved in design projects as the business scaled to a $1M ARR.
+- Hired and managed a 12-person remote engineering team.
+- Established remote hiring and onboarding processes with a 100% interview-to-acceptance rate for new hires.
+
+### Long Journey Ventures
+
+**AI Advisor** *(May 2023 - Present)*
+
+- Conducting due diligence on AI startups, delving into their technology to guide investment strategies.
+
+### Pinterest
+
+**ML Engineer** *(June 2016 - June 2018)*
+
+- Spearheaded the "Taste Graph" initiative, redesigning the ontology of user interests and developing classifiers for pins and queries.
+- Enhanced overall revenue by 2.5% and boosted ecommerce conversion rates by 20% by substituting legacy user interests with taste graph data for ad targeting.
+- Increased revenue by 2% with the implementation of a FastText text classifier to align search queries with ad interests.
+- Oversaw data labeling initiatives and developed offline evaluation systems for interest classification models.
+- Designed tools for data science teams to perform statistical analysis on ad interest A/B testing outcomes.
+
+### URX (YC S’13, Acq. Pinterest)
+
+**Co-Founder / CTO** *(Jan 2013 - May 2016)*
+
+- Engineered a contextual search engine to expose pertinent content across mobile applications, capitalizing on deep-link traffic.
+- Designed a distributed system to index 2 billion pages of mobile deep-link content.
+- Led machine learning projects to augment index entries, focusing on classification, disambiguation, and knowledge graph integration.
+- Grew and nurtured a 25-member engineering team spanning engineering, infrastructure, and machine learning.
+
+### Shopzilla
+
+**Senior Software Engineer** *(September 2011 - January 2013)*
+
+- Developed and scaled an SEM ad revenue prediction pipeline to assess 5MM keywords daily.
+- Implemented a Solr-based recommendation engine for SEO, optimizing search relevancy and performance while streamlining index build and deployment.
+
+**Software Engineer** *(August 2010 - September 2011)*
+
+- Led the transition of company-wide analytical workflows to a MapReduce environment, evaluating and prototyping relevant technologies.
+
+**Data Engineering Intern** *(June 2007 - Feb 2009)*
+
+- Developed Ruby on Rails applications to enhance efficiency in labeling processes.
+
+## Education
+
+University of California, Los Angeles - BS. Computer Science *(Sept 2006 - June 2010)*

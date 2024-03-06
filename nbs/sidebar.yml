@@ -2,6 +2,9 @@ website:
   sidebar:
     contents:
       - index.ipynb
+      - section: about
+        contents: []
+        href: about/index.qmd
       - section: blog
         contents:
           - section: posts
@@ -10,3 +13,6 @@ website:
               - blog/posts/slml_part2.ipynb
               - blog/posts/slml_template.ipynb
         href: blog/index.qmd
+      - section: resume
+        contents: []
+        href: resume/index.qmd
