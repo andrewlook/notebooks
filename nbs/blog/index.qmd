@@ -1,6 +1,6 @@
 ---
-title: nbdev Blog
-subtitle: News, tips, and commentary about all things nbdev
+title: Andrew Look's Blog 
+subtitle: Machine learning and art.
 listing:
   sort: "date desc"
   contents: "posts"
@@ -9,4 +9,5 @@ listing:
   categories: true
   feed: true
 page-layout: full
+sidebar: false
 ---
