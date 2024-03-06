@@ -1,0 +1,184 @@
+---
+title: "A Tour of AI Art in 2018"
+description: some-description
+categories: [machinelearning, art]
+author: Andrew Look
+date: 2018-04-18
+sidebar: false
+comments:
+  utterances:
+    repo: andrewlook/notebooks
+---
+
+By the end of this tour, my goal is to help you understand how some existing artists are incorporating AI tools and concepts into their work, and how using AI art tools might _augment_ your creativity.
+
+Disclaimer: I'm not a real expert on computer vision, neuroscience or art. But I _have_ spent a couple years learning about the space, so I'll do my best to explain things as I understand them so far.
+
+For those more familiar with AI, I plan on making some broad generalizations in the interest of brevity. If you're interested in the technical details, I've done my best to include relevant links on where to go deeper.
+
+## What is AI art?
+
+Many artistic tools come from people striving to understand how algorithms affect our lives. I've distilled a framework to understand different types of AI Art, and am sharing it in the hopes that it makes the concepts easier to discuss and compare.
+
+Here are 3 ways I can think of to define "AI Art":
+
+1. **Making creative use of outputs from an AI _Tool_**
+2. **Leveraging how AI represents information to deliberately craft an _Effect_**
+3. **Exploring the _Concepts_ within AI and what they mean for us**
+
+## Some Definitions
+
+Given the amount of cultural baggage we all associate with words like "AI" and "art", it's worth clarifying some definitions up front. "AI Art" has stuck as a phrase to describe an emerging category of creative work, but it might be more accurate to call it "Machine Learning Art."
+
+The art I'm discussing here is mostly made by humans using statistical methods, not by sentient robots with their own creative ideas. Sorry to disappoint, but this post isn't dedicated to anthropomorphic machines that paint:
+
+> ![not this](https://media.giphy.com/media/8P7fmIpUYBwHgjo322/giphy.gif)
+>
+> SPIRAL by Deepmind ([blog](https://deepmind.com/blog/learning-to-generate-images/), [pdf](https://deepmind.com/documents/183/SPIRAL.pdf), [youtube](https://www.youtube.com/watch?v=iSyvwAwa7vk))
+
+### AI
+
+AI is a term used in so many contexts, that it's a bit of a loaded term. Most mentions of AI can be bucketed into one of two broad categories:
+
+- **General AI**: The futuristic aspiration of computers that experience consciousness
+- **Specialized AI**: Systems using statistics to learn patterns from data in order to make predictions.
+
+I'll be focused on artistic applications of techniques that have sprung out of real-world research from the category of **Specialized AI**, also known as **Machine Learning**.
+
+## Machine Learning
+
+Machine Learning (usually) refers to a type of algorithm that (1) is built to perform a clearly-defined **task**, and (2) **learns** patterns and relationships from **training data**
+
+<!-- related: Explainability / Interpretability, Algorithmic Accountability -->
+
+For example, imagine that we want to [predict housing prices](https://medium.com/@kabab/linear-regression-with-python-d4e10887ca43). We'd probably start with a spreadsheet of prices we know to be true, alongside features for each house that we expect to be related to the price. If we plot price vs. size on this toy dataset, we can start to see a slope.
+
+<div>
+  <img width="22%" style="display: inline" alt="housing prices table" src="https://cdn-images-1.medium.com/max/1280/1*TE_oNKRRek5io8v_-uZ9PQ.png" />
+  <img width="75%" style="display: inline" alt="housing prices scatter plot" src="https://cdn-images-1.medium.com/max/1280/1*HUJzcLczeBFRdPPZ5HMcbw.png" />
+</div>
+
+If we were to draw a line through these points, the "slope" would be what you multiply the `size` by in order to get the `price` (plus a "bias" term, if the slope doesn't meet the Y-axis right at zero). The **objective** of an ML algorithm is to find a line to draw through these points that **minimizes the error** in its predictions. You can visualize the **error** as the distance from each real data point's `Y` coordinate to the **prediction**: the line's value at the corresponding `X` coordinate.
+
+<div>
+  <img width="45%" style="display: inline" alt="error bars" src="https://cdn-images-1.medium.com/max/1280/1*iBDH0gBBJNs-oLqUT17yng.png" />
+  <img width="45%" style="display: inline" alt="iterative learning" src="https://cdn-images-1.medium.com/max/1280/1*xc5CSmK9d8oeKYxKxenEGg.gif" />
+</div
+
+In this case, they can start with a proposed line to draw, calculate the error, and make a next guess about what the best line could be. The way ML algorithms "learn" is to update their calculations to better satisfy their **objective** (in this case, finding the slope of a line through the points that minimizes the error). This process gets repeated, and if everything goes according to plan, the errors decrease.
+
+## What is art?
+
+> "Art is everything that you don't have to do." - [brian eno](https://twitter.com/BBC6Music/status/648200818697572352?s=20)
+
+Whole books could be written in an attempt to define art, so I won't attempt an exhaustive definition.
+
+> <img src="https://upload.wikimedia.org/wikipedia/commons/f/f6/Duchamp_Fountaine.jpg" width=400 />
+>
+> "Fountain," Marcel Duchamp, 1917 ([wikipedia](https://en.wikipedia.org/wiki/Marcel_Duchamp))
+
+The truth is that art can be defined by whoever is creating it, and art history is full of boundary-pushing acts leading onlookers to ask "but is it art?"
+
+## Back to AI Art
+
+Now I'll step through three possible ways to define AI art and provide some examples along the way.
+
+1. **Making creative use of outputs from an AI _Tool_**
+2. **Leveraging how AI represents information to deliberately craft an _Effect_**
+3. **Exploring the _Concepts_ within AI and what they mean for us**
+
+<!--
+These definitions actually mirror the progression of my own art practice. I'll step through them in an attempt to share how my understanding of the space has evolved since I first started.
+-->
+
+---
+
+## Definition #1: Making creative use of outputs from an AI _Tool_
+
+The simplest definition of AI art is any artifact generated from a tool the makes use of AI, whether or not the artist makes this a central part of the work.
+
+Apps such as Prisma, for example, make it easy for anyone to take a photo on their phone and render it in a painterly style.
+
+Even without much context on how they work, easy-to-use tools such as [pix2pix](https://affinelayer.com/pixsrv/) can be fun to play with and yield weird results.
+
+> ![bread_cat](https://media.giphy.com/media/fik7beSODmO75YI6Qd/giphy.gif)?>
+>
+> _"Image-to-Image Translation with Conditional Adversarial Networks"_, Isola et al, 2017 ([pdf](https://arxiv.org/abs/1611.07004))
+
+We'll look at some more in-depth approaches later (time permitting), but for now this is just fun.
+
+> ![pix2pix_pyramid_cat](https://media.giphy.com/media/wHYLEo4Z7kPJwlbO9U/giphy.gif)
+
+---
+
+## Definition #2: **Leveraging how AI represents information to deliberately craft an effect**
+
+A slightly more complex definition of AI art is one in which an artist uses his or her understanding of the machine learning internals to achieve a specific effect. For example, it's possible to make some interesting visual artifacts by inspecting how machine learning algorithms represent information.
+
+> <img src="https://courses.cs.washington.edu/courses/cse576/13sp/images/eigenfaces.png" width=400 />
+>
+> [source](https://courses.cs.washington.edu/courses/cse576/13sp/projects/project3/)
+
+In fact, the spooky faces came from a visualization of Eigenfaces, which sought to "learn" how to represent faces in a "latent space". For me, this early facila recognition output brings to mind one of my favorite quotes by Brian Eno (who I'm quoting more than once in this piece since he's had so much to say about the overlap of technology and art).
+
+> _“**Whatever you now find weird, ugly, uncomfortable, and nasty about a new medium will surely become its signature.** CD distortion, the jitteriness of digital video, the crap sound of 8-bit, all of these will be cherished and emulated as soon as they can be avoided. It’s the sound of failure. So much modern art is the sound of things going out of control. Out of a medium, pushing to its limits and breaking apart.”_ - [Brian Eno](https://www.goodreads.com/quotes/649039-whatever-you-now-find-weird-ugly-uncomfortable-and-nasty-about)
+
+---
+
+Recent generative algorithms have rapidly improved their ability both to learn **latent spaces**, and to **generate** images from any point in these latent spaces.
+
+> ![facespace](https://onionesquereality.files.wordpress.com/2009/02/face_space.jpg)
+>
+> _Face Recognition using Eigenfaces,_ Turk et al, 1991 [pdf](http://www.cs.ucsb.edu/~mturk/Papers/mturk-CVPR91.pdf)
+
+Methods of **encoding** real images into vectors representing a point in latent space have since improved, as have the methods of **decoding** latent vectors back into realistic images.
+
+When we **interpolate** between two points in the latent space, we can smoothly generate images at each point along the way. In the uncanny example below, I find it striking that (almost) every point in between looks like a person. Looking at this work, I can't help thinking that these algorithms are showing us something about our innate similarity to all other humans.
+
+> ![celeb_1hr_man](https://media.giphy.com/media/1Bgck5vkuyNxSFPNmJ/giphy.gif)
+>
+> _Progressive Growing of GANs for Improved Quality, Stability, and Variation_, Karras et al, 2018 ([pdf](http://research.nvidia.com/publication/2017-10_Progressive-Growing-of), [youtube](https://www.youtube.com/watch?v=36lE9tV9vm0))
+
+One striking example of a completely new type of tool leveraging this understanding is called [Toposketch](https://vusd.github.io/toposketch/). It allows visual navigation of latent spaces in order to gain fine-grained control over the generated artifacts. This makes me wonder what kinds of creative tools could be built to leverage the information that machines are able to derive from the increaing volume of data that's available to us today.
+
+![toposketch_man_loop](https://media.giphy.com/media/5BYqBxH66X3UobP3SH/giphy.gif)
+
+---
+
+## Definition #3: **Exploring the _Concepts_ within AI and what they means for us**
+
+Among other things, this could encompass exploring AI's relationships to:
+
+- our society
+- the individual
+- the nature of consciousness
+
+### Example: Treachery of Imagenet
+
+Tom White made some beautifully designed prints, each of which fools a computer vision network into believing it's actually a picture of a specific object (see the predicted categories to the right of the image below).
+
+> ![img](https://github.com/andrewlook/tour-of-ai-art/raw/master/public/images/tom_white_adversarial_posters.jpg)
+>
+> [source](https://medium.com/artists-and-machine-intelligence/perception-engines-8a46bc598d57)
+
+There's a new field of security concerned with adversarial machine learning, concerned with how attackers can fool neural networks into misinterpreting what they see. It's not intuitive, but the consequences can be serious - imagine a self-driving car fooled into missing a stop sign. I admire how Tom White took a complex concept and used it to make a visually appealing piece that sparks curiosity and raises awareness about concepts that may affect our lives but don't have easy conversational entry points for outsiders.
+
+### Example: Simulating How Humans Draw
+
+I'm fascinated when researchers attempt to mimic how humans draw. In particular, I'm interested in how the researchers set up an algorithm to mimic the process of drawing - they have to choose what happens next, how much the first part of the drawing affects what happens next, and how to define success.
+
+> ![simulating how humans draw](https://media.giphy.com/media/OjY1YSX6jFROm02W0J/giphy.gif)
+>
+> [source](https://deepmind.com/blog/learning-to-generate-images/)
+
+In my analog artworks, I've noticed that sometimes I start a drawing not knowing how it will end up. Small accidents or random movements early in the drawing lead me to see something unexpected, adjust my course and capture what I saw. Oddly enough, thinking about the rigid framing of machine learning problems (input: view of the canvas, output: X,Y,Z coordinates of brush movement) has led to some fun experiments. For example, what happens if i close my eyes and draw?
+
+---
+
+## In Conclusion
+
+Given that there are several ways to define AI art (and I'm sure my list is not comprehensive), my hope is that we can broaden our view of what AI art means. While it does include fun images made using new mobile apps, I'd also like to think that there's some more profound works out there. Works that can surprise people, help them understand the role of new technologies in their daily lives, and stoke their curiosity to learn more.
+
+> "Stop thinking about art works as objects, and start thinking about them as triggers for experiences. ... what makes a work of art ‘good’ for you is not something that is already ‘inside’ it, but something that happens inside you — so the value of the work lies in the degree to which it can help you have the kind of experience that you call art."
+>
+> Brian Eno, via [brainpickings](https://www.brainpickings.org/2013/05/15/brian-eno-diary-art/)

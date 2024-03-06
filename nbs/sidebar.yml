@@ -9,6 +9,7 @@ website:
         contents:
           - section: posts
             contents:
+              - blog/posts/2018_ai_art_tour.qmd
               - blog/posts/slml_part1.ipynb
               - blog/posts/slml_part2.ipynb
               - blog/posts/slml_template.ipynb
