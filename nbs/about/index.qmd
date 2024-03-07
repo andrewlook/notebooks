@@ -1,7 +1,34 @@
 ---
-title: Andrew Look - About
-page-layout: full
+title: About Me
+page-layout: article
 sidebar: false
 toc: false
 ---
 
+Hi, I'm Andrew Look.
+
+I'm a machine learning engineer, ex-startup founder, and part-time artist based in Brooklyn, NY.
+
+### Work
+
+I recently left my most recent startup, Aesthetic (YCombinator Summer 2018).
+
+Before that, I did ML engineering at Pinterest from 2016-2018.
+
+Before Pinterest, I worked on a mobile ad startup called URX from 2013 until [Pinterest](https://venturebeat.com/marketing/pinterest-buys-deep-linking-startup-urx/) [acquired](https://www.wsj.com/articles/pinterest-acquires-mobile-ad-startup-urx-1462298027) us.
+
+### Side Projects
+
+I'm also an AI advisor to [Long Journey Ventures](https://www.longjourney.vc/), occasionally helping with technical due diligence on companies with an AI/ML focus.
+
+In spare time, I'm building audio-reactive digital art and training new team members as Head of Software for the [Titanic's End](https://github.com/titanicsend/LXStudio-TE) [Mutant Vehicle](https://www.instagram.com/titanicsend/).
+
+### Art
+
+I've been painting since 2013 (when I really needed a hobby to unwind from the stress of being a startup founder).
+
+I've been experimenting with ML art and generative AI since 2016 (when I started playing with DeepDreams and GANs and making physical paintings ML from the outputs).
+
+I've been making single-line drawings since 2018 (when I decided to experiment with adding a constraint to my art practice).
+
+I've been making pottery since 2022 (when I wanted to experiment with making art in three dimensions rather than two).

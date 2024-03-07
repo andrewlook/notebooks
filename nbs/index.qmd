@@ -1,0 +1,12 @@
+---
+title: Andrew Look - Home
+page-layout: article
+sidebar: false
+toc: false
+---
+
+Hi, I'm Andrew Look.
+
+I'm a machine learning engineer, ex-startup founder, and part-time artist based in Brooklyn, NY.
+
+You can learn more about me on [my "about" page](about/index.qmd).

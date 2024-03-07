@@ -14,6 +14,7 @@ website:
               - blog/posts/slml_overview.qmd
               - blog/posts/slml_part1.qmd
               - blog/posts/slml_part2.qmd
+              - blog/posts/slml_part3.qmd
               - blog/posts/slml_template.qmd
         href: blog/index.qmd
       - section: resume
