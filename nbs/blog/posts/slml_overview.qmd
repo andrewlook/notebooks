@@ -1,0 +1,17 @@
+---
+title: "SLML - Single-Line Machine Learning"
+description: Overview of my project training ML models on a dataset of single-line drawingws.
+categories: [singleline, machinelearning, slml]
+author: Andrew Look
+date: 2023-10-25
+date-modified: 2024-03-06
+image: https://i.ibb.co/Vj5kRw3/download.png
+sidebar: false
+comments:
+  utterances:
+    repo: andrewlook/notebooks
+cap-location: margin
+---
+
+- [Part 1](./slml_part1.qmd)
+- [Part 2](./slml_part2.qmd)

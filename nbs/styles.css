@@ -10,7 +10,9 @@
   margin-bottom: 0;
 }
 
-.cell-output > pre, .cell-output > .sourceCode > pre, .cell-output-stdout > pre {
+.cell-output > pre,
+.cell-output > .sourceCode > pre,
+.cell-output-stdout > pre {
   margin-left: 0.8rem;
   margin-top: 0;
   background: none;
@@ -32,6 +34,15 @@ div.description {
   padding-left: 2px;
   padding-top: 5px;
   font-style: italic;
-  font-size: 135%;
+  /* font-size: 135%; */
   opacity: 70%;
+}
+
+.quarto-category {
+  font-size: 0.45em !important;
+}
+
+.quarto-title-meta {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
 }

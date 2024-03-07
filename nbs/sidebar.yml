@@ -11,6 +11,7 @@ website:
             contents:
               - blog/posts/2018_ai_art_tour.qmd
               - blog/posts/js_deno.ipynb
+              - blog/posts/slml_overview.qmd
               - blog/posts/slml_part1.qmd
               - blog/posts/slml_part2.qmd
               - blog/posts/slml_template.qmd

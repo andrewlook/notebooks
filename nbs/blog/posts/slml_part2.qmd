@@ -14,11 +14,14 @@ comments:
 ---
 
 Most computer vision algorithms represent images as a rectangular grid of pixels on a screen. The model that the Magenta team trained, SketchRNN, instead interprets the drawings as a sequence of movements of a pen. They call this “stroke-3 format”, since each step in the sequence is represented by 3 values:
+
 - `delta_x`: how much did it move left-to-right?
 - `delta_y`: how much did it move up-and-down?
 - `lift_pen`: was the pen down (continuing the current stroke) or was the pen lifted (moving to the start of a new stroke)
 
-![stroke3-turtle](https://i.ibb.co/NLBL4v0/stroke3-turtle.png)
+:::{.column-page}
+![](https://i.ibb.co/NLBL4v0/stroke3-turtle.png)
+:::
 
 First, I had to convert my JPEG scans into the “stroke-3” format.  This would involve:
 
@@ -30,12 +33,21 @@ First, I had to convert my JPEG scans into the “stroke-3” format.  This woul
 
 When I first started converting to SVG, I had trouble finding a tool that would give me a single, clean stroke for each line.
 
-![potrace-points](https://i.ibb.co/sg3WjzZ/potrace-points.png)
+::: {#fig-vectorization layout-ncol=2}
+
+![`potrace`](https://i.ibb.co/sg3WjzZ/potrace-points.png){width=300 #fig-potrace}
+
+![`autotrace`](https://i.ibb.co/D7JyvM2/autotrace-points.png){width=300 #fig-autotrace}
+
+Comparison of Vectorization Tools.
+:::
+
+
 
 
 Eventually I found a tool called `autotrace` that was able to correctly do a “centerline trace”.
 
-![autotrace-points](https://i.ibb.co/D7JyvM2/autotrace-points.png)
+
 
 
 ## SVG to Points
