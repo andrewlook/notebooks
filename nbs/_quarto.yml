@@ -8,7 +8,9 @@ format:
     toc: true
 
 website:
-  twitter-card: true
+  twitter-card:
+    creator: "@andrewlook"
+    site: "@andrewlook"
   open-graph: true
   repo-actions: [issue]
   navbar:

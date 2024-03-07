@@ -1,6 +1,6 @@
 ---
 title: "SLML - Single-Line Machine Learning"
-description: Overview of my project training ML models on a dataset of single-line drawingws.
+description: Overview of my project training ML models on a dataset of single-line drawings.
 categories: [singleline, machinelearning, slml]
 author: Andrew Look
 date: 2023-10-25

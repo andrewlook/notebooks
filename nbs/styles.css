@@ -33,6 +33,7 @@
 div.description {
   padding-left: 2px;
   padding-top: 5px;
+  padding-bottom: 5px;
   font-style: italic;
   /* font-size: 135%; */
   opacity: 70%;
@@ -43,6 +44,23 @@ div.description {
 }
 
 .quarto-title-meta {
-  display: grid !important;
+  /* display: grid !important; */
+  display: inline !important;
   grid-template-columns: repeat(3, 1fr) !important;
+  text-align: right;
+}
+
+.quarto-title-meta-heading {
+  display: inline;
+  padding-right: 3px;
+  opacity: 30% !important;
+}
+
+.quarto-title-meta-contents {
+  display: inline;
+  opacity: 50%;
+}
+
+.quarto-title-meta-contents > p {
+  display: inline;
 }
