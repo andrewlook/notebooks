@@ -1,12 +1,14 @@
 ---
-title: Andrew Look - Home
+title: Hi, I'm Andrew Look.
 page-layout: article
 sidebar: false
 toc: false
 ---
 
-Hi, I'm Andrew Look.
-
-I'm a machine learning engineer, ex-startup founder, and part-time artist based in Brooklyn, NY.
+I'm an ML engineer, ex-startup founder, and part-time artist based in Brooklyn, NY.
 
 You can learn more about me on [my "about" page](about/index.qmd).
+
+Lately I've been working on training ML models to generate single-line drawings in my style.
+
+I've open-sourced my [models](https://github.com/andrewlook/singleline_models)
