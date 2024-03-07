@@ -2,7 +2,7 @@
 
 d = { 'settings': { 'branch': 'main',
                 'doc_baseurl': '/notebooks',
-                'doc_host': 'https://notebooks.andrewlook.com',
+                'doc_host': 'https://andrewlook.com',
                 'git_url': 'https://github.com/andrewlook/notebooks',
                 'lib_path': 'notebooks'},
   'syms': {}}

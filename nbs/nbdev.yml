@@ -2,8 +2,8 @@ project:
   output-dir: _docs
 
 website:
-  title: "notebooks"
-  site-url: "https://notebooks.andrewlook.com/notebooks"
-  description: "Jupyter Notebooks"
+  title: "andrewlook.com"
+  site-url: "https://andrewlook.com"
+  description: "Andrew Look's Personal Homepage"
   repo-branch: main
   repo-url: "https://github.com/andrewlook/notebooks"
