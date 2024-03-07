@@ -1,0 +1,57 @@
+---
+title: "SLML Part 2 - JPEG to SVG to Stroke-3"
+description: Converting JPEG scans to vector paths
+categories: [singleline, machinelearning, slml]
+author: Andrew Look
+date: 2023-11-07
+image: https://i.ibb.co/D7JyvM2/autotrace-points.png
+sidebar: false
+comments:
+  utterances:
+    repo: andrewlook/notebooks
+---
+
+---
+
+Most computer vision algorithms represent images as a rectangular grid of pixels on a screen. The model that the Magenta team trained, SketchRNN, instead interprets the drawings as a sequence of movements of a pen. They call this “stroke-3 format”, since each step in the sequence is represented by 3 values:
+- `delta_x`: how much did it move left-to-right?
+- `delta_y`: how much did it move up-and-down?
+- `lift_pen`: was the pen down (continuing the current stroke) or was the pen lifted (moving to the start of a new stroke)
+
+![stroke3-turtle](https://i.ibb.co/NLBL4v0/stroke3-turtle.png)
+
+First, I had to convert my JPEG scans into the “stroke-3” format.  This would involve:
+
+1. converting the files from JPEG to SVG
+2. converting SVG to stroke-3
+3. simplifying the drawings to reduce the number of points
+
+## JPEG to SVG
+
+When I first started converting to SVG, I had trouble finding a tool that would give me a single, clean stroke for each line.
+
+![potrace-points](https://i.ibb.co/sg3WjzZ/potrace-points.png)
+
+
+Eventually I found a tool called `autotrace` that was able to correctly do a “centerline trace”.
+
+![autotrace-points](https://i.ibb.co/D7JyvM2/autotrace-points.png)
+
+
+## SVG to Points
+
+Then I used a python library called `svgpathtools` to take the resulting SVG files, and convert each of the paths to a sequence of points. This step is necessary because SVG paths are often represented as Bezier curves. 
+
+One problem I noticed was that the drawings were represented as many separate strokes rather than one continuous line. For example, in the image below, each color represents a separate pen stroke.
+
+![separate strokes](https://i.ibb.co/s21gLTQ/stroke3-01-sepstrokes.png)
+
+## Line Simplification
+
+Finally, I’d apply the [Ramer-Douglas-Pecker](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm) ("RDP") algorithm on the resulting points, which uses an adjustable "epsilon" parameter to simplify down the drawings by reducing the number of points in a line's path.
+
+![RDP example](https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/RDP%2C_varying_epsilon.gif/440px-RDP%2C_varying_epsilon.gif)
+
+This is important because the SketchRNN model has difficulty with sequences longer than a few hundred points, so it’s helpful to simplify the drawings down by removing some of the very fine details while preserving the overall shape.
+
+![phase1-sample-0177-epoch-01700-orig](https://i.ibb.co/0JBLg6Q/phase1-sample-0177-epoch-01700-orig.png)
