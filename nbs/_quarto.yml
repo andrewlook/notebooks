@@ -20,8 +20,8 @@ website:
     left:
       - text: "blog"
         href: blog/index.qmd
-      - text: "jupyter"
-        href: jupyter/index.qmd
+      #- text: "jupyter"
+      #  href: jupyter/index.qmd
       - text: "resume"
         href: resume/index.qmd
       - text: "about"

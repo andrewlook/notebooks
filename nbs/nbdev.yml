@@ -4,6 +4,6 @@ project:
 website:
   title: "andrewlook"
   site-url: "https://andrewlook.com/notebooks"
-  description: "andrew look's personal website"
+  description: "Andrew Look Personal Website"
   repo-branch: main
   repo-url: "https://github.com/andrewlook/notebooks"
