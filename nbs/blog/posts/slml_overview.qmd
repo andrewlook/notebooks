@@ -1,4 +1,5 @@
 ---
+draft: true
 title: SLML - Single-Line Machine Learning
 description: Overview of my project training ML models on a dataset of single-line drawings.
 categories: [singleline, machinelearning, slml]
@@ -17,3 +18,4 @@ cap-location: margin
 
 - [Part 1](./slml_part1.qmd)
 - [Part 2](./slml_part2.qmd)
+- [Part 3](./slml_part3.qmd)
