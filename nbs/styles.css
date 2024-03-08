@@ -64,3 +64,29 @@ div.description {
 .quarto-title-meta-contents > p {
   display: inline;
 }
+
+.quarto-title-block {
+  display: none;
+}
+
+.quarto-title-block .description {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.quarto-title .quarto-categories {
+  display: none !important;
+}
+
+/* listing tables */
+.quarto-listing-table > thead {
+  display: none;
+}
+
+.quarto-listing-table > :not(:first-child) {
+  border-top: none;
+}
+
+.quarto-listing-table > :not(caption) > * > * {
+  padding: 0.1rem 0.1rem;
+  border-bottom-width: 0px !important;
+}

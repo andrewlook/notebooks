@@ -1,5 +1,5 @@
 ---
-title: "SLML Part 2 - JPEG to SVG to Stroke-3"
+title: SLML Part 2 - JPEG to SVG to Stroke-3
 description: Converting JPEG scans to vector paths
 categories: [singleline, machinelearning, slml]
 author: Andrew Look
@@ -11,7 +11,7 @@ comments:
     repo: andrewlook/notebooks
 ---
 
----
+# SLML Part 2 - JPEG to SVG to Stroke-3
 
 Most computer vision algorithms represent images as a rectangular grid of pixels on a screen. The model that the Magenta team trained, SketchRNN, instead interprets the drawings as a sequence of movements of a pen. They call this “stroke-3 format”, since each step in the sequence is represented by 3 values:
 

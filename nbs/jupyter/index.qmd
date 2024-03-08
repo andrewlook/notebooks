@@ -1,13 +1,15 @@
 ---
-title: Andrew Look's Blog 
-subtitle: Machine learning and art.
+title: jupyter notebooks
 listing:
-  sort: "date desc"
   contents: "*.ipynb"
+  sort: "date desc"
   sort-ui: false
   filter-ui: false
-  categories: true
   feed: true
-page-layout: full
+  date-format: iso
+  categories: unnumbered
+  type: table
+  fields: [title, date]
+page-layout: article
 sidebar: false
 ---

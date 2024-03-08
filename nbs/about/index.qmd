@@ -1,5 +1,5 @@
 ---
-title: About Me
+title: about me
 page-layout: article
 sidebar: false
 toc: false
@@ -15,7 +15,7 @@ I recently left my most recent startup, Aesthetic (Y Combinator Summer 2018).
 
 Before that, I did ML engineering at Pinterest from 2016-2018.
 
-Before Pinterest, I worked on a mobile ad startup called URX from 2013 until 2016 when [we](https://venturebeat.com/marketing/pinterest-buys-deep-linking-startup-urx/) [were](https://www.wsj.com/articles/pinterest-acquires-mobile-ad-startup-urx-1462298027) acquired by pinterest.
+Previously, I worked on a mobile ad startup called URX from 2013 until 2016 when [we](https://venturebeat.com/marketing/pinterest-buys-deep-linking-startup-urx/) [were](https://www.wsj.com/articles/pinterest-acquires-mobile-ad-startup-urx-1462298027) acquired by Pinterest.
 
 ### Side Projects
 

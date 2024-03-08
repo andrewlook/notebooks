@@ -1,5 +1,5 @@
 ---
-title: "SLML Part 3 - Training SketchRNN"
+title: SLML Part 3 - Training SketchRNN
 description: Experiments training SketchRNN on my dataset of single-line drawings.
 categories: [singleline, machinelearning, slml]
 author: Andrew Look
@@ -11,7 +11,7 @@ comments:
     repo: andrewlook/notebooks
 ---
 
----
+# SLML Part 3 - Training SketchRNN
 
 Now that I had a repeatable process to convert JPEGs into stroke-3, I decided to start training models with this data.
 

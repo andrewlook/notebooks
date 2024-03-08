@@ -1,5 +1,5 @@
 ---
-title: Andrew Look's Resume 
+title: resume
 page-layout: article
 sidebar: false
 toc: false

@@ -17,6 +17,10 @@ website:
               - blog/posts/slml_part3.qmd
               - blog/posts/slml_template.qmd
         href: blog/index.qmd
+      - section: jupyter
+        contents:
+          - jupyter/20_part1_computing_embeddings.ipynb
+        href: jupyter/index.qmd
       - section: resume
         contents: []
         href: resume/index.qmd

@@ -1,9 +1,11 @@
 ---
-title: Hi, I'm Andrew Look.
+title: home
 page-layout: article
 sidebar: false
 toc: false
 ---
+
+## Hi, I'm Andrew Look.
 
 I'm an ML engineer, ex-startup founder, and part-time artist based in Brooklyn, NY.
 
