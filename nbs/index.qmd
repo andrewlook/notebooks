@@ -12,7 +12,7 @@ listing:
     sort-ui: false
     filter-ui: false
     categories: false
-    fields: [title, date]
+    fields: [title]
   - id: posts-list
     contents: "blog/posts"
     type: table
@@ -21,7 +21,7 @@ listing:
     sort-ui: false
     filter-ui: false
     categories: false
-    fields: [title, date]
+    fields: [title]
 ---
 
 ## Hi, I'm Andrew Look.
