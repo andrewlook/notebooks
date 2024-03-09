@@ -11,7 +11,6 @@ website:
             contents:
               - blog/posts/2018_ai_art_tour.qmd
               - blog/posts/js_deno.ipynb
-              - blog/posts/slml_overview.qmd
               - blog/posts/slml_part1.qmd
               - blog/posts/slml_part2.qmd
               - blog/posts/slml_part3.qmd
@@ -21,6 +20,9 @@ website:
         contents:
           - jupyter/20_part1_computing_embeddings.ipynb
         href: jupyter/index.qmd
+      - section: projects
+        contents:
+          - projects/slml.qmd
       - section: resume
         contents: []
         href: resume/index.qmd

@@ -17,25 +17,25 @@ sidebar: true
 
 Lately I've been working on training ML models to generate single-line drawings in my style. I've open-sourced the code for my [models](https://github.com/andrewlook/singleline_models) and the code I used to prepare the [dataset](https://github.com/andrewlook/singleline_dataset).
 
-## [Part 1 - Embedding Filtering](./blog/posts/slml_part1.qmd)
+## [Part 1 - Embedding Filtering](/blog/posts/slml_part1.qmd)
 
-In [part 1](./blog/posts/slml_part1.qmd), I cover how I'm using embeddings to filter my dataset of drawings. I also made an exploratory browser to visualize the embedding space of the drawings, and published it at [projector.andrewlook.com](https://projector.andrewlook.com). Here's a demo video:
+In [part 1](/blog/posts/slml_part1.qmd), I cover how I'm using embeddings to filter my dataset of drawings. I also made an exploratory browser to visualize the embedding space of the drawings, and published it at [projector.andrewlook.com](https://projector.andrewlook.com). Here's a demo video:
 
 :::{.column-body-outset}
 {{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/emb-projector.mp4" >}}
 :::
 
-## [Part 2 - Dataset Vectorization](./blog/posts/slml_part2.qmd)
+## [Part 2 - Dataset Vectorization](/blog/posts/slml_part2.qmd)
 
-In [part 2](./blog/posts/slml_part2.qmd), I cover how I'm vectorizing the scans to prepare them for RNN/transformer training. I also wrote some fun preprocessing code to [join SVG paths](https://singleline-dataset.andrewlook.com/strokes.html) up into continuous lines. Here's a debug video I made to flip through part of my dataset and watch drawings go from multiple strokes (one color per stroke) to a single stroke:
+In [part 2](/blog/posts/slml_part2.qmd), I cover how I'm vectorizing the scans to prepare them for RNN/transformer training. I also wrote some fun preprocessing code to [join SVG paths](https://singleline-dataset.andrewlook.com/strokes.html) up into continuous lines. Here's a debug video I made to flip through part of my dataset and watch drawings go from multiple strokes (one color per stroke) to a single stroke:
 
 :::{.column-body-outset}
 {{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/new_file_fps20.mp4" >}}
 :::
 
-## [Part 3 - Training SketchRNN](./blog/posts/slml_part3.qmd)
+## [Part 3 - Training SketchRNN](/blog/posts/slml_part3.qmd)
 
-In [part 3](./blog/posts/slml_part3.qmd), I cover a series of experiment results from training SketchRNN with different regularization and data augmentation, to see how it affects the results that the models can generate. Here are some of the resulting drawings:
+In [part 3](/blog/posts/slml_part3.qmd), I cover a series of experiment results from training SketchRNN with different regularization and data augmentation, to see how it affects the results that the models can generate. Here are some of the resulting drawings:
 
 :::{.column-body-outset layout-ncol=3}
 {{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/video-11.mp4" >}}

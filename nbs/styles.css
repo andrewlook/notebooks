@@ -82,6 +82,11 @@ div.description {
   display: none;
 }
 
+.quarto-listing-table {
+  border-top: none;
+  border-bottom: none;
+}
+
 .quarto-listing-table > :not(:first-child) {
   border-top: none;
 }
