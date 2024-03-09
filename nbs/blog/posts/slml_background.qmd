@@ -1,0 +1,47 @@
+---
+title: SLML Background - My Single-Line Drawing Practice
+description: How I learned to love minimalism through my art.
+categories: [singleline, machinelearning, slml]
+author: Andrew Look
+date: 2023-10-20
+sidebar: false
+comments:
+  utterances:
+    repo: andrewlook/notebooks
+cap-location: margin
+---
+
+<!-- TODO: image -->
+
+# My Single-Line Drawing Practice
+
+> _This post is the background to my series ["SLML" - Single-Line Machine Learning](/projects/slml.qmd)._
+> 
+> _Next in the series is [part0](./part0.qmd), where I discovered SketchRNN and got curious about applying it to my own artwork._
+
+I started experimenting with single-line drawings around 2017. I'd been painting and drawing and experimenting with Machine Learning art for around 5 years at that point, but my art hobby had started to feel like a chore. I was taking on more and more ambitious painting projects, and there wasn't a lot of simplicity or repetition in my art practice. A lot of my art felt premeditated, as I'd print out what I wanted to paint and then "execute" it on the canvas, painstakingly trying to represent what I'd decided to paint as accurately as possible.
+
+I got tired of painting but wanted to keep up my art practice, so I started just carrying around a sketchbook. Since I'd noticed a tendency to overthink my drawings I thought a pencil would give me too much freedom to erase, so I only brought a pen with me. I found myself wanting to practice the challenging parts of paintings that I'd struggled with, particularly drawing people and faces.
+
+Friends advised me that adding a constraint could help me to iterate quickly and not overthink my drawings. Since one of my patterns had been to spend too much time on individual drawings, I decided to adopt an extreme constraint: as soon as I lifted the pen from the page, I'd call the drawing done.
+
+I was drawn at first to the technical challenge. As a painter I'd already been learning about facial anatomy in an attempt to improve my drawings. Now I needed not only to know enough about anatomy to visualize a person or face I wanted to draw in three dimensions, but also to pick a path across that surface to make a finished drawing.
+
+As a painter I'd grown accustomed to shading and blending to add or remove contrast. Once I started working only with lines, I had to find new tricks. Negative space in a drawing can create a good shadow. Concentric circles creates an illusion of depth. Putting lines close together makes something look darker.
+
+Over time, other aspects of single-line drawing pulled me in further. I found how much beauty there was to be found in what to leave out of a drawing. I learned how satisfying it is to choose just the essential lines needed to imply a facial expression or a pose.
+
+> _If you want to keep reading, check out [part0](./part0.qmd) of my [SLML](/projects/slml.qmd) series, where I discovered SketchRNN and got curious about applying it to my own artwork._
+
+<!--
+Technical Challenge
+- The challenge of drawing from imagination and memory.
+- Knowing enough anatomy to be able to improvise and arrive at something realistic.
+
+Exercise in Minimalism
+- The creativity involved in knowing what to leave out.
+- Finding the essential lines to represent someone or something.
+- In a way it’s a kind of compression - what’s the fewest number of lines I can make to imply my image in a viewer’s mind?
+
+[[BlindContourDrawing]]
+-->

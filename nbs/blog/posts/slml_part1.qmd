@@ -16,7 +16,9 @@ cap-location: margin
 
 > _This post is part 1 of ["SLML" - Single-Line Machine Learning](/projects/slml.qmd)._
 > 
-> _If you want to keep reading, here is [part 2](./slml_part2.qmd)._
+> _Check out the previous post, [part 0](./slml_part0.qmd), for some background on why I got started training SketchRNN on my own drawings._
+>
+> _Next in the series is [part 2](./slml_part2.qmd), where I convert my JPEGs into stroke-3 format in preparation for model training._
 
 For years, I've maintained a daily practice of making single-line drawings in my sketchbooks. 
 
@@ -127,4 +129,4 @@ When I looked at the t-SNE colorized by this higher-level cluster mapping, it wa
 
 Since my images were tagged with these higher-level groups, I was able to select only the drawings, and begin converting them into usable training data.
 
-> _If you want to keep reading, here is [part 2](./slml_part2.qmd) of my [SLML](/projects/slml.qmd) series._
+> _Next in my [SLML](/projects/slml.qmd) series is [part 2](./slml_part2.qmd), where I convert my JPEGs into stroke-3 format in preparation for model training._

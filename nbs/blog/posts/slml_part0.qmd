@@ -1,0 +1,71 @@
+---
+title: SLML Part 0 - Why I Decided to Train SketchRNN on My Drawings
+description: Using visual embeddings to filter thousands of images.
+categories: [singleline, machinelearning, slml]
+author: Andrew Look
+date: 2023-10-27
+image: https://i.ibb.co/h7nQM0n/distill-variation.gif
+sidebar: false
+comments:
+  utterances:
+    repo: andrewlook/notebooks
+cap-location: margin
+---
+
+# SLML Part 0 - Why I Decided to Train SketchRNN on My Drawings
+
+> _This post is part 0 of ["SLML" - Single-Line Machine Learning](/projects/slml.qmd)._
+> 
+> _If you want some context on how I got into single-line drawings, check out the [background section](./slml_background.qmd)._
+> 
+> _Next in the series is [part 1](./slml_part1.qmd) where I assemble the training data, and filter it using visual embeddings._
+
+## Discovering SketchRNN
+
+David Ha and Doug Eck from the Magenta team at Google had crowdsourced over 100,000 drawings using a game call “Quick, Draw”. The game would give users a prompt such as “Yoga” or “Pig” and users would have 20 seconds to draw it in the browser. This produced a dataset of line drawings for each category. Then, they trained a model called SketchRNN on these drawings. They trained a separate model for each category that users were prompted to draw, so there's a separate model trained for "yoga", "pig", etc.
+
+I was fascinated by Magenta's [SketchRNN demo](https://magenta.tensorflow.org/assets/sketch_rnn_demo/index.html) where you start a drawing, and the SketchRNN model tries continuously to complete it in new ways. It makes me think about the conditional probability that evolves as a drawing progresses. Given that one line exists on the page, how does that influence what line the artist is most likely to draw next?
+
+My favorite example is to select the yoga model, and then draw a rhombus shape simulating a yoga mat. I love watching stick figures emerge in various poses, all centered on and interacting with the yoga mat.
+
+![magenta-demo-01-draw-and-gen](https://i.ibb.co/fSqZM1j/magenta-demo-01-draw-and-gen.gif)
+
+Some of the same authors from the Magenta paper collaborated with distill.pub, using the same SketchRNN model trained on a handwriting dataset, to publish an explorable explanation called [Experiments in Handwriting with a Neural Network](https://distill.pub/2016/handwriting/).
+
+## Why train a model on my single-line drawings?
+
+I wanted to apply SketchRNN to my own single-line drawings.
+
+I'd considered training an ML model on my single-line drawings, but the pixel-based GAN's and VAE's available in 2017/2018 when I started thinking about this didn't seem like they'd yield good results on images that are mostly composed of white pixels with narrow black lines interspersed. What SketchRNN produces sequences, the generated results could be animated. I see single-line drawing as a sort of performance. A video of me drawing a single-line is inherently a proof that I didn’t lift my pen from the page.
+
+It struck me that it could give a new window into my own drawing style. If my own drawing style evolves slowly over time, would I be able to notice the difference between a model trained on drawings I made recently from one trained on drawings I made several years ago?
+
+How cool would it be to have an interface, similar to Andy Muatuschak's [scrying pen](https://andymatuschak.org/scrying-pen/), where I could start drawing and see live completions, showing me how the probability space of subsequent strokes in my drawing is changing?
+
+![scrying pen demo](https://i.ibb.co/4YrMbnG/Screen-Cast-2024-03-08-at-8-53-56-PM.gif)
+
+<!--![distill-draw](https://i.ibb.co/q7gn1md/distill-draw.gif) -->
+
+What new ideas might I get from turning the “variability” up, like the slider in distill.pub's [handwriting demo](https://distill.pub/2016/handwriting/), and generating new drawings based on my old ones?
+![distill-variation](https://i.ibb.co/h7nQM0n/distill-variation.gif)
+Or running stroke prediction along the length of a drawing:
+
+![distill-vary-strokes](https://i.ibb.co/wpfgwgf/distill-vary-strokes.png)
+
+![distill-vary-strokes-legend](https://i.ibb.co/YWHGtBF/distill-vary-strokes-legend.png)
+
+<!-- ![distill-vary-strokes](https://i.ibb.co/yVjZM12/distill-vary-strokes.gif) -->
+
+## Getting Started
+
+When I reached out to the authors of SketchRNN, they estimated that I’d need several thousand examples in order to train a model. I only had a few hundred at the time. But I kept making new drawings in my sketchbooks, and numbering the pages and the sketchbooks so that I could scan them and store them in a consistent way. In the back of my mind, I held on to the idea that one day I’d have enough drawings to train a model on them.
+
+Several years went by. More sketchbooks accumulated.
+
+Eventually, I ran a file count and saw a few thousand distinct drawings. I was finally ready to get started. I was going to need:
+
+1. at least a thousand drawings
+2. the ability to convert my scanned drawings into stroke-3 format
+3. to train a model on my drawings, and experiment until I found a configuration producing results that I liked.
+
+> _Next in my [SLML](/projects/slml.qmd) series is [part 1](./slml_part1.qmd), where I convert my JPEG scans into vector representations in preparation for training SketchRNN._
