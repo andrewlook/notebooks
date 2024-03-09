@@ -10,7 +10,8 @@ comments:
   utterances:
     repo: andrewlook/notebooks
 cap-location: margin
-sidebar: true
+sidebar: false
+toc: true
 ---
 
 # SLML - Single-Line Machine Learning
