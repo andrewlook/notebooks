@@ -12,6 +12,7 @@ comments:
 cap-location: bottom
 sidebar: false
 toc: true
+lightbox: auto
 ---
 
 # SLML - Single-Line Machine Learning
@@ -19,6 +20,10 @@ toc: true
 Lately I've been working on training ML models to generate single-line drawings in my style. I've open-sourced the code for my [models](https://github.com/andrewlook/singleline_models) and the code I used to prepare the [dataset](https://github.com/andrewlook/singleline_dataset).
 
 In the [background](/blog/posts/slml_background.qmd) section I share how I got started making single-line drawings, and why I found them interesting enough to make them as a daily practice.
+
+:::{.column-body-outset}
+{{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/sb20p077-drawing-vid.mp4" >}}
+:::
 
 In [part 0 - Discovering SketchRNN](/blog/posts/slml_part0.qmd), I cover how SketchRNN captured my imagination and why I decided to try training it on my own data. For example, I imagined turning the “variability” up, and generating new drawings based on my old ones?
 
@@ -28,11 +33,22 @@ In [part 0 - Discovering SketchRNN](/blog/posts/slml_part0.qmd), I cover how Ske
 
 I hit my first roadbloack when I reached out to the authors of SketchRNN. They estimated that I’d need thousands of examples in order to train a model, but I only had a few hundred at the time.
 
-I decided to keep making drawings in my sketchbooks, numbering the pages, scanning them, and storing them in a consistent way.
+I decided to keep making drawings in my sketchbooks, numbering the pages, and scanning them to store with a standardized file naming scheme.
 
-In the back of my mind, I held on to the idea that one day I’d have enough drawings to train a model on them. Several years went by. More sketchbooks accumulated.
+:::{.column-body-outset}
+{{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/hustl-20231207023837-sb77-scanning.mp4" >}}
+:::
 
-Eventually, I ran a file count and saw a few thousand distinct drawings. I was finally ready to get started. I was going to need:
+In the back of my mind, I held on to the idea that one day I’d have enough drawings to train a model on them.
+
+Several years went by. More sketchbooks accumulated. Eventually, I ran a file count and saw a few thousand distinct drawings.
+
+:::{.column-page}
+| ![sb48p072](https://i.ibb.co/TrdbwR2/sb48p072.jpg) | ![sb67p077](https://i.ibb.co/xfqZZF0/sb67p077.jpg)<br> | ![sb67p004](https://i.ibb.co/5MtbpVL/sb67p004.jpg) | ![sb38p073-gown2](https://i.ibb.co/RvJ6DpK/sb38p073-gown2.jpg) |
+| -------------------------------------------------- | ------------------------------------------------------ | -------------------------------------------------- | -------------------------------------------------------------- |
+:::
+
+I was finally ready to get started. I was going to need:
 
 1. a thousand JPEGs of my drawings (at least)
 2. a stroke-3 conversion process for my JPEG scans
@@ -41,7 +57,14 @@ Eventually, I ran a file count and saw a few thousand distinct drawings. I was f
 
 I started by collecting my sketchbook page JPEGs into usable training data.
 
-In [part 1 - Embedding Filtering](/blog/posts/slml_part1.qmd), I cover how I'm using embeddings to filter my dataset of drawings. I also made an exploratory browser to visualize the embedding space of the drawings, and published it at [projector.andrewlook.com](https://projector.andrewlook.com). Here's a demo video:
+In [part 1 - Embedding Filtering](/blog/posts/slml_part1.qmd), I cover how I'm using embeddings to filter my dataset of drawings. I used embeddings to solve the problem of filtering everything out of my sketchbook data that wasn't a single-line drawing - particularly my watercolors.
+
+:::{.column-page}
+| ![sb26p068-purple-hair](https://i.ibb.co/KFPv1dp/sb26p068-purple-hair.jpg) | ![sb55p069-color](https://i.ibb.co/HqsynCv/sb55p069-color.jpg) | ![sb26p098-pickle-toast](https://i.ibb.co/jW8rBNX/sb26p098-pickle-toast.jpg) | ![sb26p069-red-nose](https://i.ibb.co/ScRSctH/sb26p069-red-nose.jpg) |
+| -------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+:::
+
+I also made an exploratory browser to visualize the embedding space of the drawings, and published it at [projector.andrewlook.com](https://projector.andrewlook.com). Here's a demo video:
 
 :::{.column-body-outset}
 {{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/emb-projector.mp4" >}}
@@ -53,18 +76,83 @@ In [part 2 - Dataset Vectorization](/blog/posts/slml_part2.qmd), I cover how I'm
 {{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/new_file_fps20.mp4" >}}
 :::
 
-In [part 3 - Training SketchRNN](/blog/posts/slml_part3.qmd), I cover a series of experiment results from training SketchRNN with different regularization and data augmentation, to see how it affects the results that the models can generate. Here are some of the resulting drawings:
+In [part 3 - Training SketchRNN](/blog/posts/slml_part3.qmd), I cover a series of experiment results from training SketchRNN with different regularization and data augmentation, to see how it affects the results that the models can generate. 
 
-:::{.column-body-outset layout-ncol=3}
-{{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/video-11.mp4" >}}
+It has also been fun to connect the model's generation function to an animation builder, so I can watch the machine "draw" in real time. Compared with viewing a static output, the animations reminds me that part of what I love about single-line drawings is the surprise as a viewer. The drawing might start off nonsensical, and then end up with something recognizable enough to be an abstract figure drawing.
 
+:::{.column-body-outset layout-ncol=2}
 {{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/video-8.mp4" >}}
 
-{{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/video-9.mp4" >}}
+{{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/video-11.mp4" >}}
+
+Even when I'm drawing, I don't always know where the drawing is going to end up. I'm adjusting as my hand moves, and adapting to any unexpected moves or mistakes to try and arrive at a drawing that I like. Maybe it's not so different from how SketchRNN represents it - I'm sampling from a probability distribution of possible next moves, and my decision is made by the muscle memory of what's happened so far.
+
+Here are a few more of the resulting drawings:
+
+:::{.column-screen-inset layout-ncol=3}
+![](https://i.ibb.co/85p1XNk/phase5-test.png){group="phase5"}
+
+![](https://i.ibb.co/R41PJTS/phase5-test2.png){group="phase5"}
+
+![](https://i.ibb.co/SymDvdW/phase5-test3.png){group="phase5"}
+
+<!--
+![](https://i.ibb.co/xqfCt4n/phase5-test4.png){group="phase5"}
+
+![](https://i.ibb.co/cbh6D3F/phase5-test5.png){group="phase5"}
+-->
 :::
 
-In part 4 - Training Sketchformer_(coming soon)_, I cover my experiments using a transformer model instead of an RNN, to see if the model can better handle long-term dependencies within the drawings.
+They remind me of an experiment I've tried: drawing with my eyes closed.
+
+I was curious about how much I'm adjusting drawings based on what I see while I'm drawing. I wanted to see how much of my drawings come exclusively from the muscle memory I've developed in drawing faces.
+
+Drawing with eyes closed is a great analogy for how SketchRNN draws. The model is only receiving information about the path has traveled so far. No visual information is available about what the final drawing looks like in pixel space as a real image.
+
+:::{.column-screen-inset layout-ncol=3}
+![](https://i.ibb.co/xGVJtrL/067.jpg)
+
+![](https://i.ibb.co/2jMwq12/sb66p089-eyesclosed.jpg)
+
+![](https://i.ibb.co/vcwnvTX/sb66p091-eyesclosed.jpg)
+<!-- 
+![](https://i.ibb.co/f2YJ55v/065.jpg)
+
+![](https://i.ibb.co/LPHSH29/066.jpg)
+-->
+:::
+
+Errors like the ones in my eyes-closed drawings made me think about a common issue with models like SketchRNN that rely on recurrent neural networks. 
+
+The problem of ["long-term dependencies"](https://ai-master.gitbooks.io/recurrent-neural-network/content/the-problem-of-long-term-dependencies.html) refers to the poor performance RNN's exhibit in understand things that are too far apart in a sequence. 
+
+In the case of a drawing, long term dependencies would be things that are far apart in terms of the path the pen takes.
+
+![Recurrent neural networks read a sequence and update the "hidden" layer. The hidden layers act as a kind of memory, allowing later steps in the sequence to incorporate information from earlier parts of the sequence. Each step incorporates more information to the same vector before passing it to the next step in the sequnce. As the RNN model steps through the sequence, the signal from earlier in the sequence tends to "decay" in favor of more recent information later in the sequence.](https://ai-master.gitbooks.io/recurrent-neural-network/content/assets/RNN_connection.jpg)
+
+The long-term dependency problem makes intuitive sense to me when I consider my eyes-closed drawings.
+
+Apparently I have muscle memory when I draw eyes and a note in close proximity, and in drawings lips and a chin, but without looking it's hard to swoop down from eyes to lips and have them be aligned to the nose I drew earlier.
+
+![](https://i.ibb.co/4ZB8g6x/eyesclosed-explainer.png)
+
+<!--
+| ![phase5-test](https://i.ibb.co/85p1XNk/phase5-test.png) | ![phase5-test2](https://i.ibb.co/R41PJTS/phase5-test2.png) |
+| ---- | ---- |
+| ![phase5-test3](https://i.ibb.co/SymDvdW/phase5-test3.png) | ![phase5-test4](https://i.ibb.co/xqfCt4n/phase5-test4.png) |
+| ![phase5-test5](https://i.ibb.co/cbh6D3F/phase5-test5.png) |  |
+{{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/video-11.mp4" >}}
+{{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/video-9.mp4" >}}
+-->
+
+This got me interested in how [Transformer models]([The Illustrated Transformer – Jay Alammar – Visualizing machine learning one concept at a time.](https://jalammar.github.io/illustrated-transformer/)) use attention mechanisms to let each step in the sequence take into account the entire sequence at once.
+
+![](https://jalammar.github.io/images/t/transformer_self-attention_visualization.png)
+
+I came across a paper called [Sketchformer: Transformer-based Representation for Sketched Structure](https://arxiv.org/abs/2002.10381), which made a transformer model based on SketchRNN. I decided to try adapting that model for my dataset, and seeing how it compares on handling long-term dependencies.
 
 :::{.column-body-outset cap-location=bottom}
 ![Architecture of the SketchFormer model.](https://i.ibb.co/rx1nbmt/sketchformer-architecture.png)
 :::
+
+In part 4 - Training Sketchformer_(coming soon)_, I cover my experiments using a transformer model instead of an RNN, to see if the model can better handle long-term dependencies within the drawings. 

@@ -20,7 +20,7 @@ cap-location: margin
 >
 > _Next in the series is [part 2](./slml_part2.qmd), where I convert my JPEGs into stroke-3 format in preparation for model training._
 
-For years, I've maintained a daily practice of making single-line drawings in my sketchbooks. 
+For years, I've maintained a [daily practice](./slml_background.qmd) of making single-line drawings in my sketchbooks. 
 
 :::{.column-page}
 | ![sb48p072](https://i.ibb.co/TrdbwR2/sb48p072.jpg) | ![sb67p077](https://i.ibb.co/xfqZZF0/sb67p077.jpg)<br> | ![sb67p004](https://i.ibb.co/5MtbpVL/sb67p004.jpg) | ![sb38p073-gown2](https://i.ibb.co/RvJ6DpK/sb38p073-gown2.jpg) |
@@ -53,11 +53,6 @@ My first problem is that the "art" sections of my sketchbooks don't just contain
 | ![sb69p086-wc](https://i.ibb.co/Qrf23tn/sb69p086-wc.jpg) | ![sb67p051-sparky](https://i.ibb.co/Hd4zsKb/sb67p051-sparky.jpg) | ![sb69p006](https://i.ibb.co/0Zr2MNT/sb69p006.jpg) | ![sb35p013](https://i.ibb.co/sFkp4D8/sb35p013.jpg) |
 | -------------------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------- | -------------------------------------------------- |
 :::
-
-<!--
-| ![sb26p068-purple-hair](https://i.ibb.co/KFPv1dp/sb26p068-purple-hair.jpg) | ![sb55p069-color](https://i.ibb.co/HqsynCv/sb55p069-color.jpg) | ![sb26p098-pickle-toast](https://i.ibb.co/jW8rBNX/sb26p098-pickle-toast.jpg) | ![sb26p069-red-nose](https://i.ibb.co/ScRSctH/sb26p069-red-nose.jpg) |
-| -------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------- |
--->
 
 ## Measuring Visual Similarity with Embeddings
 
