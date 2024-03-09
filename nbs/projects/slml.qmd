@@ -84,6 +84,7 @@ It has also been fun to connect the model's generation function to an animation 
 {{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/video-8.mp4" >}}
 
 {{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/video-11.mp4" >}}
+:::
 
 Even when I'm drawing, I don't always know where the drawing is going to end up. I'm adjusting as my hand moves, and adapting to any unexpected moves or mistakes to try and arrive at a drawing that I like. Maybe it's not so different from how SketchRNN represents it - I'm sampling from a probability distribution of possible next moves, and my decision is made by the muscle memory of what's happened so far.
 
