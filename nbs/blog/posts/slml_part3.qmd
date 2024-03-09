@@ -13,6 +13,10 @@ comments:
 
 # SLML Part 3 - Training SketchRNN
 
+> _This post is part 3 of ["SLML" - Single-Line Machine Learning](/projects/slml.qmd)._
+> 
+> _To read the previous post, check out [part 2](./slml_part2.qmd). If you want to keep reading, check out part 4 (coming soon)._
+
 Now that I had a repeatable process to convert JPEGs into stroke-3, I decided to start training models with this data.
 
 ## Sidebar: Training / Validation Metrics
@@ -269,3 +273,5 @@ Jan 13:
 	* note: identical hyperparams, but I had the model set up to save every 100 epochs. Since the much larger augmented dataset had longer epochs, the point of overfitting came around epoch
 	* ![phase6-wandb-overfitting-point](https://i.ibb.co/bKkFsG6/phase6-wandb-overfitting-point.png)
 -->
+
+> _If you want to keep reading, check out part 4 (coming soon) of my [SLML](/projects/slml.qmd) series._

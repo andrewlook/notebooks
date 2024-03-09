@@ -13,6 +13,10 @@ comments:
 
 # SLML Part 2 - JPEG to SVG to Stroke-3
 
+> _This post is part 2 of ["SLML" - Single-Line Machine Learning](/projects/slml.qmd)._
+> 
+> _To read the previous post, check out [part 1](./slml_part1.qmd). If you want to keep reading, here is [part 3](./slml_part3.qmd)._
+
 Most computer vision algorithms represent images as a rectangular grid of pixels on a screen. The model that the Magenta team trained, SketchRNN, instead interprets the drawings as a sequence of movements of a pen. They call this “stroke-3 format”, since each step in the sequence is represented by 3 values:
 
 - `delta_x`: how much did it move left-to-right?
@@ -67,3 +71,5 @@ Finally, I’d apply the [Ramer-Douglas-Pecker](https://en.wikipedia.org/wiki/Ra
 This is important because the SketchRNN model has difficulty with sequences longer than a few hundred points, so it’s helpful to simplify the drawings down by removing some of the very fine details while preserving the overall shape.
 
 ![phase1-sample-0177-epoch-01700-orig](https://i.ibb.co/0JBLg6Q/phase1-sample-0177-epoch-01700-orig.png)
+
+> _If you want to keep reading, here is [part 3](./slml_part3.qmd) of my [SLML](/projects/slml.qmd) series._

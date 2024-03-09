@@ -14,6 +14,10 @@ cap-location: margin
 
 # SLML Part 1 - Assembling the Dataset
 
+> _This post is part 1 of ["SLML" - Single-Line Machine Learning](/projects/slml.qmd)._
+> 
+> _If you want to keep reading, here is [part 2](./slml_part2.qmd)._
+
 For years, I've maintained a daily practice of making single-line drawings in my sketchbooks. 
 
 :::{.column-page}
@@ -122,3 +126,5 @@ When I looked at the t-SNE colorized by this higher-level cluster mapping, it wa
 ![T-SNE representation of pages, colored by cluster group. `drawings` are purple, `notes` are dark green, `watercolors` are yellow, `bad scans` are blue, `covers` are light green.](https://i.ibb.co/wQPXG0Q/tsne-clusters5.png)
 
 Since my images were tagged with these higher-level groups, I was able to select only the drawings, and begin converting them into usable training data.
+
+> _If you want to keep reading, here is [part 2](./slml_part2.qmd) of my [SLML](/projects/slml.qmd) series._
