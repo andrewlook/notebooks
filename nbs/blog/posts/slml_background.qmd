@@ -17,7 +17,7 @@ cap-location: margin
 
 > _This post is the background to my series ["SLML" - Single-Line Machine Learning](/projects/slml.qmd)._
 > 
-> _Next in the series is [part0](./part0.qmd), where I discovered SketchRNN and got curious about applying it to my own artwork._
+> _Next in the series is [part 0](./slml_part0.qmd), where I discovered SketchRNN and got curious about applying it to my own artwork._
 
 I started experimenting with single-line drawings around 2017. I'd been painting and drawing and experimenting with Machine Learning art for around 5 years at that point, but my art hobby had started to feel like a chore. I was taking on more and more ambitious painting projects, and there wasn't a lot of simplicity or repetition in my art practice. A lot of my art felt premeditated, as I'd print out what I wanted to paint and then "execute" it on the canvas, painstakingly trying to represent what I'd decided to paint as accurately as possible.
 
@@ -31,7 +31,7 @@ As a painter I'd grown accustomed to shading and blending to add or remove contr
 
 Over time, other aspects of single-line drawing pulled me in further. I found how much beauty there was to be found in what to leave out of a drawing. I learned how satisfying it is to choose just the essential lines needed to imply a facial expression or a pose.
 
-> _If you want to keep reading, check out [part0](./part0.qmd) of my [SLML](/projects/slml.qmd) series, where I discovered SketchRNN and got curious about applying it to my own artwork._
+> _If you want to keep reading, check out [part 0](./slml_part0.qmd) of my [SLML](/projects/slml.qmd) series, where I discovered SketchRNN and got curious about applying it to my own artwork._
 
 <!--
 Technical Challenge
