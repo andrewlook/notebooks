@@ -184,7 +184,7 @@ For the remaining drawings, I ran the RDP algorithm with varying values for its 
 
 ### Phase 4 - Training
 
-
+- TODO: explain dataset / hyperparameter changes
 
 [metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20231214-bounding-box-separation-filtering--Vmlldzo2OTQ1NTUw)
 
@@ -218,10 +218,9 @@ Dec 17,18:
 | ![phase4-runid-slgleu3l-epoch-00100-sample-0406-decoded](https://i.ibb.co/vXsBtDS/phase4-runid-slgleu3l-epoch-00100-sample-0406-decoded.png) |                                                                                                                                              |
 
 
-
-
-
 ## Learning 5
+
+- TODO: explain dataset / hyperparameter changes
 
 | ![phase5-test](https://i.ibb.co/85p1XNk/phase5-test.png) | ![phase5-test2](https://i.ibb.co/R41PJTS/phase5-test2.png) |
 | ---- | ---- |
@@ -249,13 +248,10 @@ Jan 13:
 -->
 
 
-
-
-
-
 ## Learning 6
 
 - [ ] Data Augmentation
+- TODO: explain dataset / hyperparameter changes
 
 
 [epoch20240221\_expanded10x\_trainval | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240221_expanded10x_trainval--Vmlldzo2OTQ1NjUw)
