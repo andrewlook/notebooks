@@ -13,11 +13,28 @@ cap-location: bottom
 sidebar: false
 toc: true
 lightbox: auto
+listing:
+  - id: posts-list
+    contents: "../blog/posts/slml_*.qmd"
+    type: table
+    sort: "date asc"
+    date-format: iso
+    sort-ui: false
+    filter-ui: false
+    categories: false
+    fields: [title]
 ---
 
 # SLML - Single-Line Machine Learning
 
 Lately I've been working on training ML models to generate single-line drawings in my style. I've open-sourced the code for my [models](https://github.com/andrewlook/singleline_models) and the code I used to prepare the [dataset](https://github.com/andrewlook/singleline_dataset).
+
+I've started writing deep dives for each phase of the project.
+
+:::{#posts-list}
+:::
+
+Here's some context on the story as a whole, describing what's covered in each section:
 
 In the [background](/blog/posts/slml_background.qmd) section I share how I got started making single-line drawings, and why I found them interesting enough to make them as a daily practice.
 
