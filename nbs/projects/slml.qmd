@@ -34,7 +34,9 @@ I've started writing deep dives for each phase of the project.
 :::{#posts-list}
 :::
 
-Here's some context on the story as a whole, describing what's covered in each section:
+This page includes a broader overview of the story as a whole, linking to the individual sections for more detail.
+
+## Why This Project
 
 In [part 0](/blog/posts/slml_part0.qmd) I share how I got started making single-line drawings, and why I found them interesting enough to make them as a daily practice.
 
@@ -65,6 +67,8 @@ Several years went by. More sketchbooks accumulated. Eventually, I ran a file co
 | -------------------------------------------------- | ------------------------------------------------------ | -------------------------------------------------- | -------------------------------------------------------------- |
 :::
 
+## Preparing the Dataset
+
 I was finally ready to get started. I was going to need:
 
 1. a thousand JPEGs of my drawings (at least)
@@ -92,6 +96,8 @@ In [part 3 - Dataset Vectorization](/blog/posts/slml_part3.qmd), I cover how I'm
 :::{.column-body-outset}
 {{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/new_file_fps20.mp4" >}}
 :::
+
+## SketchRNN Experiments
 
 In [part 4 - Training SketchRNN](/blog/posts/slml_part4.qmd), I cover a series of experiment results from training SketchRNN with different regularization and data augmentation, to see how it affects the results that the models can generate. 
 
