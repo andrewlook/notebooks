@@ -20,7 +20,10 @@ website:
         href: blog/index.qmd
       - section: jupyter
         contents:
+          - jupyter/20240311_dataset_review.ipynb
           - jupyter/20_part1_computing_embeddings.ipynb
+          - jupyter/21_part2_exploring_embeddings.ipynb
+          - jupyter/30_singleline_dataset_second_attempt.ipynb
         href: jupyter/index.qmd
       - section: projects
         contents:
