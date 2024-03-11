@@ -1,0 +1,132 @@
+---
+title: "SLML Part 5 - SketchRNN Experiments: Path Joining and Bounding-Box Separation"
+description: Experiments training SketchRNN on my dataset of single-line drawings.
+categories: [singleline, machinelearning, slml]
+author: Andrew Look
+date: 2023-12-03
+image: https://i.ibb.co/BPdSrTQ/phase1-wandb-with-without-minn10.png
+sidebar: false
+comments:
+  utterances:
+    repo: andrewlook/notebooks
+---
+
+# SLML Part 5 - SketchRNN Experiments: Path Joining and Bounding-Box Separation
+
+> _This post is part 5 of ["SLML" - Single-Line Machine Learning](/projects/slml.qmd)._
+> 
+> _To read the previous post, check out [part 4](./slml_part4.qmd). If you want to keep reading, check out [part 6](./slml_part6.qmd)._
+
+## Learning 3 - Better Preprocessing
+
+Despite some improvement within the strokes, my latest models were still producing many short strokes. So I figured that improving my dataset would give better results than fiddling with hyper-parameters or my model.
+
+Looking at my training data, I returned to an issue from the stroke3-conversion process: autotrace hadn't realized that the different segments of my lines were actually connected. It was producing a series of small, centerline-traced segments.
+
+![separate strokes](https://i.ibb.co/s21gLTQ/stroke3-01-sepstrokes.png)
+
+I'd have to go back and somehow connect them. So, I tried a simple little algorithm that I called ["path joining"](https://singleline-dataset.andrewlook.com/strokes.html#joining-paths).
+
+The idea: each of my drawings was a collection of line segments, each with a start and end point. I'd start with the longest one. Then, for each of the other line segments, I'd find the minimum distance between the start and end points of the line segments. Put simply, what's the shortest connection I can draw to connect two segments? I found that I needed an upper bound on the distance - I'd resized all of my drawings to 200x200 pixels, so something like 15-30 pixels was the maximum distance I observed made sense before I started to get irrelevant lines connecting to each other.
+
+This worked remarkably well. Still, I noticed some drawings had large contiguous strokes that weren't getting connected. I realized that while the strokes were close together and in some cases touching, their start and end points were far apart from each other.
+
+![joined strokes](https://i.ibb.co/602dKpr/stroke3-01-joinedstrokes.png)
+
+So I wrote a second algorithm, which I called ["path splicing"](https://singleline-dataset.andrewlook.com/strokes.html#splicing-strokes).
+
+After I'd applied path joining and had a smaller number of long strokes left over, I wanted to see which strokes should be joined together. So, I'd take the longest path, then for each of the remaining shorter paths, I'd step through each point on the longest path and compare its distance from the start and end points of the shorter paths. When I found the smallest gap, I would "insert" the shorter line into the longer path at the point with the smallest distance.
+
+![spliced strokes](https://i.ibb.co/rtnZMq1/stroke3-01-splicedstrokes1.png)
+
+While not every drawing was turned into a single stroke, this was a big improvement. Once I trained some models on a dataset with these "joined and spliced" paths, I started to get results that looked more like single-line drawings of people. In some cases they look surreal, but I started to see some more recognizable face elements and in some cases full bodies.
+
+| ![phase3-runid-dhzx8671-epoch-00200-sample-0338-decoded](https://i.ibb.co/ZGLMZ4H/phase3-runid-dhzx8671-epoch-00200-sample-0338-decoded.png) | ![phase3-runid-dhzx8671-epoch-00400-sample-0338-decoded](https://i.ibb.co/5TVZG6H/phase3-runid-dhzx8671-epoch-00400-sample-0338-decoded.png) | ![phase3-runid-093xwcex-epoch-01000-sample-0061-decoded](https://i.ibb.co/KxRj62q/phase3-runid-093xwcex-epoch-01000-sample-0061-decoded.png) |
+| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+
+Comparing the [metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/v2-splicedata-vs-look_i16_minn10--Vmlldzo2OTQ1NTIw) from my previous recurrent dropout model (light green) with models trained on this joined/spliced dataset (turquoise/dark green) isn't a perfect comparison, since the content of the validation set isn't the same. But I can see that the model started to overfit around 1000 steps.
+
+![phase3-wandb-splicedata](https://i.ibb.co/vDsPsK6/phase3-wandb-splicedata.png)
+<!-- 
+Dec 7:
+- [ ] 093xwcex: [likely-glitter-26\_splicedata-maxstrokes5 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/093xwcex?workspace=user-andrewlook)
+	- Dataset: v2-splice-maxstrokes5
+- [ ] dhzx8671: [pretty-firebrand-27\_splicedata-maxstrokes6 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/dhzx8671?workspace=user-andrewlook)
+	- Dataset: v2-splice-maxstrokes6
+-->
+
+
+## Learning 4 - Bounding Boxes, Filtering out really long drawings
+
+### Really Long Drawings
+
+One failure mode I noticed in the results generated after training on this dataset was that sometimes really knotty, gnarled lines would come out.
+
+| ![phase3-runid-093xwcex-epoch-00900-sample-0035-decoded](https://i.ibb.co/hycJZ71/phase3-runid-093xwcex-epoch-00900-sample-0035-decoded.png) | ![phase3-runid-093xwcex-epoch-01000-sample-0095-decoded](https://i.ibb.co/KrrH350/phase3-runid-093xwcex-epoch-01000-sample-0095-decoded.png) | ![phase3-runid-dhzx8671-epoch-00200-sample-0322-decoded](https://i.ibb.co/5jWFN7T/phase3-runid-dhzx8671-epoch-00200-sample-0322-decoded.png) |
+| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+
+Sometimes I make patterns by chaining repeating sequences of faces into long continuous lines. I wondered whether the presence of this kind of drawing in the training data was occasionally encouraging the model to make long continuous chains rather than drawing a single person.
+
+![chains example](https://i.ibb.co/wYmmGHX/sb42p006-raw-rotated.jpg)
+
+### Bounding Boxes
+
+My last remaining problem: there were some pages where I'd make 4 or 5 separate drawings that had nothing to do with each other, and had a lot of space between them. I wanted to separate those into separate examples before making a training dataset, for 2 reasons:
+1) To get more training examples from the scans I had
+2) To avoid confusing the model I was training - if some examples make a complete drawing and then start a second unrelated drawing, how does the model know when to finish a drawing vs. when to start a second drawing alongside the first one?
+
+So I wrote a third algorithm, which i called "bounding box separation".
+
+My intuition was that separate drawings had some space between them, and didn't overlap much. So I'd take each of the strokes within a drawing, and determine its top/bottom/left/right extremes, so I could draw a box around each stroke. Then for each combination of bounding boxes, I'd compute a ratio of the area of their overlap compared to the area of the non-overlapping parts. If the ratio exceeds some threshold, I consider them to be part of the same drawing, and I merge the bounding boxes. Then I take that larger bounding box along with all the remaining bounding boxes, and repeat the process until no overlaps remain that exceed the threshold. Also, if any bounding boxes have a really small area, I just drop them. It turns out this helps exclude little page numbers / bits of text from ending up in my training data.
+
+Once I have all the separated drawings, I save them out as separate files.
+
+I noticed that some drawings were of one figure, and some drawings were patterned or chained with many faces. I wanted to exclude those patterns/chains from my training data, so I could give my model the best chance of learning to draw one person at a time.
+
+So, I computed embeddings for these bounding-box separated drawings, clustered them, and got reasonably coherent groups.
+
+Finally, I excluded the ones that didn't fit the composition I wanted, and saved a filtered-down dataset.
+
+To train the model, I had to pick a maximum number of points in a given drawing. 250 was the recommended default.
+
+I looked at the distribution of number of points in all the drawings. At the very low end, some drawings had snuck in that were just little squiggles, and at the upper end, some really convoluted messes of lines were in there. I cut out the top and bottom 5% of drawings by number of points.
+
+For the remaining drawings, I ran the RDP algorithm with varying values for its `epsilon` parameter, until the number of points dipped under 250. Then I saved the result as a zipped numpy file.
+
+
+### Phase 4 - Training
+
+- TODO: explain dataset / hyperparameter changes
+
+[metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20231214-bounding-box-separation-filtering--Vmlldzo2OTQ1NTUw)
+
+![phase4-wandb-bboxsep-filtering](https://i.ibb.co/729d0KL/phase4-wandb-bboxsep-filtering.png)
+
+<!--
+
+### Phase 4
+Dec 17,18:
+- [ ] gh3hupc1l: [treasured-serenity-28\_\_epoch-20231214\_\_boundingboxes | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/g3hupc1l?workspace=user-andrewlook)
+	- Dataset: epoch-20231214-trainval
+- [ ] fj4klg1i: [eager-capybara-29 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/fj4klg1i?workspace=user-andrewlook)
+	- Dataset: epoch-20231214-filtered-trainval
+- [ ] slgleu3l: [summer-planet-30 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/slgleu3l?workspace=user-andrewlook)
+	- Dataset: epoch-20231214-filtered-trainval
+	- augment_stroke_prob=1
+- [ ] wz9rw5a4: [comfy-violet-31 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/wz9rw5a4/overview?workspace=user-andrewlook)
+	- use_random_scale=true
+	- random_scale_factor=0.15
+
+-->
+
+| ![phase4-runid-fj4klg1i-epoch-00100-sample-0080-decoded](https://i.ibb.co/d2vfKZ2/phase4-runid-fj4klg1i-epoch-00100-sample-0080-decoded.png) | ![phase4-runid-fj4klg1i-epoch-00100-sample-0278-decoded](https://i.ibb.co/xYWW05f/phase4-runid-fj4klg1i-epoch-00100-sample-0278-decoded.png) |
+| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| ![phase4-runid-fj4klg1i-epoch-00200-sample-0080-decoded](https://i.ibb.co/wh86Rm5/phase4-runid-fj4klg1i-epoch-00200-sample-0080-decoded.png) | ![phase4-runid-fj4klg1i-epoch-00200-sample-0291-decoded](https://i.ibb.co/R28gn3K/phase4-runid-fj4klg1i-epoch-00200-sample-0291-decoded.png) |
+| ![phase4-runid-fj4klg1i-epoch-00400-sample-0186-decoded](https://i.ibb.co/V2MdNGf/phase4-runid-fj4klg1i-epoch-00400-sample-0186-decoded.png) | ![phase4-runid-fj4klg1i-epoch-00400-sample-0278-decoded](https://i.ibb.co/WkYTZxh/phase4-runid-fj4klg1i-epoch-00400-sample-0278-decoded.png) |
+| ![phase4-runid-g3hupc1l-epoch-00200-sample-0180-decoded](https://i.ibb.co/x51j8wR/phase4-runid-g3hupc1l-epoch-00200-sample-0180-decoded.png) | ![phase4-runid-g3hupc1l-epoch-00300-sample-0136-decoded](https://i.ibb.co/CV2SXQ3/phase4-runid-g3hupc1l-epoch-00300-sample-0136-decoded.png) |
+| ![phase4-runid-g3hupc1l-epoch-00400-sample-0136-decoded](https://i.ibb.co/vdrzxMj/phase4-runid-g3hupc1l-epoch-00400-sample-0136-decoded.png) | ![phase4-runid-g3hupc1l-epoch-00400-sample-0207-decoded](https://i.ibb.co/6vCfK1D/phase4-runid-g3hupc1l-epoch-00400-sample-0207-decoded.png) |
+| ![phase4-runid-g3hupc1l-epoch-00400-sample-0396-decoded](https://i.ibb.co/0mxFh2X/phase4-runid-g3hupc1l-epoch-00400-sample-0396-decoded.png) | ![phase4-runid-slgleu3l-epoch-00100-sample-0068-decoded](https://i.ibb.co/4Mq5Gtw/phase4-runid-slgleu3l-epoch-00100-sample-0068-decoded.png) |
+| ![phase4-runid-slgleu3l-epoch-00100-sample-0244-decoded](https://i.ibb.co/nmLtzS7/phase4-runid-slgleu3l-epoch-00100-sample-0244-decoded.png) | ![phase4-runid-slgleu3l-epoch-00100-sample-0268-decoded](https://i.ibb.co/Fmf7RBF/phase4-runid-slgleu3l-epoch-00100-sample-0268-decoded.png) |
+| ![phase4-runid-slgleu3l-epoch-00100-sample-0406-decoded](https://i.ibb.co/vXsBtDS/phase4-runid-slgleu3l-epoch-00100-sample-0406-decoded.png) |                                                                                                                                              |
+
+> _If you want to keep reading, check out [part 6](./slml_part5.qmd) of my [SLML](/projects/slml.qmd) series._

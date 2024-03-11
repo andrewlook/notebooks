@@ -1,0 +1,107 @@
+---
+title: "SLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization"
+description: Experiments training SketchRNN on my dataset of single-line drawings.
+categories: [singleline, machinelearning, slml]
+author: Andrew Look
+date: 2023-12-03
+image: https://i.ibb.co/BPdSrTQ/phase1-wandb-with-without-minn10.png
+sidebar: false
+comments:
+  utterances:
+    repo: andrewlook/notebooks
+---
+
+# SLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization
+
+> _This post is part 4 of ["SLML" - Single-Line Machine Learning](/projects/slml.qmd)._
+> 
+> _To read the previous post, check out [part 3](./slml_part3.qmd). If you want to keep reading, check out [part 5](./slml_part5.qmd)._
+
+Now that I had a repeatable process to convert JPEGs into stroke-3, I decided to start training models with this data.
+
+## Sidebar: Training / Validation Metrics
+
+When training models, I'm measuring the reconstruction loss. I feed in a drawing, the model encodes it into an embedding vector, and then decodes the embedding vector back into a drawing. I can compute the loss at each step in the reconstructed drawing compare to the original.
+
+Periodically, after processing several batches of training data, I compute the reconstruction metrics on a validation set. This is a portion of the dataset I'm not using to actually update the weights of the model during training.
+
+By comparing the reconstruction loss on the training set vs. the validation set over time, I can identify when the model starts "overfitting". Intuitively, if the model is learning to perform better on the training data while performing worse on the validation data, that means it is effectively memorizing the training set rather than learning to generalize its learnings to drawings it wasn't trained on.
+
+## Learning #1: Model doesn't do well with many small lines
+
+My first models produced odd smatterings composed of many small strokes:
+
+| ![phase1-sample-0111-epoch-00330-decoded](https://i.ibb.co/Nnrn9jL/phase1-sample-0111-epoch-00330-decoded.png) | ![phase1-sample-0115-epoch-00310-decoded](https://i.ibb.co/fSnW50p/phase1-sample-0115-epoch-00310-decoded.png) | ![phase1-sample-0177-epoch-06000-decoded](https://i.ibb.co/LNdGhBb/phase1-sample-0177-epoch-06000-decoded.png) |
+| -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+
+
+The training data I'd input had lots of tiny strokes mixed in with longer ones, and no inherent order to them.
+
+| ![phase1-sample-0167-epoch-01700-orig](https://i.ibb.co/CB9BQTY/phase1-sample-0167-epoch-01700-orig.png) | ![phase1-sample-0177-epoch-01700-orig](https://i.ibb.co/0JBLg6Q/phase1-sample-0177-epoch-01700-orig.png) |
+| -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+
+
+I recognized that I'd need a more systematic solution to improve my training data. As a quick experiment, I tried just filtering out any really short strokes out of the dataset - I decided to filter out any strokes in a drawing with less than 10 points.
+
+![phase1-wandb-with-without-minn10](https://i.ibb.co/BPdSrTQ/phase1-wandb-with-without-minn10.png)
+
+<!-- 
+### Phase 1
+- msiyyh0i: [pytorchsketchrnn-look\_i16-001 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/msiyyh0i?workspace=user-andrewlook)
+	- look_i16
+- xtnlxroi: [pytorchsketchrnn-look\_i16-002\_minn10 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/xtnlxroi?workspace=user-andrewlook)
+	- look_i16__minn10_epsilon1
+-->
+
+That model (in yellow) compared with the original model (pink) performed slightly better in terms of the error when reconstructing a drawing - the loss values were lower, and the validation loss didn't start to increase until slightly later.
+
+The results produced were much less chaotic. While they didn't resemble coherent drawings, this was the first time I spotted some elements of my drawing style (head shape, eye style, lips, chin).
+
+| ![phase2-sample-0066-epoch-11700-decoded](https://i.ibb.co/hXBK8Zb/phase2-sample-0066-epoch-11700-decoded.png) | ![phase2-sample-0145-epoch-11500-decoded](https://i.ibb.co/jzgHHPS/phase2-sample-0145-epoch-11500-decoded.png) | ![phase2-sample-0291-epoch-13200-decoded](https://i.ibb.co/0mwbJBw/phase2-sample-0291-epoch-13200-decoded.png) |
+| -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+
+
+
+
+## Learning 2 - Effectiveness of RNN Regularization Techniques
+
+I noticed that when I let the trainer run overnight, I'd get wild spikes in the training loss. The Magenta team had recommended using [Layer Normalization](https://arxiv.org/abs/1607.06450) and [Recurrent Dropout with Memory Loss](https://arxiv.org/abs/1603.05118).
+
+When I added layer normalization, the [metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/look_i16_minn10-before-after-layernorm--Vmlldzo2OTQ1MzIw) showed a dramatic difference. The yellow line (without layer norm) has a massive increase in validation loss, and many big spikes, while the burgundy and gray lines (with layer norm integrated) have much lower validation loss and don't have any comparable spikes.
+
+![phase2-wandb-before-after-layernorm](https://i.ibb.co/9vk4W7d/phase2-wandb-V2-before-after-layernorm.png)
+<!-- 
+Nov 30, Dec 1 (pre runid in filename)
+- [ ] samples 0291, 0145, 0066, 0016
+
+Dec 4:
+- [ ] 5eibyllb: [atomic-puddle-15 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/5eibyllb?workspace=user-andrewlook)
+	- Dataset: look_i16__minn10_epsilon1
+	- Layernorm, recurrent dropout
+- [ ] t6bcos6b: [ruby-resonance-16--fix-layernorm-learnableFalse | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/t6bcos6b?workspace=user-andrewlook)
+
+Dec 5:
+- [ ] gr5r7sft: [mild-galaxy-19 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/gr5r7sft?workspace=user-andrewlook)
+- [ ] zjan5lxh: [vague-field-20--rnnlib-with-layernorm | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/zjan5lxh?workspace=user-andrewlook)
+
+Dec 6:
+- [ ] cal3jv56: [sparkling-planet-24--augmentation-and-LR-decay | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/cal3jv56?workspace=user-andrewlook)
+- [ ] kb2eil37: [prime-star-23--rnnlib-recurrent-dropout | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/kb2eil37?workspace=user-andrewlook)
+
+-->
+
+
+The results from the layernorm models also had some hints of my drawing style, while still struggling to form coherent drawings.
+
+| ![phase2-runid-zjan5lxh-epoch-00200-sample-0124-decoded](https://i.ibb.co/Y3bZmzg/phase2-runid-zjan5lxh-epoch-00200-sample-0124-decoded.png) | ![phase2-runid-zjan5lxh-epoch-00200-sample-0230-decoded](https://i.ibb.co/JHc4C9R/phase2-runid-zjan5lxh-epoch-00200-sample-0230-decoded.png) | ![phase2-runid-zjan5lxh-epoch-00200-sample-0122-decoded](https://i.ibb.co/fXX5tDX/phase2-runid-zjan5lxh-epoch-00200-sample-0122-decoded.png) |
+| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+
+
+Then I added recurrent dropout (green), with and without stroke augmentation (pink). The [metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/look_i16_minn10-layernorm-with-without-recurrent-dropout--Vmlldzo2OTQ1Mzk5) showed that the augmentation clearly performed worse than with recurrent dropout (in terms of higher validation loss). Compared to the layernorm-only models (burgundy and gray), the one recurrent dropout model (green) achieved a lower validation loss relatively quickly, before starting to overfit.
+
+![](https://i.ibb.co/xJD1VMg/phase2-wandb-V2-recurrent-dropout.png)
+
+| ![phase2-runid-cal3jv56-epoch-01100-sample-0199-decoded](https://i.ibb.co/f1v0NNP/phase2-runid-cal3jv56-epoch-01100-sample-0199-decoded.png) | ![phase2-runid-cal3jv56-epoch-01100-sample-0199-decoded](https://i.ibb.co/f1v0NNP/phase2-runid-cal3jv56-epoch-01100-sample-0199-decoded.png) | ![phase2-runid-cal3jv56-epoch-01100-sample-0199-decoded](https://i.ibb.co/f1v0NNP/phase2-runid-cal3jv56-epoch-01100-sample-0199-decoded.png) |
+| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+
+> _If you want to keep reading, check out [part 5](./slml_part5.qmd) of my [SLML](/projects/slml.qmd) series._

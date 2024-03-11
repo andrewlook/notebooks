@@ -36,13 +36,13 @@ I've started writing deep dives for each phase of the project.
 
 Here's some context on the story as a whole, describing what's covered in each section:
 
-In the [background](/blog/posts/slml_background.qmd) section I share how I got started making single-line drawings, and why I found them interesting enough to make them as a daily practice.
+In [part 0](/blog/posts/slml_part0.qmd) I share how I got started making single-line drawings, and why I found them interesting enough to make them as a daily practice.
 
 :::{.column-body-outset}
 {{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/sb20p077-drawing-vid.mp4" >}}
 :::
 
-In [part 0 - Discovering SketchRNN](/blog/posts/slml_part0.qmd), I cover how SketchRNN captured my imagination and why I decided to try training it on my own data. For example, I imagined turning the “variability” up, and generating new drawings based on my old ones?
+In [part 1 - Discovering SketchRNN](/blog/posts/slml_part1.qmd) I cover how SketchRNN captured my imagination and why I decided to try training it on my own data. For example, I imagined turning the “variability” up, and generating new drawings based on my old ones?
 
 :::{.column-body-outset}
 ![distill.pub's [handwriting demo](https://distill.pub/2016/handwriting/)](https://i.ibb.co/h7nQM0n/distill-variation.gif)
@@ -74,7 +74,7 @@ I was finally ready to get started. I was going to need:
 
 I started by collecting my sketchbook page JPEGs into usable training data.
 
-In [part 1 - Embedding Filtering](/blog/posts/slml_part1.qmd), I cover how I'm using embeddings to filter my dataset of drawings. I used embeddings to solve the problem of filtering everything out of my sketchbook data that wasn't a single-line drawing - particularly my watercolors.
+In [part 2 - Embedding Filtering](/blog/posts/slml_part2.qmd), I cover how I'm using embeddings to filter my dataset of drawings. I used embeddings to solve the problem of filtering everything out of my sketchbook data that wasn't a single-line drawing - particularly my watercolors.
 
 :::{.column-page}
 | ![sb26p068-purple-hair](https://i.ibb.co/KFPv1dp/sb26p068-purple-hair.jpg) | ![sb55p069-color](https://i.ibb.co/HqsynCv/sb55p069-color.jpg) | ![sb26p098-pickle-toast](https://i.ibb.co/jW8rBNX/sb26p098-pickle-toast.jpg) | ![sb26p069-red-nose](https://i.ibb.co/ScRSctH/sb26p069-red-nose.jpg) |
@@ -87,13 +87,13 @@ I also made an exploratory browser to visualize the embedding space of the drawi
 {{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/emb-projector.mp4" >}}
 :::
 
-In [part 2 - Dataset Vectorization](/blog/posts/slml_part2.qmd), I cover how I'm vectorizing the scans to prepare them for RNN/transformer training. I also wrote some fun preprocessing code to [join SVG paths](https://singleline-dataset.andrewlook.com/strokes.html) up into continuous lines. Here's a debug video I made to flip through part of my dataset and watch drawings go from multiple strokes (one color per stroke) to a single stroke:
+In [part 3 - Dataset Vectorization](/blog/posts/slml_part3.qmd), I cover how I'm vectorizing the scans to prepare them for RNN/transformer training. I also wrote some fun preprocessing code to [join SVG paths](https://singleline-dataset.andrewlook.com/strokes.html) up into continuous lines. Here's a debug video I made to flip through part of my dataset and watch drawings go from multiple strokes (one color per stroke) to a single stroke:
 
 :::{.column-body-outset}
 {{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/new_file_fps20.mp4" >}}
 :::
 
-In [part 3 - Training SketchRNN](/blog/posts/slml_part3.qmd), I cover a series of experiment results from training SketchRNN with different regularization and data augmentation, to see how it affects the results that the models can generate. 
+In [part 4 - Training SketchRNN](/blog/posts/slml_part4.qmd), I cover a series of experiment results from training SketchRNN with different regularization and data augmentation, to see how it affects the results that the models can generate. 
 
 It has also been fun to connect the model's generation function to an animation builder, so I can watch the machine "draw" in real time. Compared with viewing a static output, the animations reminds me that part of what I love about single-line drawings is the surprise as a viewer. The drawing might start off nonsensical, and then end up with something recognizable enough to be an abstract figure drawing.
 
@@ -173,4 +173,4 @@ I came across a paper called [Sketchformer: Transformer-based Representation for
 ![Architecture of the SketchFormer model.](https://i.ibb.co/rx1nbmt/sketchformer-architecture.png)
 :::
 
-In part 4 - Training Sketchformer_(coming soon)_, I cover my experiments using a transformer model instead of an RNN, to see if the model can better handle long-term dependencies within the drawings. 
+In my next section on "Training Sketchformer" _(coming soon)_, I cover my experiments using a transformer model instead of an RNN, to see if the model can better handle long-term dependencies within the drawings. 

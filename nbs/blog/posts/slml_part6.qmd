@@ -1,0 +1,78 @@
+---
+title: "SLML Part 6 - SketchRNN Experiments: Stroke-3 Visual Filtering and Data Augmentation"
+description: Experiments training SketchRNN on my dataset of single-line drawings.
+categories: [singleline, machinelearning, slml]
+author: Andrew Look
+date: 2023-12-03
+image: https://i.ibb.co/BPdSrTQ/phase1-wandb-with-without-minn10.png
+sidebar: false
+comments:
+  utterances:
+    repo: andrewlook/notebooks
+---
+
+# SLML Part 6 - SketchRNN Experiments: Stroke-3 Visual Filtering and Data Augmentation
+
+> _This post is part 6 of ["SLML" - Single-Line Machine Learning](/projects/slml.qmd)._
+> 
+> _To read the previous post, check out [part 5](./slml_part5.qmd)._
+<!--
+>
+> _If you want to keep reading, check out [part 7](./slml_part7.qmd)._
+-->
+
+## Learning 5
+
+- TODO: explain dataset / hyperparameter changes
+
+| ![phase5-test](https://i.ibb.co/85p1XNk/phase5-test.png) | ![phase5-test2](https://i.ibb.co/R41PJTS/phase5-test2.png) |
+| ---- | ---- |
+| ![phase5-test3](https://i.ibb.co/SymDvdW/phase5-test3.png) | ![phase5-test4](https://i.ibb.co/xqfCt4n/phase5-test4.png) |
+| ![phase5-test5](https://i.ibb.co/cbh6D3F/phase5-test5.png) |  |
+
+
+
+[epoch20240104 - bboxsep + visual filtering, max seq length 250 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240104-bboxsep-visual-filtering-max-seq-length-250--Vmlldzo2OTQ1NTgz)
+
+![phase5-wandb-bboxsep-visual-filtering](https://i.ibb.co/R7xQbB3/phase5-wandb-bboxsep-visual-filtering.png)
+
+![phase5-wandb-bboxsep-visual-filtering-with-furtherfiltered](https://i.ibb.co/42FGqDN/phase5-wandb-bboxsep-visual-filtering-with-furtherfiltered.png)
+
+<!--
+### Phase 5 - BBoxsep+Filtering
+Jan 13:
+- gc0el8ta: [fallen-microwave-32\_\_v10-epoch20240104\_bboxsep-filtering | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/gc0el8ta?workspace=user-andrewlook)
+	- Dataset: epoch20240104_trainval09
+- [ ] 24mzu9rc: [bright-sea-33\_v11-maxseqlen-250 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/24mzu9rc?workspace=user-andrewlook)
+	- Dataset: epoch20240104_trainval09
+	- max_seq_length: 250 (instead of 200)
+- w4m3rxgi: [atomic-tree-34\_futherfiltered | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/w4m3rxgi/overview?workspace=user-andrewlook)
+	- Dataset: epoch20240104_furtherfiltered_trainval09
+-->
+
+
+## Learning 6
+
+- [ ] Data Augmentation
+- TODO: explain dataset / hyperparameter changes
+
+
+[epoch20240221\_expanded10x\_trainval | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240221_expanded10x_trainval--Vmlldzo2OTQ1NjUw)
+
+
+![phase6-wandb-epoch20240221-data-aug](https://i.ibb.co/jbJ7RQF/phase6-wandb-epoch20240221-data-aug.png)
+
+[epoch20240221 - with/without layernorm, recurrent dropout | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240221-with-without-layernorm-recurrent-dropout--Vmlldzo2OTQ1NzA0)
+
+![phase6-wandb-without-ln-rd](https://i.ibb.co/5L7BkNM/phase6-wandb-without-ln-rd.png)
+
+<!-- 
+* 1to0qyp3: [enchanting-fireworks-40\_\_dataaug10x | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/1to0qyp3?workspace=user-andrewlook)
+* 5m3e5ent: [auspicious-dragon-43\_\_dataaug10x\_bestval | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/5m3e5ent?workspace=user-andrewlook)
+	* note: identical hyperparams, but I had the model set up to save every 100 epochs. Since the much larger augmented dataset had longer epochs, the point of overfitting came around epoch
+	* ![phase6-wandb-overfitting-point](https://i.ibb.co/bKkFsG6/phase6-wandb-overfitting-point.png)
+-->
+
+<!--
+> _If you want to keep reading, check out [part 7](./slml_part7.qmd) of my [SLML](/projects/slml.qmd) series._
+-->

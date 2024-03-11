@@ -11,15 +11,18 @@ website:
             contents:
               - blog/posts/2018_ai_art_tour.qmd
               - blog/posts/js_deno.ipynb
-              - blog/posts/slml_background.qmd
               - blog/posts/slml_part0.qmd
               - blog/posts/slml_part1.qmd
               - blog/posts/slml_part2.qmd
               - blog/posts/slml_part3.qmd
+              - blog/posts/slml_part4.qmd
+              - blog/posts/slml_part5.qmd
+              - blog/posts/slml_part6.qmd
               - blog/posts/slml_template.qmd
         href: blog/index.qmd
       - section: jupyter
         contents:
+          - jupyter/00_overview.ipynb
           - jupyter/20240311_dataset_review.ipynb
           - jupyter/20_part1_computing_embeddings.ipynb
           - jupyter/21_part2_exploring_embeddings.ipynb

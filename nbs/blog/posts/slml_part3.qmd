@@ -1,273 +1,69 @@
 ---
-title: SLML Part 3 - Training SketchRNN
-description: Experiments training SketchRNN on my dataset of single-line drawings.
+title: SLML Part 3 - JPEG to SVG to Stroke-3
+description: Converting JPEG scans to vector paths
 categories: [singleline, machinelearning, slml]
 author: Andrew Look
-date: 2023-12-03
-image: https://i.ibb.co/BPdSrTQ/phase1-wandb-with-without-minn10.png
+date: 2023-11-07
+image: https://i.ibb.co/D7JyvM2/autotrace-points.png
 sidebar: false
 comments:
   utterances:
     repo: andrewlook/notebooks
 ---
 
-# SLML Part 3 - Training SketchRNN
+# SLML Part 3 - JPEG to SVG to Stroke-3
 
 > _This post is part 3 of ["SLML" - Single-Line Machine Learning](/projects/slml.qmd)._
 > 
-> _To read the previous post, check out [part 2](./slml_part2.qmd). If you want to keep reading, check out part 4 (coming soon)._
+> _To read the previous post, check out [part 2](./slml_part2.qmd)._
+> 
+> _If you want to keep reading, here is [part 4](./slml_part4.qmd)._
 
-Now that I had a repeatable process to convert JPEGs into stroke-3, I decided to start training models with this data.
+Most computer vision algorithms represent images as a rectangular grid of pixels on a screen. The model that the Magenta team trained, SketchRNN, instead interprets the drawings as a sequence of movements of a pen. They call this “stroke-3 format”, since each step in the sequence is represented by 3 values:
 
-## Sidebar: Training / Validation Metrics
+- `delta_x`: how much did it move left-to-right?
+- `delta_y`: how much did it move up-and-down?
+- `lift_pen`: was the pen down (continuing the current stroke) or was the pen lifted (moving to the start of a new stroke)
 
-When training models, I'm measuring the reconstruction loss. I feed in a drawing, the model encodes it into an embedding vector, and then decodes the embedding vector back into a drawing. I can compute the loss at each step in the reconstructed drawing compare to the original.
+:::{.column-page}
+![](https://i.ibb.co/NLBL4v0/stroke3-turtle.png)
+:::
 
-Periodically, after processing several batches of training data, I compute the reconstruction metrics on a validation set. This is a portion of the dataset I'm not using to actually update the weights of the model during training.
+First, I had to convert my JPEG scans into the “stroke-3” format.  This would involve:
 
-By comparing the reconstruction loss on the training set vs. the validation set over time, I can identify when the model starts "overfitting". Intuitively, if the model is learning to perform better on the training data while performing worse on the validation data, that means it is effectively memorizing the training set rather than learning to generalize its learnings to drawings it wasn't trained on.
+1. converting the files from JPEG to SVG
+2. converting SVG to stroke-3
+3. simplifying the drawings to reduce the number of points
 
-## Learning #1: Model doesn't do well with many small lines
+## JPEG to SVG
 
-My first models produced odd smatterings composed of many small strokes:
+When I first started converting to SVG, I had trouble finding a tool that would give me a single, clean stroke for each line. Eventually I found a tool called `autotrace` that was able to correctly do a “centerline trace”.
 
-| ![phase1-sample-0111-epoch-00330-decoded](https://i.ibb.co/Nnrn9jL/phase1-sample-0111-epoch-00330-decoded.png) | ![phase1-sample-0115-epoch-00310-decoded](https://i.ibb.co/fSnW50p/phase1-sample-0115-epoch-00310-decoded.png) | ![phase1-sample-0177-epoch-06000-decoded](https://i.ibb.co/LNdGhBb/phase1-sample-0177-epoch-06000-decoded.png) |
-| -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+::: {#fig-vectorization layout-ncol=2}
 
+![`potrace`](https://i.ibb.co/sg3WjzZ/potrace-points.png){width=300 #fig-potrace}
 
-The training data I'd input had lots of tiny strokes mixed in with longer ones, and no inherent order to them.
+![`autotrace`](https://i.ibb.co/D7JyvM2/autotrace-points.png){width=300 #fig-autotrace}
 
-| ![phase1-sample-0167-epoch-01700-orig](https://i.ibb.co/CB9BQTY/phase1-sample-0167-epoch-01700-orig.png) | ![phase1-sample-0177-epoch-01700-orig](https://i.ibb.co/0JBLg6Q/phase1-sample-0177-epoch-01700-orig.png) |
-| -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+Comparison of Vectorization Tools.
+:::
 
+## SVG to Points
 
-I recognized that I'd need a more systematic solution to improve my training data. As a quick experiment, I tried just filtering out any really short strokes out of the dataset - I decided to filter out any strokes in a drawing with less than 10 points.
+Then I used a python library called `svgpathtools` to take the resulting SVG files, and convert each of the paths to a sequence of points. This step is necessary because SVG paths are often represented as Bezier curves. 
 
-![phase1-wandb-with-without-minn10](https://i.ibb.co/BPdSrTQ/phase1-wandb-with-without-minn10.png)
-
-<!-- 
-### Phase 1
-- msiyyh0i: [pytorchsketchrnn-look\_i16-001 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/msiyyh0i?workspace=user-andrewlook)
-	- look_i16
-- xtnlxroi: [pytorchsketchrnn-look\_i16-002\_minn10 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/xtnlxroi?workspace=user-andrewlook)
-	- look_i16__minn10_epsilon1
--->
-
-That model (in yellow) compared with the original model (pink) performed slightly better in terms of the error when reconstructing a drawing - the loss values were lower, and the validation loss didn't start to increase until slightly later.
-
-The results produced were much less chaotic. While they didn't resemble coherent drawings, this was the first time I spotted some elements of my drawing style (head shape, eye style, lips, chin).
-
-| ![phase2-sample-0066-epoch-11700-decoded](https://i.ibb.co/hXBK8Zb/phase2-sample-0066-epoch-11700-decoded.png) | ![phase2-sample-0145-epoch-11500-decoded](https://i.ibb.co/jzgHHPS/phase2-sample-0145-epoch-11500-decoded.png) | ![phase2-sample-0291-epoch-13200-decoded](https://i.ibb.co/0mwbJBw/phase2-sample-0291-epoch-13200-decoded.png) |
-| -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-
-
-
-
-## Learning 2 - Effectiveness of RNN Regularization Techniques
-
-I noticed that when I let the trainer run overnight, I'd get wild spikes in the training loss. The Magenta team had recommended using [Layer Normalization](https://arxiv.org/abs/1607.06450) and [Recurrent Dropout with Memory Loss](https://arxiv.org/abs/1603.05118).
-
-When I added layer normalization, the [metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/look_i16_minn10-before-after-layernorm--Vmlldzo2OTQ1MzIw) showed a dramatic difference. The yellow line (without layer norm) has a massive increase in validation loss, and many big spikes, while the burgundy and gray lines (with layer norm integrated) have much lower validation loss and don't have any comparable spikes.
-
-![phase2-wandb-before-after-layernorm](https://i.ibb.co/9vk4W7d/phase2-wandb-V2-before-after-layernorm.png)
-<!-- 
-Nov 30, Dec 1 (pre runid in filename)
-- [ ] samples 0291, 0145, 0066, 0016
-
-Dec 4:
-- [ ] 5eibyllb: [atomic-puddle-15 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/5eibyllb?workspace=user-andrewlook)
-	- Dataset: look_i16__minn10_epsilon1
-	- Layernorm, recurrent dropout
-- [ ] t6bcos6b: [ruby-resonance-16--fix-layernorm-learnableFalse | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/t6bcos6b?workspace=user-andrewlook)
-
-Dec 5:
-- [ ] gr5r7sft: [mild-galaxy-19 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/gr5r7sft?workspace=user-andrewlook)
-- [ ] zjan5lxh: [vague-field-20--rnnlib-with-layernorm | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/zjan5lxh?workspace=user-andrewlook)
-
-Dec 6:
-- [ ] cal3jv56: [sparkling-planet-24--augmentation-and-LR-decay | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/cal3jv56?workspace=user-andrewlook)
-- [ ] kb2eil37: [prime-star-23--rnnlib-recurrent-dropout | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/kb2eil37?workspace=user-andrewlook)
-
--->
-
-
-The results from the layernorm models also had some hints of my drawing style, while still struggling to form coherent drawings.
-
-| ![phase2-runid-zjan5lxh-epoch-00200-sample-0124-decoded](https://i.ibb.co/Y3bZmzg/phase2-runid-zjan5lxh-epoch-00200-sample-0124-decoded.png) | ![phase2-runid-zjan5lxh-epoch-00200-sample-0230-decoded](https://i.ibb.co/JHc4C9R/phase2-runid-zjan5lxh-epoch-00200-sample-0230-decoded.png) | ![phase2-runid-zjan5lxh-epoch-00200-sample-0122-decoded](https://i.ibb.co/fXX5tDX/phase2-runid-zjan5lxh-epoch-00200-sample-0122-decoded.png) |
-| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-
-
-Then I added recurrent dropout (green), with and without stroke augmentation (pink). The [metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/look_i16_minn10-layernorm-with-without-recurrent-dropout--Vmlldzo2OTQ1Mzk5) showed that the augmentation clearly performed worse than with recurrent dropout (in terms of higher validation loss). Compared to the layernorm-only models (burgundy and gray), the one recurrent dropout model (green) achieved a lower validation loss relatively quickly, before starting to overfit.
-
-![](https://i.ibb.co/xJD1VMg/phase2-wandb-V2-recurrent-dropout.png)
-
-| ![phase2-runid-cal3jv56-epoch-01100-sample-0199-decoded](https://i.ibb.co/f1v0NNP/phase2-runid-cal3jv56-epoch-01100-sample-0199-decoded.png) | ![phase2-runid-cal3jv56-epoch-01100-sample-0199-decoded](https://i.ibb.co/f1v0NNP/phase2-runid-cal3jv56-epoch-01100-sample-0199-decoded.png) | ![phase2-runid-cal3jv56-epoch-01100-sample-0199-decoded](https://i.ibb.co/f1v0NNP/phase2-runid-cal3jv56-epoch-01100-sample-0199-decoded.png) |
-| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-
-
-## Learning 3 - Better Preprocessing
-
-Despite some improvement within the strokes, my latest models were still producing many short strokes. So I figured that improving my dataset would give better results than fiddling with hyper-parameters or my model.
-
-Looking at my training data, I returned to an issue from the stroke3-conversion process: autotrace hadn't realized that the different segments of my lines were actually connected. It was producing a series of small, centerline-traced segments.
+One problem I noticed was that the drawings were represented as many separate strokes rather than one continuous line. For example, in the image below, each color represents a separate pen stroke.
 
 ![separate strokes](https://i.ibb.co/s21gLTQ/stroke3-01-sepstrokes.png)
 
-I'd have to go back and somehow connect them. So, I tried a simple little algorithm that I called ["path joining"](https://singleline-dataset.andrewlook.com/strokes.html#joining-paths).
+## Line Simplification
 
-The idea: each of my drawings was a collection of line segments, each with a start and end point. I'd start with the longest one. Then, for each of the other line segments, I'd find the minimum distance between the start and end points of the line segments. Put simply, what's the shortest connection I can draw to connect two segments? I found that I needed an upper bound on the distance - I'd resized all of my drawings to 200x200 pixels, so something like 15-30 pixels was the maximum distance I observed made sense before I started to get irrelevant lines connecting to each other.
+Finally, I’d apply the [Ramer-Douglas-Pecker](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm) ("RDP") algorithm on the resulting points, which uses an adjustable "epsilon" parameter to simplify down the drawings by reducing the number of points in a line's path.
 
-This worked remarkably well. Still, I noticed some drawings had large contiguous strokes that weren't getting connected. I realized that while the strokes were close together and in some cases touching, their start and end points were far apart from each other.
+![RDP example](https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/RDP%2C_varying_epsilon.gif/440px-RDP%2C_varying_epsilon.gif)
 
-![joined strokes](https://i.ibb.co/602dKpr/stroke3-01-joinedstrokes.png)
+This is important because the SketchRNN model has difficulty with sequences longer than a few hundred points, so it’s helpful to simplify the drawings down by removing some of the very fine details while preserving the overall shape.
 
-So I wrote a second algorithm, which I called ["path splicing"](https://singleline-dataset.andrewlook.com/strokes.html#splicing-strokes).
+![phase1-sample-0177-epoch-01700-orig](https://i.ibb.co/0JBLg6Q/phase1-sample-0177-epoch-01700-orig.png)
 
-After I'd applied path joining and had a smaller number of long strokes left over, I wanted to see which strokes should be joined together. So, I'd take the longest path, then for each of the remaining shorter paths, I'd step through each point on the longest path and compare its distance from the start and end points of the shorter paths. When I found the smallest gap, I would "insert" the shorter line into the longer path at the point with the smallest distance.
-
-![spliced strokes](https://i.ibb.co/rtnZMq1/stroke3-01-splicedstrokes1.png)
-
-While not every drawing was turned into a single stroke, this was a big improvement. Once I trained some models on a dataset with these "joined and spliced" paths, I started to get results that looked more like single-line drawings of people. In some cases they look surreal, but I started to see some more recognizable face elements and in some cases full bodies.
-
-| ![phase3-runid-dhzx8671-epoch-00200-sample-0338-decoded](https://i.ibb.co/ZGLMZ4H/phase3-runid-dhzx8671-epoch-00200-sample-0338-decoded.png) | ![phase3-runid-dhzx8671-epoch-00400-sample-0338-decoded](https://i.ibb.co/5TVZG6H/phase3-runid-dhzx8671-epoch-00400-sample-0338-decoded.png) | ![phase3-runid-093xwcex-epoch-01000-sample-0061-decoded](https://i.ibb.co/KxRj62q/phase3-runid-093xwcex-epoch-01000-sample-0061-decoded.png) |
-| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-
-Comparing the [metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/v2-splicedata-vs-look_i16_minn10--Vmlldzo2OTQ1NTIw) from my previous recurrent dropout model (light green) with models trained on this joined/spliced dataset (turquoise/dark green) isn't a perfect comparison, since the content of the validation set isn't the same. But I can see that the model started to overfit around 1000 steps.
-
-![phase3-wandb-splicedata](https://i.ibb.co/vDsPsK6/phase3-wandb-splicedata.png)
-<!-- 
-Dec 7:
-- [ ] 093xwcex: [likely-glitter-26\_splicedata-maxstrokes5 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/093xwcex?workspace=user-andrewlook)
-	- Dataset: v2-splice-maxstrokes5
-- [ ] dhzx8671: [pretty-firebrand-27\_splicedata-maxstrokes6 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/dhzx8671?workspace=user-andrewlook)
-	- Dataset: v2-splice-maxstrokes6
--->
-
-
-## Learning 4 - Bounding Boxes, Filtering out really long drawings
-
-### Really Long Drawings
-
-One failure mode I noticed in the results generated after training on this dataset was that sometimes really knotty, gnarled lines would come out.
-
-| ![phase3-runid-093xwcex-epoch-00900-sample-0035-decoded](https://i.ibb.co/hycJZ71/phase3-runid-093xwcex-epoch-00900-sample-0035-decoded.png) | ![phase3-runid-093xwcex-epoch-01000-sample-0095-decoded](https://i.ibb.co/KrrH350/phase3-runid-093xwcex-epoch-01000-sample-0095-decoded.png) | ![phase3-runid-dhzx8671-epoch-00200-sample-0322-decoded](https://i.ibb.co/5jWFN7T/phase3-runid-dhzx8671-epoch-00200-sample-0322-decoded.png) |
-| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-
-Sometimes I make patterns by chaining repeating sequences of faces into long continuous lines. I wondered whether the presence of this kind of drawing in the training data was occasionally encouraging the model to make long continuous chains rather than drawing a single person.
-
-![chains example](https://i.ibb.co/wYmmGHX/sb42p006-raw-rotated.jpg)
-
-### Bounding Boxes
-
-My last remaining problem: there were some pages where I'd make 4 or 5 separate drawings that had nothing to do with each other, and had a lot of space between them. I wanted to separate those into separate examples before making a training dataset, for 2 reasons:
-1) To get more training examples from the scans I had
-2) To avoid confusing the model I was training - if some examples make a complete drawing and then start a second unrelated drawing, how does the model know when to finish a drawing vs. when to start a second drawing alongside the first one?
-
-So I wrote a third algorithm, which i called "bounding box separation".
-
-My intuition was that separate drawings had some space between them, and didn't overlap much. So I'd take each of the strokes within a drawing, and determine its top/bottom/left/right extremes, so I could draw a box around each stroke. Then for each combination of bounding boxes, I'd compute a ratio of the area of their overlap compared to the area of the non-overlapping parts. If the ratio exceeds some threshold, I consider them to be part of the same drawing, and I merge the bounding boxes. Then I take that larger bounding box along with all the remaining bounding boxes, and repeat the process until no overlaps remain that exceed the threshold. Also, if any bounding boxes have a really small area, I just drop them. It turns out this helps exclude little page numbers / bits of text from ending up in my training data.
-
-Once I have all the separated drawings, I save them out as separate files.
-
-I noticed that some drawings were of one figure, and some drawings were patterned or chained with many faces. I wanted to exclude those patterns/chains from my training data, so I could give my model the best chance of learning to draw one person at a time.
-
-So, I computed embeddings for these bounding-box separated drawings, clustered them, and got reasonably coherent groups.
-
-Finally, I excluded the ones that didn't fit the composition I wanted, and saved a filtered-down dataset.
-
-To train the model, I had to pick a maximum number of points in a given drawing. 250 was the recommended default.
-
-I looked at the distribution of number of points in all the drawings. At the very low end, some drawings had snuck in that were just little squiggles, and at the upper end, some really convoluted messes of lines were in there. I cut out the top and bottom 5% of drawings by number of points.
-
-For the remaining drawings, I ran the RDP algorithm with varying values for its `epsilon` parameter, until the number of points dipped under 250. Then I saved the result as a zipped numpy file.
-
-
-### Phase 4 - Training
-
-- TODO: explain dataset / hyperparameter changes
-
-[metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20231214-bounding-box-separation-filtering--Vmlldzo2OTQ1NTUw)
-
-![phase4-wandb-bboxsep-filtering](https://i.ibb.co/729d0KL/phase4-wandb-bboxsep-filtering.png)
-
-<!--
-
-### Phase 4
-Dec 17,18:
-- [ ] gh3hupc1l: [treasured-serenity-28\_\_epoch-20231214\_\_boundingboxes | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/g3hupc1l?workspace=user-andrewlook)
-	- Dataset: epoch-20231214-trainval
-- [ ] fj4klg1i: [eager-capybara-29 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/fj4klg1i?workspace=user-andrewlook)
-	- Dataset: epoch-20231214-filtered-trainval
-- [ ] slgleu3l: [summer-planet-30 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/slgleu3l?workspace=user-andrewlook)
-	- Dataset: epoch-20231214-filtered-trainval
-	- augment_stroke_prob=1
-- [ ] wz9rw5a4: [comfy-violet-31 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/wz9rw5a4/overview?workspace=user-andrewlook)
-	- use_random_scale=true
-	- random_scale_factor=0.15
-
--->
-
-| ![phase4-runid-fj4klg1i-epoch-00100-sample-0080-decoded](https://i.ibb.co/d2vfKZ2/phase4-runid-fj4klg1i-epoch-00100-sample-0080-decoded.png) | ![phase4-runid-fj4klg1i-epoch-00100-sample-0278-decoded](https://i.ibb.co/xYWW05f/phase4-runid-fj4klg1i-epoch-00100-sample-0278-decoded.png) |
-| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| ![phase4-runid-fj4klg1i-epoch-00200-sample-0080-decoded](https://i.ibb.co/wh86Rm5/phase4-runid-fj4klg1i-epoch-00200-sample-0080-decoded.png) | ![phase4-runid-fj4klg1i-epoch-00200-sample-0291-decoded](https://i.ibb.co/R28gn3K/phase4-runid-fj4klg1i-epoch-00200-sample-0291-decoded.png) |
-| ![phase4-runid-fj4klg1i-epoch-00400-sample-0186-decoded](https://i.ibb.co/V2MdNGf/phase4-runid-fj4klg1i-epoch-00400-sample-0186-decoded.png) | ![phase4-runid-fj4klg1i-epoch-00400-sample-0278-decoded](https://i.ibb.co/WkYTZxh/phase4-runid-fj4klg1i-epoch-00400-sample-0278-decoded.png) |
-| ![phase4-runid-g3hupc1l-epoch-00200-sample-0180-decoded](https://i.ibb.co/x51j8wR/phase4-runid-g3hupc1l-epoch-00200-sample-0180-decoded.png) | ![phase4-runid-g3hupc1l-epoch-00300-sample-0136-decoded](https://i.ibb.co/CV2SXQ3/phase4-runid-g3hupc1l-epoch-00300-sample-0136-decoded.png) |
-| ![phase4-runid-g3hupc1l-epoch-00400-sample-0136-decoded](https://i.ibb.co/vdrzxMj/phase4-runid-g3hupc1l-epoch-00400-sample-0136-decoded.png) | ![phase4-runid-g3hupc1l-epoch-00400-sample-0207-decoded](https://i.ibb.co/6vCfK1D/phase4-runid-g3hupc1l-epoch-00400-sample-0207-decoded.png) |
-| ![phase4-runid-g3hupc1l-epoch-00400-sample-0396-decoded](https://i.ibb.co/0mxFh2X/phase4-runid-g3hupc1l-epoch-00400-sample-0396-decoded.png) | ![phase4-runid-slgleu3l-epoch-00100-sample-0068-decoded](https://i.ibb.co/4Mq5Gtw/phase4-runid-slgleu3l-epoch-00100-sample-0068-decoded.png) |
-| ![phase4-runid-slgleu3l-epoch-00100-sample-0244-decoded](https://i.ibb.co/nmLtzS7/phase4-runid-slgleu3l-epoch-00100-sample-0244-decoded.png) | ![phase4-runid-slgleu3l-epoch-00100-sample-0268-decoded](https://i.ibb.co/Fmf7RBF/phase4-runid-slgleu3l-epoch-00100-sample-0268-decoded.png) |
-| ![phase4-runid-slgleu3l-epoch-00100-sample-0406-decoded](https://i.ibb.co/vXsBtDS/phase4-runid-slgleu3l-epoch-00100-sample-0406-decoded.png) |                                                                                                                                              |
-
-
-## Learning 5
-
-- TODO: explain dataset / hyperparameter changes
-
-| ![phase5-test](https://i.ibb.co/85p1XNk/phase5-test.png) | ![phase5-test2](https://i.ibb.co/R41PJTS/phase5-test2.png) |
-| ---- | ---- |
-| ![phase5-test3](https://i.ibb.co/SymDvdW/phase5-test3.png) | ![phase5-test4](https://i.ibb.co/xqfCt4n/phase5-test4.png) |
-| ![phase5-test5](https://i.ibb.co/cbh6D3F/phase5-test5.png) |  |
-
-
-
-[epoch20240104 - bboxsep + visual filtering, max seq length 250 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240104-bboxsep-visual-filtering-max-seq-length-250--Vmlldzo2OTQ1NTgz)
-
-![phase5-wandb-bboxsep-visual-filtering](https://i.ibb.co/R7xQbB3/phase5-wandb-bboxsep-visual-filtering.png)
-
-![phase5-wandb-bboxsep-visual-filtering-with-furtherfiltered](https://i.ibb.co/42FGqDN/phase5-wandb-bboxsep-visual-filtering-with-furtherfiltered.png)
-
-<!--
-### Phase 5 - BBoxsep+Filtering
-Jan 13:
-- gc0el8ta: [fallen-microwave-32\_\_v10-epoch20240104\_bboxsep-filtering | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/gc0el8ta?workspace=user-andrewlook)
-	- Dataset: epoch20240104_trainval09
-- [ ] 24mzu9rc: [bright-sea-33\_v11-maxseqlen-250 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/24mzu9rc?workspace=user-andrewlook)
-	- Dataset: epoch20240104_trainval09
-	- max_seq_length: 250 (instead of 200)
-- w4m3rxgi: [atomic-tree-34\_futherfiltered | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/w4m3rxgi/overview?workspace=user-andrewlook)
-	- Dataset: epoch20240104_furtherfiltered_trainval09
--->
-
-
-## Learning 6
-
-- [ ] Data Augmentation
-- TODO: explain dataset / hyperparameter changes
-
-
-[epoch20240221\_expanded10x\_trainval | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240221_expanded10x_trainval--Vmlldzo2OTQ1NjUw)
-
-
-![phase6-wandb-epoch20240221-data-aug](https://i.ibb.co/jbJ7RQF/phase6-wandb-epoch20240221-data-aug.png)
-
-[epoch20240221 - with/without layernorm, recurrent dropout | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240221-with-without-layernorm-recurrent-dropout--Vmlldzo2OTQ1NzA0)
-
-![phase6-wandb-without-ln-rd](https://i.ibb.co/5L7BkNM/phase6-wandb-without-ln-rd.png)
-
-<!-- 
-* 1to0qyp3: [enchanting-fireworks-40\_\_dataaug10x | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/1to0qyp3?workspace=user-andrewlook)
-* 5m3e5ent: [auspicious-dragon-43\_\_dataaug10x\_bestval | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/5m3e5ent?workspace=user-andrewlook)
-	* note: identical hyperparams, but I had the model set up to save every 100 epochs. Since the much larger augmented dataset had longer epochs, the point of overfitting came around epoch
-	* ![phase6-wandb-overfitting-point](https://i.ibb.co/bKkFsG6/phase6-wandb-overfitting-point.png)
--->
-
-> _If you want to keep reading, check out part 4 (coming soon) of my [SLML](/projects/slml.qmd) series._
+> _Next in my [SLML](/projects/slml.qmd) series is [part 4](./slml_part4.qmd), where I experiment with hyperparams and datasets in training SketchRNN._

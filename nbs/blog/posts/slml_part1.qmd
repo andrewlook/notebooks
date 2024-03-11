@@ -1,10 +1,10 @@
 ---
-title: SLML Part 1 - Assembling the Dataset
+title: SLML Part 1 - Why I Decided to Train SketchRNN on My Drawings
 description: Using visual embeddings to filter thousands of images.
 categories: [singleline, machinelearning, slml]
 author: Andrew Look
-date: 2023-11-01
-image: https://i.ibb.co/Vj5kRw3/download.png
+date: 2023-10-27
+image: https://i.ibb.co/h7nQM0n/distill-variation.gif
 sidebar: false
 comments:
   utterances:
@@ -12,116 +12,60 @@ comments:
 cap-location: margin
 ---
 
-# SLML Part 1 - Assembling the Dataset
+# SLML Part 1 - Why I Decided to Train SketchRNN on My Drawings
 
 > _This post is part 1 of ["SLML" - Single-Line Machine Learning](/projects/slml.qmd)._
 > 
-> _Check out the previous post, [part 0](./slml_part0.qmd), for some background on why I got started training SketchRNN on my own drawings._
->
-> _Next in the series is [part 2](./slml_part2.qmd), where I convert my JPEGs into stroke-3 format in preparation for model training._
+> _If you want some context on how I got into single-line drawings, check out the [part 0](./slml_part0.qmd)._
+> 
+> _Next in the series is [part 2](./slml_part2.qmd) where I assemble the training data, and filter it using visual embeddings._
 
-For years, I've maintained a [daily practice](./slml_background.qmd) of making single-line drawings in my sketchbooks. 
+## Discovering SketchRNN
 
-:::{.column-page}
-| ![sb48p072](https://i.ibb.co/TrdbwR2/sb48p072.jpg) | ![sb67p077](https://i.ibb.co/xfqZZF0/sb67p077.jpg)<br> | ![sb67p004](https://i.ibb.co/5MtbpVL/sb67p004.jpg) | ![sb38p073-gown2](https://i.ibb.co/RvJ6DpK/sb38p073-gown2.jpg) |
-| -------------------------------------------------- | ------------------------------------------------------ | -------------------------------------------------- | -------------------------------------------------------------- |
-:::
+David Ha and Doug Eck from the Magenta team at Google had crowdsourced over 100,000 drawings using a game call “Quick, Draw”. The game would give users a prompt such as “Yoga” or “Pig” and users would have 20 seconds to draw it in the browser. This produced a dataset of line drawings for each category. Then, they trained a model called SketchRNN on these drawings. They trained a separate model for each category that users were prompted to draw, so there's a separate model trained for "yoga", "pig", etc.
 
-When I finish a sketchbook, I scan its pages, number them, and put them into a similar folder structure. I marked which pages were diagrams/mindmaps/etc and put them in a subfolder called `notes` - the drawings (and watercolors) are in a folder called `art`. Unfortunately, I didn't tag watercolors in advance. 
+I was fascinated by Magenta's [SketchRNN demo](https://magenta.tensorflow.org/assets/sketch_rnn_demo/index.html) where you start a drawing, and the SketchRNN model tries continuously to complete it in new ways. It makes me think about the conditional probability that evolves as a drawing progresses. Given that one line exists on the page, how does that influence what line the artist is most likely to draw next?
 
-Some detail on the subfolders:
+My favorite example is to select the yoga model, and then draw a rhombus shape simulating a yoga mat. I love watching stick figures emerge in various poses, all centered on and interacting with the yoga mat.
 
-- `art` subfolders contain drawings / watercolors.
-- `notes` subfolders contain diagrams, mindmaps, and anything else technical I'm working on. I used to have a separate notebook for these, but I got tired of carrying around an extra sketchbook everywhere I go, so at some point they just ended up merging with my art practice.
-- `xtra` contains any bad scans or funny bloopers from my scanning process. I kind of like the scans with my hands in them and thought they might be useful for a future project, so I kept them in their own folder.
-- `cover` contains a scan of the notebook cover. Each cover at least has a post-it with the sketchbook ID number and the start/end dates of when I used that sketchbook. Often I'll make a little collage on the front of the notebook with airplane tickets / stickers / scraps of paper relevant to somewhere I traveled when I used that sketchbook.
+![magenta-demo-01-draw-and-gen](https://i.ibb.co/fSqZM1j/magenta-demo-01-draw-and-gen.gif)
 
-:::{.column-body}
-![](https://i.ibb.co/BjQhB4t/folder-list-view.png)
-:::
+Some of the same authors from the Magenta paper collaborated with distill.pub, using the same SketchRNN model trained on a handwriting dataset, to publish an explorable explanation called [Experiments in Handwriting with a Neural Network](https://distill.pub/2016/handwriting/).
 
-<!-- 
-![folder-icons](https://i.ibb.co/RD2K7SJ/folder-icons.png)
-![short-sb-flipping-art2](https://i.ibb.co/6s5qxJp/short-sb-flipping-art2.gif)
--->
+## Why train a model on my single-line drawings?
 
-## The Problem: Filtering
+I wanted to apply SketchRNN to my own single-line drawings.
 
-My first problem is that the "art" sections of my sketchbooks don't just contain single-line drawings. They also contain watercolor paintings, since I don't exclusively fill my sketchbooks with single-line drawings.
+I'd considered training an ML model on my single-line drawings, but the pixel-based GAN's and VAE's available in 2017/2018 when I started thinking about this didn't seem like they'd yield good results on images that are mostly composed of white pixels with narrow black lines interspersed. What SketchRNN produces sequences, the generated results could be animated. I see single-line drawing as a sort of performance. A video of me drawing a single-line is inherently a proof that I didn’t lift my pen from the page.
 
-:::{.column-page}
-| ![sb69p086-wc](https://i.ibb.co/Qrf23tn/sb69p086-wc.jpg) | ![sb67p051-sparky](https://i.ibb.co/Hd4zsKb/sb67p051-sparky.jpg) | ![sb69p006](https://i.ibb.co/0Zr2MNT/sb69p006.jpg) | ![sb35p013](https://i.ibb.co/sFkp4D8/sb35p013.jpg) |
-| -------------------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------- | -------------------------------------------------- |
-:::
+It struck me that it could give a new window into my own drawing style. If my own drawing style evolves slowly over time, would I be able to notice the difference between a model trained on drawings I made recently from one trained on drawings I made several years ago?
 
-## Measuring Visual Similarity with Embeddings
+How cool would it be to have an interface, similar to Andy Muatuschak's [scrying pen](https://andymatuschak.org/scrying-pen/), where I could start drawing and see live completions, showing me how the probability space of subsequent strokes in my drawing is changing?
 
-Looking for a scalable way to filter the drawings out of my art scans, I decided to try computing visual embeddings.
+![scrying pen demo](https://i.ibb.co/4YrMbnG/Screen-Cast-2024-03-08-at-8-53-56-PM.gif)
 
-<!-- I only labeled "notes" and "art" separately but didn't separate "watercolors" into their own category distinct from "drawings". The labeled data I had turned out to be useful. -->
+<!--![distill-draw](https://i.ibb.co/q7gn1md/distill-draw.gif) -->
 
-I decided to fine-tune a vision model on my dataset to distinguish "art" pages from "notes" pages. My hope was that the model would learn to distinguish some features within the visual domain of my scanned sketchbook pages. Even though I don't intend to use the predictions of an algorithm trained to classify art-vs-notes, this will produce more meaningful embeddings.
+What new ideas might I get from turning the “variability” up, like the slider in distill.pub's [handwriting demo](https://distill.pub/2016/handwriting/), and generating new drawings based on my old ones?
+![distill-variation](https://i.ibb.co/h7nQM0n/distill-variation.gif)
+Or running stroke prediction along the length of a drawing:
 
-<!-- In the past, I've found that vision models trained on standard datasets like ImageNet can produce nonsensical results when they're shown black-and-white scanned images. ImageNet consists mostly of photographs, which contain a wide distribution of colors - there aren't a lot of images in there where the majority of pixels are white. -->
+![distill-vary-strokes](https://i.ibb.co/wpfgwgf/distill-vary-strokes.png)
 
-Ultimately, what I want to see is that when I take the embeddings of my sketchbook pages and cluster them, the notes and drawings should neatly separate into separate clusters. Also, I want the watercolors to cleanly separate into their own clusters, away from the single-line drawings.
+![distill-vary-strokes-legend](https://i.ibb.co/YWHGtBF/distill-vary-strokes-legend.png)
 
-## Inspecting the Embeddings
+<!-- ![distill-vary-strokes](https://i.ibb.co/yVjZM12/distill-vary-strokes.gif) -->
 
-After I fine-tuned my vision model, I computed the embeddings for all the sketchbook pages I had on hand. As a sanity check, I want to verify that the embedding space has cleanly separated regions for the labels is was trained on. 
+## Getting Started
 
-It's hard to visualize 512 dimensions, so the T-SNE dimensionality reduction is a good visualization technique to view the data. T-SNE projects the higher number of dimensions into 2D or 3D, with the goal that any 2 points close together in high-dimensional space are close together in lower-dimensional space. 
+When I reached out to the authors of SketchRNN, they estimated that I’d need several thousand examples in order to train a model. I only had a few hundred at the time. But I kept making new drawings in my sketchbooks, and numbering the pages and the sketchbooks so that I could scan them and store them in a consistent way. In the back of my mind, I held on to the idea that one day I’d have enough drawings to train a model on them.
 
-I colorized the points in the resulting graph based on their label, so it's easy to see at a glance that embedding space has learned something useful about this dataset, as I hoped.
+Several years went by. More sketchbooks accumulated.
 
-![T-SNE representation of sketchbook pages. `art` pages are blue, `notes` pages are orange, and `cover` pages are brown.](https://i.ibb.co/NmMdwJS/tsne-folders.png)
+Eventually, I ran a file count and saw a few thousand distinct drawings. I was finally ready to get started. I was going to need:
 
-## Clustering to Identify Sub-Groups
+1. at least a thousand drawings
+2. the ability to convert my scanned drawings into stroke-3 format
+3. to train a model on my drawings, and experiment until I found a configuration producing results that I liked.
 
-Now I'm hoping to find the watercolors in the dataset. Given that the embedding space captures visual similarity, I want to identify groups of pages that are similar to each other. This lets me label data in bulk, rather than going through the images one-by-one. K-Means Clustering was a quick solution for this. I can decide to ask for `K` distinct "clusters", and the algorithm picks `K` "centroids". 
-
-![Given a request for `K` clusters, pick `K` random points as the starting centroids. Then, repeat these steps for `N` iterations: For each point, select the nearest centroid point and compute the distance between these two. Adjusts the centroids with the goal of minimizing the total distance from all points to their nearest centroids.](https://shabal.in/visuals/kmeans/bottom.gif){width=600}
-
-<!-- https://shabal.in/visuals/kmeans/5.html -->
-
-## Using Clusters to Classify
-
-After some experimentation, I found that using K=16 produced groupings that would be useful to me. Each row in the image below consists of the top images from one cluster.
-
-:::{.column-page}
-![](https://i.ibb.co/Vj5kRw3/download.png)
-:::
-
-Since each cluster's centroid is a vector in the same space as the image embeddings, I can "classify" any image embedding by doing a nearest-neighbor search of comparing the embedding of the query image to each of the cluster centroid vectors, and choosing the cluster centroid with the smallest distance. This is also called a K-Nearest Neighbor classifier.
-
-When I applied this process to each of the images, I glanced at a t-SNE colorized by these clusters:
-
-![T-SNE representation of sketchbook pages, colored by which of the 16 clusters they were classified by K-Means using the pages' visual embeddings.](https://i.ibb.co/hsbWBGs/tsne-clusters20.png)
-
-<!-- I've also saved the centroids, so that if I add new images I can map them to the same set of clusters. -->
-
-## Making Sense of the Clusters
-
-I went through and grouped these clusters based on what I wanted to identify automatically. In particular, I wanted to take only the drawings and separate them from the watercolors. After inspecting the clusters, I also realized that there were a number of bad scans / incorrectly cropped images that I wanted to exclude as well.
-
-:::{.column-page}
-![](https://i.ibb.co/R3fg2X3/download-1.png)
-
-![](https://i.ibb.co/hYq2X4p/download-2.png)
-
-![](https://i.ibb.co/87L8R80/download-3.png)
-
-![](https://i.ibb.co/Pm4t6j7/download-5.png)
-
-![](https://i.ibb.co/k8LNmGN/download-4.png)
-:::
-
-I went through the dataset again, and based on the cluster assigned to each image, I assigned it a higher-level group based on the hand-mapping of clusters above. 
-
-When I looked at the t-SNE colorized by this higher-level cluster mapping, it was encouraging to see that my embedding space had neatly separated the groups I cared about:
-
-![T-SNE representation of pages, colored by cluster group. `drawings` are purple, `notes` are dark green, `watercolors` are yellow, `bad scans` are blue, `covers` are light green.](https://i.ibb.co/wQPXG0Q/tsne-clusters5.png)
-
-Since my images were tagged with these higher-level groups, I was able to select only the drawings, and begin converting them into usable training data.
-
-> _Next in my [SLML](/projects/slml.qmd) series is [part 2](./slml_part2.qmd), where I convert my JPEGs into stroke-3 format in preparation for model training._
+> _Next in my [SLML](/projects/slml.qmd) series is [part 2](./slml_part2.qmd), where I convert my JPEG scans into vector representations in preparation for training SketchRNN._
