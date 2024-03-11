@@ -1,5 +1,5 @@
 ---
-title: SLML - Single-Line Machine Learning
+title: Single-Line Machine Learning
 description: Overview of my project training ML models on a dataset of single-line drawings.
 categories: [singleline, machinelearning, slml]
 author: Andrew Look
@@ -25,7 +25,7 @@ listing:
     fields: [title]
 ---
 
-# SLML - Single-Line Machine Learning
+# Single-Line Machine Learning
 
 Lately I've been working on training ML models to generate single-line drawings in my style. I've open-sourced the code for my [models](https://github.com/andrewlook/singleline_models) and the code I used to prepare the [dataset](https://github.com/andrewlook/singleline_dataset).
 
