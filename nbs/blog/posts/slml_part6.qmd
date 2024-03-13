@@ -23,6 +23,8 @@ comments:
 
 ## Excluding Long Drawings
 
+<!-- TODO: move this description down to the embedding-filtering section? -->
+
 One failure mode I noticed in the results generated after training on this dataset was that sometimes really knotty, gnarled lines would come out.
 
 :::{#fig-longdrawings .column-body-outset layout-ncol=3}
@@ -71,12 +73,12 @@ In previous datasets, I had chosen the same strength of RDP line simplification 
 
 For the remaining drawings, I ran the RDP algorithm with varying values for its `epsilon` parameter, until the number of points dipped under 250. Then I saved the result as a zipped numpy file.
 
-## Training on dataset `20240104`
+## Training on `20240104`
 
 :::{#fig-train-bboxsep .column-body-outset}
-![phase5-wandb-bboxsep-visual-filtering](https://i.ibb.co/R7xQbB3/phase5-wandb-bboxsep-visual-filtering.png)
+![](https://i.ibb.co/R7xQbB3/phase5-wandb-bboxsep-visual-filtering.png)
 
-Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240104-bboxsep-visual-filtering-max-seq-length-250--Vmlldzo2OTQ1NTgz) from models trained on `20240104` using visual filtering on the bounding-box separated drawings, with maxiumum sequence lengths of 200 (gray) and 250 (blue).
+Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240104-bboxsep-max-seq-length-250--Vmlldzo2OTQ1NTgz) from models trained on `20240104` using visual filtering on the bounding-box separated drawings, with maxiumum sequence lengths of 200 (gray) and 250 (blue).
 :::
 
 <!-- TOOD: interpretation of model training -->
@@ -94,29 +96,28 @@ This yielded reasonably coherent groups.
 
 Finally, I excluded the ones that didn't fit the composition I wanted, and saved a filtered-down dataset.
 
-## Training on dataset `20240104-furtherfiltered`
+## Training on `20240104-furtherfiltered`
 
 :::{#fig-train-bboxsep-furtherfiltered .column-body-outset}
-![phase5-wandb-bboxsep-visual-filtering-with-furtherfiltered](https://i.ibb.co/42FGqDN/phase5-wandb-bboxsep-visual-filtering-with-furtherfiltered.png)
+![](https://i.ibb.co/NpFdRRB/phase5-wandb-bboxsep-visual-filtering-with-furtherfiltered.png)
 
-Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240104-bboxsep-visual-filtering-max-seq-length-250--Vmlldzo2OTQ1NTgz) from models trained on `20240104-furtherfiltered` using visual filtering on the bounding-box separated drawings (red).
+Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240104-visual-filtering-bboxsep--Vmlldzo3MTMwMjAz) from models trained on `20240104-furtherfiltered` using visual filtering on the bounding-box separated drawings (red).
 :::
+<!-- ![](https://i.ibb.co/42FGqDN/phase5-wandb-bboxsep-visual-filtering-with-furtherfiltered.png)-->
 
 :::{#fig-gen-bboxsep .column-screen-inset layout-ncol=5}
-![phase5-test](https://i.ibb.co/85p1XNk/phase5-test.png)
+![](https://i.ibb.co/85p1XNk/phase5-test.png)
 
-![phase5-test2](https://i.ibb.co/R41PJTS/phase5-test2.png)
+![](https://i.ibb.co/R41PJTS/phase5-test2.png)
 
-![phase5-test3](https://i.ibb.co/SymDvdW/phase5-test3.png)
+![](https://i.ibb.co/SymDvdW/phase5-test3.png)
 
-![phase5-test4](https://i.ibb.co/xqfCt4n/phase5-test4.png)
+![](https://i.ibb.co/xqfCt4n/phase5-test4.png)
 
-![phase5-test5](https://i.ibb.co/cbh6D3F/phase5-test5.png)
+![](https://i.ibb.co/cbh6D3F/phase5-test5.png)
 
 Generated samples after training with visual filtering on bbox-separated dataset.
 :::
-
-
 
 
 ## Learning 6
@@ -124,15 +125,21 @@ Generated samples after training with visual filtering on bbox-separated dataset
 - [ ] Data Augmentation
 - TODO: explain dataset / hyperparameter changes
 
+:::{#fig-train-aug .column-body-outset}
+![](https://i.ibb.co/jbJ7RQF/phase6-wandb-epoch20240221-data-aug.png)
 
-[epoch20240221\_expanded10x\_trainval | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240221_expanded10x_trainval--Vmlldzo2OTQ1NjUw)
+Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240221_expanded10x_trainval--Vmlldzo2OTQ1NjUw) from augmented dataset `20240221-dataaug10x` (purple).
+:::
 
+As a small side experiment, I wanted to confirm my finding in [part 4](./slml_part4.qmd) that layer norm caused a meaningful improvement.
 
-![phase6-wandb-epoch20240221-data-aug](https://i.ibb.co/jbJ7RQF/phase6-wandb-epoch20240221-data-aug.png)
-
-[epoch20240221 - with/without layernorm, recurrent dropout | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240221-with-without-layernorm-recurrent-dropout--Vmlldzo2OTQ1NzA0)
-
+:::{#fig-train-aug-ln .column-body-outset}
 ![phase6-wandb-without-ln-rd](https://i.ibb.co/5L7BkNM/phase6-wandb-without-ln-rd.png)
+
+Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240221-with-without-layernorm-recurrent-dropout--Vmlldzo2OTQ1NzA0) from augmented dataset `20240221-dataaug10x` (purple) compared to variants without layernorm (light green) and without recurrent dropout (magenta / dark red).
+:::
+
+Looking at the loss metrics in @fig-train-aug-ln, it appears that disabling layernorm (light green) causes a significant drop in performance. Disabling recurrent dropout doesn't have a significant effect, as far as I can tell.
 
 
 <!--
