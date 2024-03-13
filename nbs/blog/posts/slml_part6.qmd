@@ -1,5 +1,5 @@
 ---
-title: "SLML Part 6 - SketchRNN Experiments: Stroke-3 Visual Filtering and Data Augmentation"
+title: "SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering"
 description: Experiments training SketchRNN on my dataset of single-line drawings.
 categories: [singleline, machinelearning, slml]
 author: Andrew Look
@@ -11,7 +11,7 @@ comments:
     repo: andrewlook/notebooks
 ---
 
-# SLML Part 6 - SketchRNN Experiments: Stroke-3 Visual Filtering and Data Augmentation
+# SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering
 
 > _This post is part 6 of ["SLML" - Single-Line Machine Learning](/projects/slml.qmd)._
 > 
@@ -21,11 +21,40 @@ comments:
 > _If you want to keep reading, check out [part 7](./slml_part7.qmd)._
 -->
 
-## Excluding Long Drawings
+## New Dataset: `20240104`
 
-<!-- TODO: move this description down to the embedding-filtering section? -->
+Though I'd grown my training dataset by bounding-box separating single pages into multiple drawings, I was concerned about the tradeoff of filtering drawings out versus having a more coherent dataset with similar subject matter.
 
-One failure mode I noticed in the results generated after training on this dataset was that sometimes really knotty, gnarled lines would come out.
+To make up for more aggressive filtering, I decided to incorporate several additional sketchbooks I scanned and labeled into a new dataset epoch `20240104`.
+
+Differences in dataset `20240104` compared to [dataset `20231214`](./slml_part5.qmd#dataset-20231214):
+
+1. More raw input drawings
+2. Same preprocessing, with a modified "adaptive" RDP simplification ^[based on what I observed when [filtering the bounding-box dataset](./slml_part5.qmd) by number of points].
+
+
+## RDP and Sequence Length
+
+In previous datasets, I had chosen the same strength of RDP line simplification for the whole dataset. Some drawings had been simplified reasonably, but other had been simple to begin with and ended up as a series of straight lines much sharper than the original curves.
+
+![30 points](https://i.ibb.co/2Pw6zvG/30points.png){#fig-30}
+
+For the remaining drawings, I ran the RDP algorithm with varying values for its `epsilon` parameter, until the number of points dipped under 250. Then I saved the result as a zipped numpy file.
+
+
+## Training on `20240104`
+
+:::{#fig-train-bboxsep .column-body-outset}
+![](https://i.ibb.co/R7xQbB3/phase5-wandb-bboxsep-visual-filtering.png)
+
+Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240104-bboxsep-max-seq-length-250--Vmlldzo2OTQ1NTgz) from models trained on `20240104` using visual filtering on the bounding-box separated drawings, with maxiumum sequence lengths of 200 (gray) and 250 (blue).
+:::
+
+After training on `20240104`, the validation losses (gray and blue lines in @fig-train-bboxsep) seemed substantially lower than the validation losses from the models trained on the previous dataset (beige, light green).
+
+## Overly Complex Drawings
+
+One failure mode I noticed in the results generated after [training](http://localhost:7592/blog/posts/slml_part5.html#training-after-bounding-boxes) on the bounding-box separated dataset `20231214-filtered` was that some generated drawings had knotted, gnarled lines as in @fig-longdrawings.
 
 :::{#fig-longdrawings .column-screen-inset layout-ncol=3}
 ![](https://i.ibb.co/hycJZ71/phase3-runid-093xwcex-epoch-00900-sample-0035-decoded.png)
@@ -36,16 +65,6 @@ One failure mode I noticed in the results generated after training on this datas
 
 Generated examples with too much complexity.
 :::
-
-Sometimes I make patterns by chaining repeating sequences of faces into long continuous lines. I wondered whether the presence of this kind of drawing in the training data was occasionally encouraging the model to make long continuous chains rather than drawing a single person.
-
-:::{#fig-chains .column-body}
-![chains example](https://i.ibb.co/wYmmGHX/sb42p006-raw-rotated.jpg)
-
-Example of a "diagonal chain" single-line pattern I draw.
-:::
-
-## New Dataset
 
 Reviewing the [bounding box-separated dataset](./slml_part5.html#filtering-by-number-of-points) I noticed that some drawings were of one figure, and some drawings were patterned or chained with many faces.
 
@@ -59,44 +78,97 @@ Reviewing the [bounding box-separated dataset](./slml_part5.html#filtering-by-nu
 Drawings with over 300 points.
 :::
 
-I wanted to exclude those patterns/chains from my training data, so I could give my model the best chance of learning to draw one person at a time.
+Sometimes I make patterns by chaining repeating sequences of faces into long continuous lines. I wondered whether the presence of this kind of drawing in the training data was occasionally encouraging the model to make long continuous chains rather than drawing a single person.
 
-Though I'd grown my training dataset by bounding-box separating single pages into multiple drawings, I was concerned about the tradeoff of filtering drawings out versus having a more coherent dataset with similar subject matter.
+:::{#fig-chains .column-body}
+![chains example](https://i.ibb.co/wYmmGHX/sb42p006-raw-rotated.jpg)
 
-I decided to create a new dataset epoch `20240104` including several additional sketchbooks I scanned and labeled. I decided to apply all the same preprocessing from before, with a small change to the RDP simplification of strokes based on what I observed when [filtering the bounding-box dataset](./slml_part5.qmd) by number of points.
-
-## RDP and Sequence Length
-
-In previous datasets, I had chosen the same strength of RDP line simplification for the whole dataset. Some drawings had been simplified reasonably, but other had been simple to begin with and ended up as a series of straight lines much sharper than the original curves.
-
-![30 points](https://i.ibb.co/2Pw6zvG/30points.png){#fig-30}
-
-For the remaining drawings, I ran the RDP algorithm with varying values for its `epsilon` parameter, until the number of points dipped under 250. Then I saved the result as a zipped numpy file.
-
-## Training on `20240104`
-
-:::{#fig-train-bboxsep .column-body-outset}
-![](https://i.ibb.co/R7xQbB3/phase5-wandb-bboxsep-visual-filtering.png)
-
-Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240104-bboxsep-max-seq-length-250--Vmlldzo2OTQ1NTgz) from models trained on `20240104` using visual filtering on the bounding-box separated drawings, with maxiumum sequence lengths of 200 (gray) and 250 (blue).
+Example of a "diagonal chain" single-line pattern I draw.
 :::
 
-<!-- TOOD: interpretation of model training -->
+I wanted to exclude those patterns/chains from my training data, so I could give my model the best chance of learning to draw one person at a time.
+
+## Similarity-Filtered Dataset
+
+I decided to make a subset `20240104-furtherfiltered` of dataset `20240104`.
+
+My plan was to compute embeddings for every bounding-box separated drawing in dataset `20240104`. Then I could K-Means clustering on them, and decide which clusters I wanted to exclude in bulk. ^[similar to what I did with full sketchbook pages in [part 1](./slml_part1.qmd)]
+
+Right away I spotted the "too complex" chained line drawings in cluster 0 (@fig-c0). There were also several chained line drawings in cluster 3 (@fig-c3) mixed in with some squarish horizontal drawings that I was happy to exclude from my training set, as they looked too different from my more typical standalone drawings of individual faces/people.
 
 
-## Visual Similarity Filtering
+:::{#fig-clusters-too-complex .column-screen-inset layout-ncol=2}
+![Cluster 0](https://i.ibb.co/ZghFLD3/c0.png){#fig-c0}
 
-I computed embeddings for these bounding-box separated drawings, and ran K-Means clustering on them, similar to what I did with full sketchbook pages in [part 1](./slml_part1.qmd).
+![Cluster 3](https://i.ibb.co/hHgwZff/c3.png){#fig-c3}
 
-This yielded reasonably coherent groups.
+Clusters with drawings that were "too complex".
+:::
 
-<!-- TODO: good cluster summaries -->
 
-<!-- TODO: bad cluster summaries -->
+I also noticed some clusters with drawings that were "too simple". It seems like many of the drawings in cluster 13 (@fig-c13) were stray lines accidentally separated from any context by the bounding-box preprocessing. Cluster 9 (@fig-c9) had many similar nonsensical lines, though they were mixed in with some false positives - valid drawings that I'd prefer to keep in the dataset.
 
-Finally, I excluded the ones that didn't fit the composition I wanted, and saved a filtered-down dataset.
+:::{#fig-clusters-too-simple .column-screen-inset layout-ncol=2}
+![Cluster 13](https://i.ibb.co/mBnwc2N/c13.png){#fig-c13}
 
-## Training on `20240104-furtherfiltered`
+![Cluster 9](https://i.ibb.co/7WskmQ2/c9.png){#fig-c9}
+
+Clusters with drawings that were "too simple".
+:::
+
+I was excited to notice some distinct categories in my drawings, seeing them from a distance. [In the future, as I add more drawings, it'd be great to explicitly label these drawing categories and even train separate models on them. For now, given that I don't have enough drawings scanned yet, I'm choosing to keep them in one dataset.]{.aside}
+
+Clusters 1, 4, and 11 (in @fig-c1, @fig-c4, and @fig-c11, respectively) all have vertical, narrow, whole-body figures.
+
+Cluster 2, in @fig-c2, mostly has rounder compositions of individual faces without a complete body.
+
+Clusters 8 and 15, in @fig-c8 and @fig-c15, seem to have more complex drawings but mostly still contain drawings of standalone people.
+
+The remaining clusters contain reasonably uniform drawings of standalone people, in vertical compositions, that are not too narrow. Hovering your mouse over these links @fig-c5, @fig-c6, @fig-c7, @fig-c9, @fig-c10, @fig-c12, @fig-c14. 
+
+
+:::{#fig-clusters-good .column-screen-inset layout-ncol=4}
+![Cluster 1](https://i.ibb.co/fnYzJBP/c1.png){#fig-c1}
+
+![Cluster 2](https://i.ibb.co/fQXBkPs/c2.png){#fig-c2}
+
+![Cluster 4](https://i.ibb.co/nm51Z52/c4.png){#fig-c4}
+
+![Cluster 5](https://i.ibb.co/3MsTpmc/c5.png){#fig-c5}
+
+![Cluster 6](https://i.ibb.co/0D5zrnD/c6.png){#fig-c6}
+
+![Cluster 7](https://i.ibb.co/vHYw3K7/c7.png){#fig-c7}
+
+![Cluster 8](https://i.ibb.co/ZGdC3fV/c8.png){#fig-c8}
+
+![Cluster 10](https://i.ibb.co/cJp9zLP/c10.png){#fig-c10}
+
+![Cluster 11](https://i.ibb.co/kDtRfnL/c11.png){#fig-c11}
+
+![Cluster 12](https://i.ibb.co/R7pRzjc/c12.png){#fig-c12}
+
+![Cluster 14](https://i.ibb.co/RpWdZMp/c14.png){#fig-c14}
+
+![Cluster 15](https://i.ibb.co/dKPYGQk/c15.png){#fig-c15}
+
+Clusters with drawings that looked good to me.
+:::
+
+
+## Training on Filtered Dataset
+
+The remainder of the clusters, in @fig-clusters-good, looked "good enough" for me to include in my training set. I all other clusters, and saved a filtered-down dataset as `20240104-furtherfiltered`.
+
+Compared to dataset `20240104`, it's clear in the top row of @fig-dataset-20240104 that in the filtered dataset variant, the distribution of number of strokes has shifted away from the long tail of many-stroke drawings.
+
+:::{#fig-dataset-20240104 .column-body}
+![](https://i.ibb.co/b6dV2Sf/dataset-comparison-2024014-furtherfiltered.png) 
+
+Comparing to unfiltered dataset `20240104` (2100 drawings) to the filtered dataset `20240104-furtherfiltered` (1300 drawings).
+:::
+
+Comparing the training metrics in @fig-train-bboxsep-furtherfiltered for the model trained on filtered dataset `20240104-furtherfiltered` (in red) with the previous model runs on unfiltered dataset `20240104` (in gray and blue) is not a perfect comparison. Since the validation set for `20240104-furtherfiltered` was also filtered, it's a smaller (and likely noisier) validation set. Still, the new model's validation loss was roughly within the bounds of what I expected.
 
 :::{#fig-train-bboxsep-furtherfiltered .column-body-outset}
 ![](https://i.ibb.co/NpFdRRB/phase5-wandb-bboxsep-visual-filtering-with-furtherfiltered.png)
@@ -104,6 +176,8 @@ Finally, I excluded the ones that didn't fit the composition I wanted, and saved
 Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240104-visual-filtering-bboxsep--Vmlldzo3MTMwMjAz) from models trained on `20240104-furtherfiltered` using visual filtering on the bounding-box separated drawings (red).
 :::
 <!-- ![](https://i.ibb.co/42FGqDN/phase5-wandb-bboxsep-visual-filtering-with-furtherfiltered.png)-->
+
+Qualitatively, the generated results after visual similarity filtering were significantly improved.
 
 :::{#fig-gen-bboxsep .column-screen-inset layout-ncol=3}
 ![](https://i.ibb.co/85p1XNk/phase5-test.png)
@@ -114,6 +188,8 @@ Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pyt
 
 Generated samples after training with visual filtering on bbox-separated dataset.
 :::
+
+Even the generated results that looked less like people/faces to me still had appealing curves and flowing patterns, which I recognize from my own drawing style.
 
 :::{#fig-gen-bboxsep-oddones .column-body layout-ncol=2}
 ![](https://i.ibb.co/xqfCt4n/phase5-test4.png)
@@ -163,10 +239,4 @@ Jan 13:
 - w4m3rxgi: [atomic-tree-34\_futherfiltered | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/w4m3rxgi/overview?workspace=user-andrewlook)
 	- Dataset: epoch20240104_furtherfiltered_trainval09
 
-=== Phase 6 - Data Aug ===
-
-* 1to0qyp3: [enchanting-fireworks-40\_\_dataaug10x | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/1to0qyp3?workspace=user-andrewlook)
-* 5m3e5ent: [auspicious-dragon-43\_\_dataaug10x\_bestval | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/5m3e5ent?workspace=user-andrewlook)
-	* note: identical hyperparams, but I had the model set up to save every 100 epochs. Since the much larger augmented dataset had longer epochs, the point of overfitting came around epoch
-	* ![phase6-wandb-overfitting-point](https://i.ibb.co/bKkFsG6/phase6-wandb-overfitting-point.png)
 -->

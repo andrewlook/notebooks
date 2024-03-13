@@ -1,0 +1,52 @@
+---
+draft: true
+title: "SLML Part 7 - SketchRNN Experiments: Data Augmentation"
+description: Experiments training SketchRNN on my dataset of single-line drawings.
+categories: [singleline, machinelearning, slml]
+author: Andrew Look
+date: 2024-01-04
+image: https://i.ibb.co/BPdSrTQ/phase1-wandb-with-without-minn10.png
+sidebar: false
+comments:
+  utterances:
+    repo: andrewlook/notebooks
+---
+
+# SLML Part 6 - SketchRNN Experiments: Data Augmentation
+
+## Learning 6
+
+- [ ] Data Augmentation
+- TODO: explain dataset / hyperparameter changes
+
+:::{#fig-train-aug .column-body-outset}
+![](https://i.ibb.co/jbJ7RQF/phase6-wandb-epoch20240221-data-aug.png)
+
+Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240221_expanded10x_trainval--Vmlldzo2OTQ1NjUw) from augmented dataset `20240221-dataaug10x` (purple).
+:::
+
+As a small side experiment, I wanted to confirm my finding in [part 4](./slml_part4.qmd) that layer norm caused a meaningful improvement.
+
+:::{#fig-train-aug-ln .column-body-outset}
+![phase6-wandb-without-ln-rd](https://i.ibb.co/5L7BkNM/phase6-wandb-without-ln-rd.png)
+
+Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240221-with-without-layernorm-recurrent-dropout--Vmlldzo2OTQ1NzA0) from augmented dataset `20240221-dataaug10x` (purple) compared to variants without layernorm (light green) and without recurrent dropout (magenta / dark red).
+:::
+
+Looking at the loss metrics in @fig-train-aug-ln, it appears that disabling layernorm (light green) causes a significant drop in performance. Disabling recurrent dropout doesn't have a significant effect, as far as I can tell.
+
+
+<!--
+> _If you want to keep reading, check out [part 7](./slml_part7.qmd) of my [SLML](/projects/slml.qmd) series._
+-->
+
+
+<!--
+
+=== Phase 6 - Data Aug ===
+
+* 1to0qyp3: [enchanting-fireworks-40\_\_dataaug10x | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/1to0qyp3?workspace=user-andrewlook)
+* 5m3e5ent: [auspicious-dragon-43\_\_dataaug10x\_bestval | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/5m3e5ent?workspace=user-andrewlook)
+	* note: identical hyperparams, but I had the model set up to save every 100 epochs. Since the much larger augmented dataset had longer epochs, the point of overfitting came around epoch
+	* ![phase6-wandb-overfitting-point](https://i.ibb.co/bKkFsG6/phase6-wandb-overfitting-point.png)
+-->

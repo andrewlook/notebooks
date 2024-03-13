@@ -142,7 +142,7 @@ Comparison of high-IOU vs. low-IOU bounding box intersections.
 Example from training set of a very small stroke being removed.
 :::
 
-## Dataset Creation
+## Dataset `20231214`
 
 Once I have all the separated strokes, I save then into a new dataset as separate drawings. While the previous dataset `v2-splicedata` only has 1200 drawings, the new bounding-box separated dataset `20231214` has 2400 drawings.
 
