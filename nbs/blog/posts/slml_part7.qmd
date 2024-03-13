@@ -1,5 +1,4 @@
 ---
-draft: true
 title: "SLML Part 7 - SketchRNN Experiments: Data Augmentation"
 description: Experiments training SketchRNN on my dataset of single-line drawings.
 categories: [singleline, machinelearning, slml]
