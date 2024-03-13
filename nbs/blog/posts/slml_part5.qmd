@@ -263,7 +263,7 @@ TODO: takeaways
 - apply RDP late in the process.
 -->
 
-> _If you want to keep reading, check out [part 6](./slml_part5.qmd) of my [SLML](/projects/slml.qmd) series._
+> _If you want to keep reading, check out [part 6](./slml_part6.qmd) of my [SLML](/projects/slml.qmd) series._
 
 
 

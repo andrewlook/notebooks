@@ -21,55 +21,102 @@ comments:
 > _If you want to keep reading, check out [part 7](./slml_part7.qmd)._
 -->
 
-## Learning 5
-
-### Really Long Drawings
+## Excluding Long Drawings
 
 One failure mode I noticed in the results generated after training on this dataset was that sometimes really knotty, gnarled lines would come out.
 
-| ![phase3-runid-093xwcex-epoch-00900-sample-0035-decoded](https://i.ibb.co/hycJZ71/phase3-runid-093xwcex-epoch-00900-sample-0035-decoded.png) | ![phase3-runid-093xwcex-epoch-01000-sample-0095-decoded](https://i.ibb.co/KrrH350/phase3-runid-093xwcex-epoch-01000-sample-0095-decoded.png) | ![phase3-runid-dhzx8671-epoch-00200-sample-0322-decoded](https://i.ibb.co/5jWFN7T/phase3-runid-dhzx8671-epoch-00200-sample-0322-decoded.png) |
-| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+:::{#fig-longdrawings .column-body-outset layout-ncol=3}
+![](https://i.ibb.co/hycJZ71/phase3-runid-093xwcex-epoch-00900-sample-0035-decoded.png)
+
+![](https://i.ibb.co/KrrH350/phase3-runid-093xwcex-epoch-01000-sample-0095-decoded.png)
+
+![](https://i.ibb.co/5jWFN7T/phase3-runid-dhzx8671-epoch-00200-sample-0322-decoded.png)
+
+Generated examples with too much complexity.
+:::
 
 Sometimes I make patterns by chaining repeating sequences of faces into long continuous lines. I wondered whether the presence of this kind of drawing in the training data was occasionally encouraging the model to make long continuous chains rather than drawing a single person.
 
+:::{#fig-chains .column-body-outset}
 ![chains example](https://i.ibb.co/wYmmGHX/sb42p006-raw-rotated.jpg)
 
-I noticed that some drawings were of one figure, and some drawings were patterned or chained with many faces. I wanted to exclude those patterns/chains from my training data, so I could give my model the best chance of learning to draw one person at a time.
+Example of a "diagonal chain" single-line pattern I draw.
+:::
 
-So, I computed embeddings for these bounding-box separated drawings, clustered them, and got reasonably coherent groups.
+## New Dataset
 
-Finally, I excluded the ones that didn't fit the composition I wanted, and saved a filtered-down dataset.
+Reviewing the [bounding box-separated dataset](./slml_part5.html#filtering-by-number-of-points) I noticed that some drawings were of one figure, and some drawings were patterned or chained with many faces.
 
-To train the model, I had to pick a maximum number of points in a given drawing. 250 was the recommended default.
+:::{#fig-over300 .column-body-outset layout-ncol=3}
+![1093 points](https://i.ibb.co/bdXtjzw/16strokes-1093points.png){#fig-1093}
 
-I looked at the distribution of number of points in all the drawings. At the very low end, some drawings had snuck in that were just little squiggles, and at the upper end, some really convoluted messes of lines were in there. I cut out the top and bottom 5% of drawings by number of points.
+![1127 points](https://i.ibb.co/S7j9ktg/16strokes-1127points.png){#fig-1127}
+
+![329 points](https://i.ibb.co/6vYXZmt/4strokes-329points.png){#fig-329}
+
+Drawings with over 300 points.
+:::
+
+I wanted to exclude those patterns/chains from my training data, so I could give my model the best chance of learning to draw one person at a time.
+
+Though I'd grown my training dataset by bounding-box separating single pages into multiple drawings, I was concerned about the tradeoff of filtering drawings out versus having a more coherent dataset with similar subject matter.
+
+I decided to create a new dataset epoch `20240104` including several additional sketchbooks I scanned and labeled. I decided to apply all the same preprocessing from before, with a small change to the RDP simplification of strokes based on what I observed when [filtering the bounding-box dataset](./slml_part5.qmd) by number of points.
+
+## RDP and Sequence Length
+
+In previous datasets, I had chosen the same strength of RDP line simplification for the whole dataset. Some drawings had been simplified reasonably, but other had been simple to begin with and ended up as a series of straight lines much sharper than the original curves.
+
+![30 points](https://i.ibb.co/2Pw6zvG/30points.png){#fig-30}
 
 For the remaining drawings, I ran the RDP algorithm with varying values for its `epsilon` parameter, until the number of points dipped under 250. Then I saved the result as a zipped numpy file.
 
-| ![phase5-test](https://i.ibb.co/85p1XNk/phase5-test.png) | ![phase5-test2](https://i.ibb.co/R41PJTS/phase5-test2.png) |
-| ---- | ---- |
-| ![phase5-test3](https://i.ibb.co/SymDvdW/phase5-test3.png) | ![phase5-test4](https://i.ibb.co/xqfCt4n/phase5-test4.png) |
-| ![phase5-test5](https://i.ibb.co/cbh6D3F/phase5-test5.png) |  |
+## Training on dataset `20240104`
 
-
-
-[epoch20240104 - bboxsep + visual filtering, max seq length 250 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240104-bboxsep-visual-filtering-max-seq-length-250--Vmlldzo2OTQ1NTgz)
-
+:::{#fig-train-bboxsep .column-body-outset}
 ![phase5-wandb-bboxsep-visual-filtering](https://i.ibb.co/R7xQbB3/phase5-wandb-bboxsep-visual-filtering.png)
 
+Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240104-bboxsep-visual-filtering-max-seq-length-250--Vmlldzo2OTQ1NTgz) from models trained on `20240104` using visual filtering on the bounding-box separated drawings, with maxiumum sequence lengths of 200 (gray) and 250 (blue).
+:::
+
+<!-- TOOD: interpretation of model training -->
+
+
+## Visual Similarity Filtering
+
+I computed embeddings for these bounding-box separated drawings, and ran K-Means clustering on them, similar to what I did with full sketchbook pages in [part 1](./slml_part1.qmd).
+
+This yielded reasonably coherent groups.
+
+<!-- TODO: good cluster summaries -->
+
+<!-- TODO: bad cluster summaries -->
+
+Finally, I excluded the ones that didn't fit the composition I wanted, and saved a filtered-down dataset.
+
+## Training on dataset `20240104-furtherfiltered`
+
+:::{#fig-train-bboxsep-furtherfiltered .column-body-outset}
 ![phase5-wandb-bboxsep-visual-filtering-with-furtherfiltered](https://i.ibb.co/42FGqDN/phase5-wandb-bboxsep-visual-filtering-with-furtherfiltered.png)
 
-<!--
-### Phase 5 - BBoxsep+Filtering
-Jan 13:
-- gc0el8ta: [fallen-microwave-32\_\_v10-epoch20240104\_bboxsep-filtering | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/gc0el8ta?workspace=user-andrewlook)
-	- Dataset: epoch20240104_trainval09
-- [ ] 24mzu9rc: [bright-sea-33\_v11-maxseqlen-250 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/24mzu9rc?workspace=user-andrewlook)
-	- Dataset: epoch20240104_trainval09
-	- max_seq_length: 250 (instead of 200)
-- w4m3rxgi: [atomic-tree-34\_futherfiltered | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/w4m3rxgi/overview?workspace=user-andrewlook)
-	- Dataset: epoch20240104_furtherfiltered_trainval09
--->
+Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240104-bboxsep-visual-filtering-max-seq-length-250--Vmlldzo2OTQ1NTgz) from models trained on `20240104-furtherfiltered` using visual filtering on the bounding-box separated drawings (red).
+:::
+
+:::{#fig-gen-bboxsep .column-screen-inset layout-ncol=5}
+![phase5-test](https://i.ibb.co/85p1XNk/phase5-test.png)
+
+![phase5-test2](https://i.ibb.co/R41PJTS/phase5-test2.png)
+
+![phase5-test3](https://i.ibb.co/SymDvdW/phase5-test3.png)
+
+![phase5-test4](https://i.ibb.co/xqfCt4n/phase5-test4.png)
+
+![phase5-test5](https://i.ibb.co/cbh6D3F/phase5-test5.png)
+
+Generated samples after training with visual filtering on bbox-separated dataset.
+:::
+
+
 
 
 ## Learning 6
@@ -87,13 +134,28 @@ Jan 13:
 
 ![phase6-wandb-without-ln-rd](https://i.ibb.co/5L7BkNM/phase6-wandb-without-ln-rd.png)
 
-<!-- 
+
+<!--
+> _If you want to keep reading, check out [part 7](./slml_part7.qmd) of my [SLML](/projects/slml.qmd) series._
+-->
+
+
+<!--
+=== Phase 5 - BBoxsep+Filtering ===
+
+Jan 13:
+- gc0el8ta: [fallen-microwave-32\_\_v10-epoch20240104\_bboxsep-filtering | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/gc0el8ta?workspace=user-andrewlook)
+	- Dataset: epoch20240104_trainval09
+- [ ] 24mzu9rc: [bright-sea-33\_v11-maxseqlen-250 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/24mzu9rc?workspace=user-andrewlook)
+	- Dataset: epoch20240104_trainval09
+	- max_seq_length: 250 (instead of 200)
+- w4m3rxgi: [atomic-tree-34\_futherfiltered | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/w4m3rxgi/overview?workspace=user-andrewlook)
+	- Dataset: epoch20240104_furtherfiltered_trainval09
+
+=== Phase 6 - Data Aug ===
+
 * 1to0qyp3: [enchanting-fireworks-40\_\_dataaug10x | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/1to0qyp3?workspace=user-andrewlook)
 * 5m3e5ent: [auspicious-dragon-43\_\_dataaug10x\_bestval | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/5m3e5ent?workspace=user-andrewlook)
 	* note: identical hyperparams, but I had the model set up to save every 100 epochs. Since the much larger augmented dataset had longer epochs, the point of overfitting came around epoch
 	* ![phase6-wandb-overfitting-point](https://i.ibb.co/bKkFsG6/phase6-wandb-overfitting-point.png)
--->
-
-<!--
-> _If you want to keep reading, check out [part 7](./slml_part7.qmd) of my [SLML](/projects/slml.qmd) series._
 -->
