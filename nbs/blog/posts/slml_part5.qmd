@@ -57,6 +57,8 @@ While not every drawing was turned into a single stroke, this was a big improvem
 
 Based my earlier experiment showing the benefits of [short-stroke exclusion](./slml_part4.html#filtering-out-short-strokes), I wanted to try training a model on this new dataset.
 
+## Training after Path-Splicing
+
 I ran the preprocessing on the whole dataset. Next, I filtered the original 1300 drawings to exclude any drawings with more than 6 strokes, resulting in a new dataset of 1200 drawings that I named `v2-splicedata`. Then I trained a new set of models, keeping the layernorm and recurrent dropout enabled.
 
 :::{#fig-train-splice .column-page}
@@ -116,7 +118,7 @@ Intersection over Union ("IOU") Metric.
 
 If the ratio exceeds some threshold, I consider them to be part of the same drawing, and I merge the bounding boxes as in @fig-merged. Combining that merged bounding box along with all the remaining bounding boxes, I repeat the process until no bounding-box intersections remain that exceed the threshold.
 
-:::{#fig-bbox-1 .column-body-outset layout-ncol=3}
+:::{#fig-bbox-1 .column-body layout-ncol=3}
 ![IOU = 0.03](https://i.ibb.co/gV1MFMZ/bbox-3.png)
 
 ![IOU = 0.12](https://i.ibb.co/PxDD7t6/bbox-2.png)
@@ -128,7 +130,7 @@ Comparison of high-IOU vs. low-IOU bounding box intersections.
 
  Also, if any bounding boxes have a really small area, I just drop them. It turns out this helps exclude small scribbles of text that were ending up in my training data as separate strokes - for example, the page number at the bottom right of @fig-pagenum.
 
-:::{#fig-bbox-1 .column-body-outset layout-ncol=4}
+:::{#fig-bbox-1 .column-body layout-ncol=4}
 ![Original: 4 Strokes](https://i.ibb.co/bQM69Jk/bbox-7.png)
 
 ![Tiny page number: 1 stroke](https://i.ibb.co/yN4Ct0g/bbox-9.png){#fig-pagenum}
@@ -140,34 +142,65 @@ Comparison of high-IOU vs. low-IOU bounding box intersections.
 Example from training set of a very small stroke being removed.
 :::
 
-Once I have all the separated strokes, I save into a dataset as separate drawings.  
-
-The new separated drawings looked more visually consistent with the average drawing out of the training set as a whole. The new dataset contains far more single-character drawings, so I expect that the RNN will benefit on learning from a set of drawings with more similar subject matter.
-
-I hypothesize that the bbox-separated dataset will be a big improvement because of the consistency of the resulting drawings. Before, the model was learning that sometimes drawings end after one person is drawn, but sometimes we move the pen and start a new person.
-
-:::{#fig-bbox-split-example .column-page layout-ncol=4}
-![Original](https://i.ibb.co/SrpsMWZ/bbox-20.png)
-
-![](https://i.ibb.co/PNLqQLG/bbox-21.png)
-
-![](https://i.ibb.co/wWKK6zC/bbox-22.png)
-
-![](https://i.ibb.co/N18YMC0/bbox-23.png)
-
-Original drawing (left) was one row in dataset `v2-splicedata`. The rightmost three drawings are distinct rows in dataset `20231214`.
-:::
-
-
 ## Dataset Creation
 
+Once I have all the separated strokes, I save then into a new dataset as separate drawings. While the previous dataset `v2-splicedata` only has 1200 drawings, the new bounding-box separated dataset `20231214` has 2400 drawings.
+
 :::{#fig-compare-datasets .column-body-outset}
-![dataset-comparison-with-v2-splicedata](https://i.ibb.co/vvMWrDc/dataset-comparison-with-v2-splicedata.png) 
+![](https://i.ibb.co/vvMWrDc/dataset-comparison-with-v2-splicedata.png)
 
 Comparison of previous dataset `v2-splicedata` with `20231214` and `20231214-filtered`.
 :::
 
-Since pages containing multiple distinct drawings were divided into separate rows in the new training set, the dataset grew dramatically. While the previous dataset `v2-splicedata` only has 1200 drawings, the new bounding-box separated dataset `20231214` has 2400 drawings.
+The dataset grew from 1200 to 2400 drawings because pages containing multiple distinct drawings (such as @fig-prebbox) were divided into separate rows in the new training set (like @fig-postbbox-1, @fig-postbbox-2, @fig-postbbox-3).
+
+:::{#fig-bbox-split-example .column-screen-inset layout-ncol=4}
+![Original](https://i.ibb.co/SrpsMWZ/bbox-20.png){#fig-prebbox}
+
+![](https://i.ibb.co/PNLqQLG/bbox-21.png){#fig-postbbox-1}
+
+![](https://i.ibb.co/wWKK6zC/bbox-22.png){#fig-postbbox-2}
+
+![](https://i.ibb.co/N18YMC0/bbox-23.png){#fig-postbbox-3}
+
+Original drawing (left) was one row in dataset `v2-splicedata`. The rightmost three drawings are distinct rows in dataset `20231214`.
+:::
+
+The new separated drawings looked more visually consistent with the average drawing out of the training set as a whole. The new dataset contains far more single-character drawings, so I expect that the RNN will benefit on learning from a set of drawings with more similar subject matter.
+
+I hypothesized that the bbox-separated dataset will be a big improvement because of the consistency of the resulting drawings. Before, the model was learning that sometimes drawings end after one person is drawn, but sometimes we move the pen and start a new person.
+
+## Filtering by Number of Points
+
+Looking at the distribution of number of points per drawing in the new dataset `20231214` in the bottom-middle chart in @fig-compare-datasets, I noticed a long tail of drawings with more than 500 points. To explore this, I created a variant dataset `20231214-filtered`.
+
+Dataset `20231214-filtered` which was filtered down to 1800 drawings, keeping only drawings with more than 50 and less than 300 points as you can see in the bottom-right chart in @fig-compare-datasets.
+
+Wondering if drawings with many points were less likely to have consistent subject matter (individual people) than the rest of the training set, I sampled some drawings with over 300 points. While drawings such as @fig-1093 and @fig-1127 were obvious candidates to exlcude, there were valid drawings near the margin such as @fig-329 that I would be excluding after I picked a threshold.[Possible Improvement: Filtering by visual embedding might be more reliable to exclude complex drawings]{.aside}
+
+:::{#fig-over300 .column-body layout-ncol=3}
+![1093 points](https://i.ibb.co/bdXtjzw/16strokes-1093points.png){#fig-1093}
+
+![1127 points](https://i.ibb.co/S7j9ktg/16strokes-1127points.png){#fig-1127}
+
+![329 points](https://i.ibb.co/6vYXZmt/4strokes-329points.png){#fig-329}
+
+Drawings with over 300 points.
+:::
+
+I also looked at the low end of the distribution and found drawings with under 50 points. There were nonsensical squiggles such as @fig-21 that I was happy to exclude. There were cases below the 50 point threshold such as @fig-30 and @fig-41 that looked recognizable as my drawings, but had been simplified by RDP too aggressively. [Possible Improvement: Applying RDP after bounding box separation rather than before.]{.aside}
+
+:::{#fig-under50 .column-body layout-ncol=3}
+![21 points](https://i.ibb.co/CPRMhHr/21points.png){#fig-21}
+
+![30 points](https://i.ibb.co/2Pw6zvG/30points.png){#fig-30}
+
+![41 points](https://i.ibb.co/VJP5LY4/41points.png){#fig-41}
+
+Drawings with under 50 points.
+:::
+
+## Training after Bounding Boxes
 
 :::{#fig-train-bbox .column-page}
 ![](https://i.ibb.co/729d0KL/phase4-wandb-bboxsep-filtering.png)
@@ -191,39 +224,9 @@ Generated results after training on unfiltered dataset `20231214`.
 ![](https://i.ibb.co/0mxFh2X/phase4-runid-g3hupc1l-epoch-00400-sample-0396-decoded.png)
 -->
 
-## Filtering by Number of Points
-
-Looking at the distribution of number of points per drawing in the new dataset `20231214` in the bottom-middle chart in @fig-compare-datasets, I noticed a long tail of drawings with more than 500 points. To explore this, I created a variant dataset `20231214-filtered`.
-
-Dataset `20231214-filtered` which was filtered down to 1800 drawings, keeping only drawings with more than 50 and less than 300 points as you can see in the bottom-right chart in @fig-compare-datasets.
-
-Wondering if drawings with many points were less likely to have consistent subject matter (individual people) than the rest of the training set, I sampled some drawings with over 300 points. While drawings such as @fig-1093 and @fig-1127 were obvious candidates to exlcude, there were valid drawings near the margin such as @fig-329 that I would be excluding after I picked a threshold.[Possible Improvement: Filtering by visual embedding might be more reliable to exclude complex drawings]{.aside}
-
-:::{#fig-over300 .column-body-outset layout-ncol=3}
-![1093 points](https://i.ibb.co/bdXtjzw/16strokes-1093points.png){#fig-1093}
-
-![1127 points](https://i.ibb.co/S7j9ktg/16strokes-1127points.png){#fig-1127}
-
-![329 points](https://i.ibb.co/6vYXZmt/4strokes-329points.png){#fig-329}
-
-Drawings with over 300 points.
-:::
-
-I also looked at the low end of the distribution and found drawings with under 50 points. There were nonsensical squiggles such as @fig-21 that I was happy to exclude. There were cases below the 50 point threshold such as @fig-30 and @fig-41 that looked recognizable as my drawings, but had been simplified by RDP too aggressively. [Possible Improvement: Applying RDP after bounding box separation rather than before.]{.aside}
-
-:::{#fig-under50 .column-body-outset layout-ncol=3}
-![21 points](https://i.ibb.co/CPRMhHr/21points.png){#fig-21}
-
-![30 points](https://i.ibb.co/2Pw6zvG/30points.png){#fig-30}
-
-![41 points](https://i.ibb.co/VJP5LY4/41points.png){#fig-41}
-
-Drawings with under 50 points.
-:::
-
 The model results in @fig-gen-bbox1 after training on filtered dataset `20231214-filtered` appear qualitatively better to me. The best results I could find had long coherent strokes capturing part of a face and sometimes a corresponding body.
 
-:::{#fig-gen-bbox1 .column-page layout-ncol=3}
+:::{#fig-gen-bbox1 .column-screen-inset layout-ncol=3}
 ![](https://i.ibb.co/wh86Rm5/phase4-runid-fj4klg1i-epoch-00200-sample-0080-decoded.png)
 
 ![](https://i.ibb.co/R28gn3K/phase4-runid-fj4klg1i-epoch-00200-sample-0291-decoded.png)
@@ -240,7 +243,7 @@ Generated results after training on filtered dataset `20231214-filtered`.
 
 The model results in @fig-gen-bbox2 after training with stroke-augmentation on filtered dataset `20231214-filtered` appear to be roughly of similar quality to . The best results I could find had long coherent strokes capturing part of a face and sometimes a corresponding body.
 
-:::{#fig-gen-bbox2 .column-page layout-ncol=4}
+:::{#fig-gen-bbox2 .column-screen-inset layout-ncol=3}
 ![](https://i.ibb.co/nmLtzS7/phase4-runid-slgleu3l-epoch-00100-sample-0244-decoded.png)
 
 ![](https://i.ibb.co/4Mq5Gtw/phase4-runid-slgleu3l-epoch-00100-sample-0068-decoded.png)
