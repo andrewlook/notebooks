@@ -27,7 +27,7 @@ comments:
 
 One failure mode I noticed in the results generated after training on this dataset was that sometimes really knotty, gnarled lines would come out.
 
-:::{#fig-longdrawings .column-body-outset layout-ncol=3}
+:::{#fig-longdrawings .column-screen-inset layout-ncol=3}
 ![](https://i.ibb.co/hycJZ71/phase3-runid-093xwcex-epoch-00900-sample-0035-decoded.png)
 
 ![](https://i.ibb.co/KrrH350/phase3-runid-093xwcex-epoch-01000-sample-0095-decoded.png)
@@ -39,7 +39,7 @@ Generated examples with too much complexity.
 
 Sometimes I make patterns by chaining repeating sequences of faces into long continuous lines. I wondered whether the presence of this kind of drawing in the training data was occasionally encouraging the model to make long continuous chains rather than drawing a single person.
 
-:::{#fig-chains .column-body-outset}
+:::{#fig-chains .column-body}
 ![chains example](https://i.ibb.co/wYmmGHX/sb42p006-raw-rotated.jpg)
 
 Example of a "diagonal chain" single-line pattern I draw.
@@ -105,13 +105,17 @@ Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pyt
 :::
 <!-- ![](https://i.ibb.co/42FGqDN/phase5-wandb-bboxsep-visual-filtering-with-furtherfiltered.png)-->
 
-:::{#fig-gen-bboxsep .column-screen-inset layout-ncol=5}
+:::{#fig-gen-bboxsep .column-screen-inset layout-ncol=3}
 ![](https://i.ibb.co/85p1XNk/phase5-test.png)
 
 ![](https://i.ibb.co/R41PJTS/phase5-test2.png)
 
 ![](https://i.ibb.co/SymDvdW/phase5-test3.png)
 
+Generated samples after training with visual filtering on bbox-separated dataset.
+:::
+
+:::{#fig-gen-bboxsep-oddones .column-body layout-ncol=2}
 ![](https://i.ibb.co/xqfCt4n/phase5-test4.png)
 
 ![](https://i.ibb.co/cbh6D3F/phase5-test5.png)
