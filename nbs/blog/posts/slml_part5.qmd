@@ -1,5 +1,5 @@
 ---
-title: "SLML Part 5 - SketchRNN Experiments: Path Joining and Bounding-Box Separation"
+title: "SLML Part 5 - SketchRNN Experiments: Path Preprocessing"
 description: Experiments training SketchRNN on my dataset of single-line drawings.
 categories: [singleline, machinelearning, slml]
 author: Andrew Look
@@ -11,100 +11,276 @@ comments:
     repo: andrewlook/notebooks
 ---
 
-# SLML Part 5 - SketchRNN Experiments: Path Joining and Bounding-Box Separation
+# SLML Part 5 - SketchRNN Experiments: Path Preprocessing
 
 > _This post is part 5 of ["SLML" - Single-Line Machine Learning](/projects/slml.qmd)._
 > 
 > _To read the previous post, check out [part 4](./slml_part4.qmd). If you want to keep reading, check out [part 6](./slml_part6.qmd)._
 
-## Learning 3 - Better Preprocessing
+## Path Joining
 
 Despite some improvement within the strokes, my latest models were still producing many short strokes. So I figured that improving my dataset would give better results than fiddling with hyper-parameters or my model.
 
-Looking at my training data, I returned to an issue from the stroke3-conversion process: autotrace hadn't realized that the different segments of my lines were actually connected. It was producing a series of small, centerline-traced segments.
+Looking at my training data, I returned to an issue from the stroke3-conversion process: autotrace hadn't realized that the different segments of my lines were actually connected. It was producing a series of small, centerline-traced segments, as seen in @fig-original.
 
-![separate strokes](https://i.ibb.co/s21gLTQ/stroke3-01-sepstrokes.png)
+I'd need some preprocessing to connect the smaller strokes into larger strokes, so that my SketchRNN model would learn to generate long contiguous single-line drawings. 
 
-I'd have to go back and somehow connect them. So, I tried a simple little algorithm that I called ["path joining"](https://singleline-dataset.andrewlook.com/strokes.html#joining-paths).
+:::{#fig-joining .column-page layout-ncol=3}
+![Original: 22 strokes](https://i.ibb.co/s21gLTQ/stroke3-01-sepstrokes.png){#fig-original}
 
-The idea: each of my drawings was a collection of line segments, each with a start and end point. I'd start with the longest one. Then, for each of the other line segments, I'd find the minimum distance between the start and end points of the line segments. Put simply, what's the shortest connection I can draw to connect two segments? I found that I needed an upper bound on the distance - I'd resized all of my drawings to 200x200 pixels, so something like 15-30 pixels was the maximum distance I observed made sense before I started to get irrelevant lines connecting to each other.
+![After path-joining: 4 strokes](https://i.ibb.co/602dKpr/stroke3-01-joinedstrokes.png){#fig-joined}
 
-This worked remarkably well. Still, I noticed some drawings had large contiguous strokes that weren't getting connected. I realized that while the strokes were close together and in some cases touching, their start and end points were far apart from each other.
+![After path-splicing: 2 strokes](https://i.ibb.co/rtnZMq1/stroke3-01-splicedstrokes1.png){#fig-spliced}
 
-![joined strokes](https://i.ibb.co/602dKpr/stroke3-01-joinedstrokes.png)
+Comparison of number of strokes before and after preprocessing, with one color per stroke.
+:::
 
-So I wrote a second algorithm, which I called ["path splicing"](https://singleline-dataset.andrewlook.com/strokes.html#splicing-strokes).
+My first preprocesing improvement was simple algorithm that I called ["path joining"](https://singleline-dataset.andrewlook.com/strokes.html#joining-paths).
 
-After I'd applied path joining and had a smaller number of long strokes left over, I wanted to see which strokes should be joined together. So, I'd take the longest path, then for each of the remaining shorter paths, I'd step through each point on the longest path and compare its distance from the start and end points of the shorter paths. When I found the smallest gap, I would "insert" the shorter line into the longer path at the point with the smallest distance.
+Each of my drawings is represented as a collection of line segments, each with a start and end point. I try to find the shortest connection I can draw to connect two segments. Starting with the longest stroke, I compare it each of the other strokes and calculate the minimum distance between the start and end points of the line segments. After going through all the strokes in a drawing, I connect the two strokes with the shortest gap between their endpoints. I repeat this process, joining the strokes until no strokes remain with endpoints more than 30 pixels apart. [I set an upper bound on the path-joining distance of 30 pixels (in a 200x200 pixel image) was the maximum distance I observed made sense before I started to erroneously join strokes that were too far apart.]{.aside}
 
-![spliced strokes](https://i.ibb.co/rtnZMq1/stroke3-01-splicedstrokes1.png)
+Though path-joining improved the average stroke length as seen in @fig-joined, I noticed some drawings had large contiguous strokes that weren't getting connected. I realized that while the strokes were close together and in some cases touching, their start and end points were far apart from each other. 
 
-While not every drawing was turned into a single stroke, this was a big improvement. Once I trained some models on a dataset with these "joined and spliced" paths, I started to get results that looked more like single-line drawings of people. In some cases they look surreal, but I started to see some more recognizable face elements and in some cases full bodies.
+## Path Splicing
 
-| ![phase3-runid-dhzx8671-epoch-00200-sample-0338-decoded](https://i.ibb.co/ZGLMZ4H/phase3-runid-dhzx8671-epoch-00200-sample-0338-decoded.png) | ![phase3-runid-dhzx8671-epoch-00400-sample-0338-decoded](https://i.ibb.co/5TVZG6H/phase3-runid-dhzx8671-epoch-00400-sample-0338-decoded.png) | ![phase3-runid-093xwcex-epoch-01000-sample-0061-decoded](https://i.ibb.co/KxRj62q/phase3-runid-093xwcex-epoch-01000-sample-0061-decoded.png) |
-| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+My next preprocessing improvement, ["path splicing"](https://singleline-dataset.andrewlook.com/strokes.html#splicing-strokes), would run after "path joining" and attempt to address this problem.
 
-Comparing the [metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/v2-splicedata-vs-look_i16_minn10--Vmlldzo2OTQ1NTIw) from my previous recurrent dropout model (light green) with models trained on this joined/spliced dataset (turquoise/dark green) isn't a perfect comparison, since the content of the validation set isn't the same. But I can see that the model started to overfit around 1000 steps.
+After path joining leaves a smaller number of strokes, I want to find the shortest connections to combine multiple longer strokes. Starting with the longest path, I look for a smaller stroke that I could "splice" into the middle of the larger stroke. For each candidate stroke, I'd step through each point on the larger stroke and compare its distance from the start and end points of the shorter paths. When I found the smallest gap, I would "splice" the shorter line into the longer path at the point with the smallest distance.
 
-![phase3-wandb-splicedata](https://i.ibb.co/vDsPsK6/phase3-wandb-splicedata.png)
-<!-- 
+While not every drawing was turned into a single stroke, this was a big improvement, as seen in @fig-spliced.
+
+:::{#fig-compare-i16 .column-body}
+![](https://i.ibb.co/d6B6JQT/dataset-comparison-minn10-vs-splicedata.png)
+
+[Previous](./slml_part4.qmd#filtering-out-short-strokes) dataset `look_i16__minn10`, left, compared to path-spliced dataset `v2-splicedata`, right.
+:::
+
+Based my earlier experiment showing the benefits of [short-stroke exclusion](./slml_part4.html#filtering-out-short-strokes), I wanted to try training a model on this new dataset.
+
+I ran the preprocessing on the whole dataset. Next, I filtered the original 1300 drawings to exclude any drawings with more than 6 strokes, resulting in a new dataset of 1200 drawings that I named `v2-splicedata`. Then I trained a new set of models, keeping the layernorm and recurrent dropout enabled.
+
+:::{#fig-train-splice .column-page}
+![](https://i.ibb.co/vDsPsK6/phase3-wandb-splicedata.png)
+
+Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/v2-splicedata-vs-look_i16_minn10--Vmlldzo2OTQ1NTIw) of recurrent dropout model (light green) alongside models trained on this joined/spliced dataset (turquoise/dark green). 
+:::
+
+After training some models on a path-spliced dataset the training metrics aren't a perfect comparison, since the content of the validation also changed when I applied path-splicing. Still, I can see from the validation loss graph that the model started to overfit around 1000 steps. The roughly similar shapes of the early train and validation loss curves at least convinced me that the model hadn't gotten dramatically worse.
+
+:::{#fig-gen-spliced .column-screen-inset layout-ncol=3}
+![](https://i.ibb.co/ZGLMZ4H/phase3-runid-dhzx8671-epoch-00200-sample-0338-decoded.png)
+
+![](https://i.ibb.co/5TVZG6H/phase3-runid-dhzx8671-epoch-00400-sample-0338-decoded.png)
+
+![](https://i.ibb.co/KxRj62q/phase3-runid-093xwcex-epoch-01000-sample-0061-decoded.png)
+
+Generated samples from a model trained on path-spliced dataset.
+:::
+
+Qualitatively, the generated drawings showed a big improvement. The model had learned to generate longer unbroken strokes. I started to notice results that looked more like single-line drawings of people. In some cases they look surreal, but I started to see some more recognizable face elements and in some cases full bodies.
+
+
+## Bounding Boxes
+
+My last remaining problem: there were some pages where I'd make 4 or 5 separate drawings that had nothing to do with each other, and had a lot of space between them.
+
+I wanted to separate those into separate examples before making a training dataset, for 2 reasons:
+
+1. **To get more training examples** from my limited number of scanned drawings.
+2. **To avoid confusing the model** when some examples are complex drawings with multiple people, and other drawings are just one person. [If the model sometimes learngs to make a complete drawing and then start a second unrelated drawing, how does the model know when to finish a drawing vs. when to start a second drawing alongside the first one?]{.aside}
+
+My intuition for my third preprocessing improvement, ["bounding box separation"](https://singleline-dataset.andrewlook.com/bounding_boxes.html), came when I noticed how unrelated strokes within a drawing didn't overlap much, and tended to be spaced far apart. For each of the stroke within a drawing, I'd determine its top/bottom/left/right extremes and consider a box around each stroke as in @fig-bbox-0.
+
+:::{#fig-bbox-0 .column-body layout-ncol=2}
+![](https://i.ibb.co/TRWchdV/bbox-0.png)
+
+![](https://i.ibb.co/g3BZnn8/bbox-1.png)
+
+Example drawing with multiple unrelated strokes.
+<!--
+Resulting training records:
+![bbox-10](https://i.ibb.co/WWXtxmx/bbox-10.png)
+![bbox-11](https://i.ibb.co/3MLYQGs/bbox-11.png)
+![bbox-12](https://i.ibb.co/1R31PNF/bbox-12.png)
+![bbox-13](https://i.ibb.co/hHcFg6t/bbox-13.png)
+-->
+:::
+
+Then for each combination of bounding boxes, I'd compute a ratio of the area of their overlap compared to the area of the non-overlapping parts as in @fig-iou. 
+
+:::{#fig-iou .column-margin}
+![](https://i.ibb.co/txyxw7z/bbox-4-IOU.webp)
+
+Intersection over Union ("IOU") Metric.
+:::
+
+If the ratio exceeds some threshold, I consider them to be part of the same drawing, and I merge the bounding boxes as in @fig-merged. Combining that merged bounding box along with all the remaining bounding boxes, I repeat the process until no bounding-box intersections remain that exceed the threshold.
+
+:::{#fig-bbox-1 .column-body-outset layout-ncol=3}
+![IOU = 0.03](https://i.ibb.co/gV1MFMZ/bbox-3.png)
+
+![IOU = 0.12](https://i.ibb.co/PxDD7t6/bbox-2.png)
+
+![Merged BBoxes](https://i.ibb.co/x5gYgB1/bbox-5-merge.png){#fig-merged}
+
+Comparison of high-IOU vs. low-IOU bounding box intersections.
+:::
+
+ Also, if any bounding boxes have a really small area, I just drop them. It turns out this helps exclude small scribbles of text that were ending up in my training data as separate strokes - for example, the page number at the bottom right of @fig-pagenum.
+
+:::{#fig-bbox-1 .column-body-outset layout-ncol=4}
+![Original: 4 Strokes](https://i.ibb.co/bQM69Jk/bbox-7.png)
+
+![Tiny page number: 1 stroke](https://i.ibb.co/yN4Ct0g/bbox-9.png){#fig-pagenum}
+
+![Merge: 3 Strokes](https://i.ibb.co/hDhs4Nz/bbox-6.png)
+
+![Result](https://i.ibb.co/93fz1zK/bbox-8.png)
+
+Example from training set of a very small stroke being removed.
+:::
+
+Once I have all the separated strokes, I save into a dataset as separate drawings.  
+
+The new separated drawings looked more visually consistent with the average drawing out of the training set as a whole. The new dataset contains far more single-character drawings, so I expect that the RNN will benefit on learning from a set of drawings with more similar subject matter.
+
+I hypothesize that the bbox-separated dataset will be a big improvement because of the consistency of the resulting drawings. Before, the model was learning that sometimes drawings end after one person is drawn, but sometimes we move the pen and start a new person.
+
+:::{#fig-bbox-split-example .column-page layout-ncol=4}
+![Original](https://i.ibb.co/SrpsMWZ/bbox-20.png)
+
+![](https://i.ibb.co/PNLqQLG/bbox-21.png)
+
+![](https://i.ibb.co/wWKK6zC/bbox-22.png)
+
+![](https://i.ibb.co/N18YMC0/bbox-23.png)
+
+Original drawing (left) was one row in dataset `v2-splicedata`. The rightmost three drawings are distinct rows in dataset `20231214`.
+:::
+
+
+## Dataset Creation
+
+:::{#fig-compare-datasets .column-body-outset}
+![dataset-comparison-with-v2-splicedata](https://i.ibb.co/vvMWrDc/dataset-comparison-with-v2-splicedata.png) 
+
+Comparison of previous dataset `v2-splicedata` with `20231214` and `20231214-filtered`.
+:::
+
+Since pages containing multiple distinct drawings were divided into separate rows in the new training set, the dataset grew dramatically. While the previous dataset `v2-splicedata` only has 1200 drawings, the new bounding-box separated dataset `20231214` has 2400 drawings.
+
+:::{#fig-train-bbox .column-page}
+![](https://i.ibb.co/729d0KL/phase4-wandb-bboxsep-filtering.png)
+
+Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20231214-bounding-box-separation-filtering--Vmlldzo2OTQ1NTUw) comparing model trained on `20231214` (beige) compared with models trained on dataset `20231214-filtered` with and without stroke augmentation (green, burgundy).
+:::
+
+After training on the unfiltered dataset `20231214`, I noticed that some drawings were devolving into a sequence of repeated face features without forming a cohesive person or face, as in @fig-gen-unfiltered.
+
+:::{#fig-gen-unfiltered .column-screen-inset layout-ncol=3}
+![](https://i.ibb.co/CV2SXQ3/phase4-runid-g3hupc1l-epoch-00300-sample-0136-decoded.png)
+
+![](https://i.ibb.co/x51j8wR/phase4-runid-g3hupc1l-epoch-00200-sample-0180-decoded.png)
+
+![](https://i.ibb.co/vdrzxMj/phase4-runid-g3hupc1l-epoch-00400-sample-0136-decoded.png)
+
+Generated results after training on unfiltered dataset `20231214`.
+:::
+<!--
+![](https://i.ibb.co/6vCfK1D/phase4-runid-g3hupc1l-epoch-00400-sample-0207-decoded.png)
+![](https://i.ibb.co/0mxFh2X/phase4-runid-g3hupc1l-epoch-00400-sample-0396-decoded.png)
+-->
+
+## Filtering by Number of Points
+
+Looking at the distribution of number of points per drawing in the new dataset `20231214` in the bottom-middle chart in @fig-compare-datasets, I noticed a long tail of drawings with more than 500 points. To explore this, I created a variant dataset `20231214-filtered`.
+
+Dataset `20231214-filtered` which was filtered down to 1800 drawings, keeping only drawings with more than 50 and less than 300 points as you can see in the bottom-right chart in @fig-compare-datasets.
+
+Wondering if drawings with many points were less likely to have consistent subject matter (individual people) than the rest of the training set, I sampled some drawings with over 300 points. While drawings such as @fig-1093 and @fig-1127 were obvious candidates to exlcude, there were valid drawings near the margin such as @fig-329 that I would be excluding after I picked a threshold.[Possible Improvement: Filtering by visual embedding might be more reliable to exclude complex drawings]{.aside}
+
+:::{#fig-over300 .column-body-outset layout-ncol=3}
+![1093 points](https://i.ibb.co/bdXtjzw/16strokes-1093points.png){#fig-1093}
+
+![1127 points](https://i.ibb.co/S7j9ktg/16strokes-1127points.png){#fig-1127}
+
+![329 points](https://i.ibb.co/6vYXZmt/4strokes-329points.png){#fig-329}
+
+Drawings with over 300 points.
+:::
+
+I also looked at the low end of the distribution and found drawings with under 50 points. There were nonsensical squiggles such as @fig-21 that I was happy to exclude. There were cases below the 50 point threshold such as @fig-30 and @fig-41 that looked recognizable as my drawings, but had been simplified by RDP too aggressively. [Possible Improvement: Applying RDP after bounding box separation rather than before.]{.aside}
+
+:::{#fig-under50 .column-body-outset layout-ncol=3}
+![21 points](https://i.ibb.co/CPRMhHr/21points.png){#fig-21}
+
+![30 points](https://i.ibb.co/2Pw6zvG/30points.png){#fig-30}
+
+![41 points](https://i.ibb.co/VJP5LY4/41points.png){#fig-41}
+
+Drawings with under 50 points.
+:::
+
+The model results in @fig-gen-bbox1 after training on filtered dataset `20231214-filtered` appear qualitatively better to me. The best results I could find had long coherent strokes capturing part of a face and sometimes a corresponding body.
+
+:::{#fig-gen-bbox1 .column-page layout-ncol=3}
+![](https://i.ibb.co/wh86Rm5/phase4-runid-fj4klg1i-epoch-00200-sample-0080-decoded.png)
+
+![](https://i.ibb.co/R28gn3K/phase4-runid-fj4klg1i-epoch-00200-sample-0291-decoded.png)
+
+![](https://i.ibb.co/V2MdNGf/phase4-runid-fj4klg1i-epoch-00400-sample-0186-decoded.png)
+
+Generated results after training on filtered dataset `20231214-filtered`.
+:::
+<!--
+![](https://i.ibb.co/d2vfKZ2/phase4-runid-fj4klg1i-epoch-00100-sample-0080-decoded.png)
+![](https://i.ibb.co/xYWW05f/phase4-runid-fj4klg1i-epoch-00100-sample-0278-decoded.png)
+![](https://i.ibb.co/WkYTZxh/phase4-runid-fj4klg1i-epoch-00400-sample-0278-decoded.png)
+-->
+
+The model results in @fig-gen-bbox2 after training with stroke-augmentation on filtered dataset `20231214-filtered` appear to be roughly of similar quality to . The best results I could find had long coherent strokes capturing part of a face and sometimes a corresponding body.
+
+:::{#fig-gen-bbox2 .column-page layout-ncol=4}
+![](https://i.ibb.co/nmLtzS7/phase4-runid-slgleu3l-epoch-00100-sample-0244-decoded.png)
+
+![](https://i.ibb.co/4Mq5Gtw/phase4-runid-slgleu3l-epoch-00100-sample-0068-decoded.png)
+
+![](https://i.ibb.co/vXsBtDS/phase4-runid-slgleu3l-epoch-00100-sample-0406-decoded.png)
+
+Generated results after training on filtered dataset `20231214-filtered`, with stroke augmentation enabled.
+:::
+<!--
+![](https://i.ibb.co/Fmf7RBF/phase4-runid-slgleu3l-epoch-00100-sample-0268-decoded.png)
+-->
+
+
+<!--
+TODO: takeaways
+
+- improving dataset > improving hyperparams
+- preprocessing worth the investment
+- consider filtering by embeddings of bbox-sep'd drawings
+- apply RDP late in the process.
+-->
+
+> _If you want to keep reading, check out [part 6](./slml_part5.qmd) of my [SLML](/projects/slml.qmd) series._
+
+
+
+
+
+<!--
+
+=== Phase 3 ===
+
 Dec 7:
 - [ ] 093xwcex: [likely-glitter-26\_splicedata-maxstrokes5 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/093xwcex?workspace=user-andrewlook)
 	- Dataset: v2-splice-maxstrokes5
 - [ ] dhzx8671: [pretty-firebrand-27\_splicedata-maxstrokes6 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/dhzx8671?workspace=user-andrewlook)
 	- Dataset: v2-splice-maxstrokes6
--->
 
+=== Phase 4 ===
 
-## Learning 4 - Bounding Boxes, Filtering out really long drawings
-
-### Really Long Drawings
-
-One failure mode I noticed in the results generated after training on this dataset was that sometimes really knotty, gnarled lines would come out.
-
-| ![phase3-runid-093xwcex-epoch-00900-sample-0035-decoded](https://i.ibb.co/hycJZ71/phase3-runid-093xwcex-epoch-00900-sample-0035-decoded.png) | ![phase3-runid-093xwcex-epoch-01000-sample-0095-decoded](https://i.ibb.co/KrrH350/phase3-runid-093xwcex-epoch-01000-sample-0095-decoded.png) | ![phase3-runid-dhzx8671-epoch-00200-sample-0322-decoded](https://i.ibb.co/5jWFN7T/phase3-runid-dhzx8671-epoch-00200-sample-0322-decoded.png) |
-| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-
-Sometimes I make patterns by chaining repeating sequences of faces into long continuous lines. I wondered whether the presence of this kind of drawing in the training data was occasionally encouraging the model to make long continuous chains rather than drawing a single person.
-
-![chains example](https://i.ibb.co/wYmmGHX/sb42p006-raw-rotated.jpg)
-
-### Bounding Boxes
-
-My last remaining problem: there were some pages where I'd make 4 or 5 separate drawings that had nothing to do with each other, and had a lot of space between them. I wanted to separate those into separate examples before making a training dataset, for 2 reasons:
-1) To get more training examples from the scans I had
-2) To avoid confusing the model I was training - if some examples make a complete drawing and then start a second unrelated drawing, how does the model know when to finish a drawing vs. when to start a second drawing alongside the first one?
-
-So I wrote a third algorithm, which i called "bounding box separation".
-
-My intuition was that separate drawings had some space between them, and didn't overlap much. So I'd take each of the strokes within a drawing, and determine its top/bottom/left/right extremes, so I could draw a box around each stroke. Then for each combination of bounding boxes, I'd compute a ratio of the area of their overlap compared to the area of the non-overlapping parts. If the ratio exceeds some threshold, I consider them to be part of the same drawing, and I merge the bounding boxes. Then I take that larger bounding box along with all the remaining bounding boxes, and repeat the process until no overlaps remain that exceed the threshold. Also, if any bounding boxes have a really small area, I just drop them. It turns out this helps exclude little page numbers / bits of text from ending up in my training data.
-
-Once I have all the separated drawings, I save them out as separate files.
-
-I noticed that some drawings were of one figure, and some drawings were patterned or chained with many faces. I wanted to exclude those patterns/chains from my training data, so I could give my model the best chance of learning to draw one person at a time.
-
-So, I computed embeddings for these bounding-box separated drawings, clustered them, and got reasonably coherent groups.
-
-Finally, I excluded the ones that didn't fit the composition I wanted, and saved a filtered-down dataset.
-
-To train the model, I had to pick a maximum number of points in a given drawing. 250 was the recommended default.
-
-I looked at the distribution of number of points in all the drawings. At the very low end, some drawings had snuck in that were just little squiggles, and at the upper end, some really convoluted messes of lines were in there. I cut out the top and bottom 5% of drawings by number of points.
-
-For the remaining drawings, I ran the RDP algorithm with varying values for its `epsilon` parameter, until the number of points dipped under 250. Then I saved the result as a zipped numpy file.
-
-
-### Phase 4 - Training
-
-- TODO: explain dataset / hyperparameter changes
-
-[metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20231214-bounding-box-separation-filtering--Vmlldzo2OTQ1NTUw)
-
-![phase4-wandb-bboxsep-filtering](https://i.ibb.co/729d0KL/phase4-wandb-bboxsep-filtering.png)
-
-<!--
-
-### Phase 4
 Dec 17,18:
 - [ ] gh3hupc1l: [treasured-serenity-28\_\_epoch-20231214\_\_boundingboxes | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/g3hupc1l?workspace=user-andrewlook)
 	- Dataset: epoch-20231214-trainval
@@ -118,15 +294,3 @@ Dec 17,18:
 	- random_scale_factor=0.15
 
 -->
-
-| ![phase4-runid-fj4klg1i-epoch-00100-sample-0080-decoded](https://i.ibb.co/d2vfKZ2/phase4-runid-fj4klg1i-epoch-00100-sample-0080-decoded.png) | ![phase4-runid-fj4klg1i-epoch-00100-sample-0278-decoded](https://i.ibb.co/xYWW05f/phase4-runid-fj4klg1i-epoch-00100-sample-0278-decoded.png) |
-| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| ![phase4-runid-fj4klg1i-epoch-00200-sample-0080-decoded](https://i.ibb.co/wh86Rm5/phase4-runid-fj4klg1i-epoch-00200-sample-0080-decoded.png) | ![phase4-runid-fj4klg1i-epoch-00200-sample-0291-decoded](https://i.ibb.co/R28gn3K/phase4-runid-fj4klg1i-epoch-00200-sample-0291-decoded.png) |
-| ![phase4-runid-fj4klg1i-epoch-00400-sample-0186-decoded](https://i.ibb.co/V2MdNGf/phase4-runid-fj4klg1i-epoch-00400-sample-0186-decoded.png) | ![phase4-runid-fj4klg1i-epoch-00400-sample-0278-decoded](https://i.ibb.co/WkYTZxh/phase4-runid-fj4klg1i-epoch-00400-sample-0278-decoded.png) |
-| ![phase4-runid-g3hupc1l-epoch-00200-sample-0180-decoded](https://i.ibb.co/x51j8wR/phase4-runid-g3hupc1l-epoch-00200-sample-0180-decoded.png) | ![phase4-runid-g3hupc1l-epoch-00300-sample-0136-decoded](https://i.ibb.co/CV2SXQ3/phase4-runid-g3hupc1l-epoch-00300-sample-0136-decoded.png) |
-| ![phase4-runid-g3hupc1l-epoch-00400-sample-0136-decoded](https://i.ibb.co/vdrzxMj/phase4-runid-g3hupc1l-epoch-00400-sample-0136-decoded.png) | ![phase4-runid-g3hupc1l-epoch-00400-sample-0207-decoded](https://i.ibb.co/6vCfK1D/phase4-runid-g3hupc1l-epoch-00400-sample-0207-decoded.png) |
-| ![phase4-runid-g3hupc1l-epoch-00400-sample-0396-decoded](https://i.ibb.co/0mxFh2X/phase4-runid-g3hupc1l-epoch-00400-sample-0396-decoded.png) | ![phase4-runid-slgleu3l-epoch-00100-sample-0068-decoded](https://i.ibb.co/4Mq5Gtw/phase4-runid-slgleu3l-epoch-00100-sample-0068-decoded.png) |
-| ![phase4-runid-slgleu3l-epoch-00100-sample-0244-decoded](https://i.ibb.co/nmLtzS7/phase4-runid-slgleu3l-epoch-00100-sample-0244-decoded.png) | ![phase4-runid-slgleu3l-epoch-00100-sample-0268-decoded](https://i.ibb.co/Fmf7RBF/phase4-runid-slgleu3l-epoch-00100-sample-0268-decoded.png) |
-| ![phase4-runid-slgleu3l-epoch-00100-sample-0406-decoded](https://i.ibb.co/vXsBtDS/phase4-runid-slgleu3l-epoch-00100-sample-0406-decoded.png) |                                                                                                                                              |
-
-> _If you want to keep reading, check out [part 6](./slml_part5.qmd) of my [SLML](/projects/slml.qmd) series._

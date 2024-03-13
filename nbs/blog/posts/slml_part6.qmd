@@ -23,7 +23,28 @@ comments:
 
 ## Learning 5
 
-- TODO: explain dataset / hyperparameter changes
+### Really Long Drawings
+
+One failure mode I noticed in the results generated after training on this dataset was that sometimes really knotty, gnarled lines would come out.
+
+| ![phase3-runid-093xwcex-epoch-00900-sample-0035-decoded](https://i.ibb.co/hycJZ71/phase3-runid-093xwcex-epoch-00900-sample-0035-decoded.png) | ![phase3-runid-093xwcex-epoch-01000-sample-0095-decoded](https://i.ibb.co/KrrH350/phase3-runid-093xwcex-epoch-01000-sample-0095-decoded.png) | ![phase3-runid-dhzx8671-epoch-00200-sample-0322-decoded](https://i.ibb.co/5jWFN7T/phase3-runid-dhzx8671-epoch-00200-sample-0322-decoded.png) |
+| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+
+Sometimes I make patterns by chaining repeating sequences of faces into long continuous lines. I wondered whether the presence of this kind of drawing in the training data was occasionally encouraging the model to make long continuous chains rather than drawing a single person.
+
+![chains example](https://i.ibb.co/wYmmGHX/sb42p006-raw-rotated.jpg)
+
+I noticed that some drawings were of one figure, and some drawings were patterned or chained with many faces. I wanted to exclude those patterns/chains from my training data, so I could give my model the best chance of learning to draw one person at a time.
+
+So, I computed embeddings for these bounding-box separated drawings, clustered them, and got reasonably coherent groups.
+
+Finally, I excluded the ones that didn't fit the composition I wanted, and saved a filtered-down dataset.
+
+To train the model, I had to pick a maximum number of points in a given drawing. 250 was the recommended default.
+
+I looked at the distribution of number of points in all the drawings. At the very low end, some drawings had snuck in that were just little squiggles, and at the upper end, some really convoluted messes of lines were in there. I cut out the top and bottom 5% of drawings by number of points.
+
+For the remaining drawings, I ran the RDP algorithm with varying values for its `epsilon` parameter, until the number of points dipped under 250. Then I saved the result as a zipped numpy file.
 
 | ![phase5-test](https://i.ibb.co/85p1XNk/phase5-test.png) | ![phase5-test2](https://i.ibb.co/R41PJTS/phase5-test2.png) |
 | ---- | ---- |
