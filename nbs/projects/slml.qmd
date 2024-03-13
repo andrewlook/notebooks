@@ -7,8 +7,9 @@ date: 2023-10-25
 date-modified: 2024-03-06
 image: https://i.ibb.co/Vj5kRw3/download.png
 comments:
-  utterances:
-    repo: andrewlook/notebooks
+  hypothesis:
+    theme: clean
+    openSidebar: false
 cap-location: bottom
 sidebar: false
 toc: true

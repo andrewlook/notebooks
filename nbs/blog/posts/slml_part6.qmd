@@ -7,8 +7,9 @@ date: 2024-01-04
 image: https://i.ibb.co/BPdSrTQ/phase1-wandb-with-without-minn10.png
 sidebar: false
 comments:
-  utterances:
-    repo: andrewlook/notebooks
+  hypothesis:
+    theme: clean
+    openSidebar: false
 ---
 
 # SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering

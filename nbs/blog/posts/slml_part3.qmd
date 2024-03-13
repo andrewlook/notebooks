@@ -7,8 +7,9 @@ date: 2023-11-07
 image: https://i.ibb.co/D7JyvM2/autotrace-points.png
 sidebar: false
 comments:
-  utterances:
-    repo: andrewlook/notebooks
+  hypothesis:
+    theme: clean
+    openSidebar: false
 ---
 
 # SLML Part 3 - JPEG to SVG to Stroke-3

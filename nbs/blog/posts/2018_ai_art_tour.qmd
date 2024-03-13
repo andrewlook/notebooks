@@ -6,8 +6,9 @@ author: Andrew Look
 date: 2018-04-18
 sidebar: false
 comments:
-  utterances:
-    repo: andrewlook/notebooks
+  hypothesis:
+    theme: clean
+    openSidebar: false
 ---
 
 By the end of this tour, my goal is to help you understand how some existing artists are incorporating AI tools and concepts into their work, and how using AI art tools might _augment_ your creativity.
