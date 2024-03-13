@@ -7,9 +7,8 @@ date: 2023-10-27
 image: https://i.ibb.co/h7nQM0n/distill-variation.gif
 sidebar: false
 comments:
-  hypothesis:
-    theme: clean
-    openSidebar: false
+  utterances:
+    repo: andrewlook/notebooks
 cap-location: margin
 ---
 

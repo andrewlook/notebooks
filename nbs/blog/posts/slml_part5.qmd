@@ -7,9 +7,8 @@ date: 2023-12-14
 image: https://i.ibb.co/BPdSrTQ/phase1-wandb-with-without-minn10.png
 sidebar: false
 comments:
-  hypothesis:
-    theme: clean
-    openSidebar: false
+  utterances:
+    repo: andrewlook/notebooks
 ---
 
 # SLML Part 5 - SketchRNN Experiments: Path Preprocessing

@@ -6,9 +6,8 @@ author: Andrew Look
 date: 2023-10-20
 sidebar: false
 comments:
-  hypothesis:
-    theme: clean
-    openSidebar: false
+  utterances:
+    repo: andrewlook/notebooks
 cap-location: margin
 ---
 
