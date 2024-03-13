@@ -81,6 +81,12 @@ Generated samples from a model trained on path-spliced dataset.
 
 Qualitatively, the generated drawings showed a big improvement. The model had learned to generate longer unbroken strokes. I started to notice results that looked more like single-line drawings of people. In some cases they look surreal, but I started to see some more recognizable face elements and in some cases full bodies.
 
+:::{#fig-debug-splicing .column-body-outset}
+{{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/new_file_fps20.mp4" >}}
+
+Iterating through full dataset, with 3 frames per drawing: original, path-joined, and path-spliced. I liked the slight jitter in the animation as I watched the drawings go from colorful (many strokes) to fully blue (single stroke).
+:::
+
 
 ## Bounding Boxes
 

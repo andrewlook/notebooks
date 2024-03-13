@@ -16,10 +16,8 @@ comments:
 > _This post is part 6 of ["SLML" - Single-Line Machine Learning](/projects/slml.qmd)._
 > 
 > _To read the previous post, check out [part 5](./slml_part5.qmd)._
-<!--
 >
 > _If you want to keep reading, check out [part 7](./slml_part7.qmd)._
--->
 
 ## New Dataset: `20240104`
 
@@ -199,32 +197,7 @@ Even the generated results that looked less like people/faces to me still had ap
 Generated samples after training with visual filtering on bbox-separated dataset.
 :::
 
-
-## Learning 6
-
-- [ ] Data Augmentation
-- TODO: explain dataset / hyperparameter changes
-
-:::{#fig-train-aug .column-body-outset}
-![](https://i.ibb.co/jbJ7RQF/phase6-wandb-epoch20240221-data-aug.png)
-
-Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240221_expanded10x_trainval--Vmlldzo2OTQ1NjUw) from augmented dataset `20240221-dataaug10x` (purple).
-:::
-
-As a small side experiment, I wanted to confirm my finding in [part 4](./slml_part4.qmd) that layer norm caused a meaningful improvement.
-
-:::{#fig-train-aug-ln .column-body-outset}
-![phase6-wandb-without-ln-rd](https://i.ibb.co/5L7BkNM/phase6-wandb-without-ln-rd.png)
-
-Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240221-with-without-layernorm-recurrent-dropout--Vmlldzo2OTQ1NzA0) from augmented dataset `20240221-dataaug10x` (purple) compared to variants without layernorm (light green) and without recurrent dropout (magenta / dark red).
-:::
-
-Looking at the loss metrics in @fig-train-aug-ln, it appears that disabling layernorm (light green) causes a significant drop in performance. Disabling recurrent dropout doesn't have a significant effect, as far as I can tell.
-
-
-<!--
 > _If you want to keep reading, check out [part 7](./slml_part7.qmd) of my [SLML](/projects/slml.qmd) series._
--->
 
 
 <!--

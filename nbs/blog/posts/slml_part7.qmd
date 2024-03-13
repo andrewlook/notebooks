@@ -12,12 +12,52 @@ comments:
     repo: andrewlook/notebooks
 ---
 
-# SLML Part 6 - SketchRNN Experiments: Data Augmentation
+# SLML Part 7 - SketchRNN Experiments: Data Augmentation
 
-## Learning 6
+> _This post is part 7 of ["SLML" - Single-Line Machine Learning](/projects/slml.qmd)._
+> 
+> _To read the previous post, check out [part 6](./slml_part6.qmd)._
 
-- [ ] Data Augmentation
-- TODO: explain dataset / hyperparameter changes
+<!--
+>
+> _If you want to keep reading, check out [part 8](./slml_part8.qmd)._
+-->
+
+## Preprocessing for Data Augmentation
+
+I was curious about why my earlier [experiment using stroke augmentation](/slml_part4.html#recurrent-dropout) didn't show benefits (and in some cases made the models perform much worse on validation metrics). In @fig-recurrentdropout, it's clear that the pink line (without stroke augmentation) has a faster-growing validation loss after the point of overfitting.
+
+:::{#fig-recurrentdropout .column-body-outset}
+![](https://i.ibb.co/xJD1VMg/phase2-wandb-V2-recurrent-dropout.png)
+
+Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/look_i16_minn10-layernorm-with-without-recurrent-dropout--Vmlldzo2OTQ1Mzk5) for layernorm-only models (burgundy and gray) alongside models trained with recurrent dropout (green) and with stroke augmentation (pink).
+:::
+
+Those experiments used stroke augmentation as a hyperparameter on the dataset - so at runtime when the model started training, it would modify the drawings before assembling them into batches for the trainer.
+
+I decided to create a dataset where I ran the augmentation ahead of time and saved the result so I could inspect the results more closely. For each entry in the dataset, I included the original drawing as well as a seperate entry for the drawing in reverse with a "flipped" sequence. This doubled the size of the dataset. [Another idea I'd like to try is applying local distortions or dilations, since that would change the directions certain strokes take without losing the overal subject of the drawing. [Radial Basis Functions](https://en.wikipedia.org/wiki/Radial_basis_function) or [Warp Grids](https://www.tvpaint.com/doc/tvp11/index.php?id=lesson-fx-distortion-warp-grid) seem like promising approaches to try.]{.aside}
+
+Then I took each drawing and randomly:
+
+- Applied stroke agumentation to drop points, with a probability up to 0.5.
+- Randomly rotated -15 to 15 degrees
+- Randomly scaled between 100% to 120% of original size.
+
+Some examples of the augmentations are visible in @fig-data-aug.
+
+:::{#fig-data-aug .column-body-outset layout-ncol=3}
+![Original drawing](https://i.ibb.co/sq9YtDX/aug0.png)
+
+![After "Stroke Augmentation" drops points from lines at random](https://i.ibb.co/VDp5d3D/aug1.png)
+
+![Randomly rotated and scaled](https://i.ibb.co/z59gv5S/aug2.png)
+
+Examples of data augmentation.
+:::
+
+## Training With Augmented Dataset
+
+Comparing the validation loss metrics in @fig-train-aug from the models trained on augmented dataset (purple) with my previous round of best-performing models, the augmented dataset takes longer to converge but the validation loss keeps sloping downwards. This is encouraging to me since it seems like the more diverse drawings in the augmented dataset are helping the model learn to generalize more than pervious models trained on non-augmented datasets.
 
 :::{#fig-train-aug .column-body-outset}
 ![](https://i.ibb.co/jbJ7RQF/phase6-wandb-epoch20240221-data-aug.png)
@@ -25,15 +65,13 @@ comments:
 Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240221_expanded10x_trainval--Vmlldzo2OTQ1NjUw) from augmented dataset `20240221-dataaug10x` (purple).
 :::
 
-As a small side experiment, I wanted to confirm my finding in [part 4](./slml_part4.qmd) that layer norm caused a meaningful improvement.
+As a small side experiment, I wanted to confirm my finding in [part 4](./slml_part4.qmd) that layer norm caused a meaningful improvement. Looking at the loss metrics in @fig-train-aug-ln, it appears that disabling layernorm (light green) causes a significant drop in performance. Disabling recurrent dropout doesn't have a significant effect, as far as I can tell.
 
 :::{#fig-train-aug-ln .column-body-outset}
 ![phase6-wandb-without-ln-rd](https://i.ibb.co/5L7BkNM/phase6-wandb-without-ln-rd.png)
 
 Training and validation [loss metrics](https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20240221-with-without-layernorm-recurrent-dropout--Vmlldzo2OTQ1NzA0) from augmented dataset `20240221-dataaug10x` (purple) compared to variants without layernorm (light green) and without recurrent dropout (magenta / dark red).
 :::
-
-Looking at the loss metrics in @fig-train-aug-ln, it appears that disabling layernorm (light green) causes a significant drop in performance. Disabling recurrent dropout doesn't have a significant effect, as far as I can tell.
 
 
 <!--

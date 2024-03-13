@@ -18,6 +18,7 @@ website:
               - blog/posts/slml_part4.qmd
               - blog/posts/slml_part5.qmd
               - blog/posts/slml_part6.qmd
+              - blog/posts/slml_part7.qmd
               - blog/posts/slml_template.qmd
         href: blog/index.qmd
       - section: jupyter

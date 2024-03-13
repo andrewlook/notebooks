@@ -62,9 +62,16 @@ In the back of my mind, I held on to the idea that one day I’d have enough dra
 
 Several years went by. More sketchbooks accumulated. Eventually, I ran a file count and saw a few thousand distinct drawings.
 
-:::{.column-page}
-| ![sb48p072](https://i.ibb.co/TrdbwR2/sb48p072.jpg) | ![sb67p077](https://i.ibb.co/xfqZZF0/sb67p077.jpg)<br> | ![sb67p004](https://i.ibb.co/5MtbpVL/sb67p004.jpg) | ![sb38p073-gown2](https://i.ibb.co/RvJ6DpK/sb38p073-gown2.jpg) |
-| -------------------------------------------------- | ------------------------------------------------------ | -------------------------------------------------- | -------------------------------------------------------------- |
+:::{#fig-lines .column-body-outset layout-ncol=4}
+![](https://i.ibb.co/TrdbwR2/sb48p072.jpg)
+
+![](https://i.ibb.co/xfqZZF0/sb67p077.jpg)
+
+![](https://i.ibb.co/5MtbpVL/sb67p004.jpg)
+
+![](https://i.ibb.co/RvJ6DpK/sb38p073-gown2.jpg)
+
+Some example single-line drawings from my sketchbooks.
 :::
 
 ## Preparing the Dataset
@@ -78,12 +85,19 @@ I was finally ready to get started. I was going to need:
 
 I started by collecting my sketchbook page JPEGs into usable training data.
 
-In [part 2 - Embedding Filtering](/blog/posts/slml_part2.qmd), I cover how I'm using embeddings to filter my dataset of drawings. I used embeddings to solve the problem of filtering everything out of my sketchbook data that wasn't a single-line drawing - particularly my watercolors.
+:::{#fig-watercolors .column-body-outset layout-ncol=4}
+![sb26p068-purple-hair](https://i.ibb.co/KFPv1dp/sb26p068-purple-hair.jpg)
 
-:::{.column-page}
-| ![sb26p068-purple-hair](https://i.ibb.co/KFPv1dp/sb26p068-purple-hair.jpg) | ![sb55p069-color](https://i.ibb.co/HqsynCv/sb55p069-color.jpg) | ![sb26p098-pickle-toast](https://i.ibb.co/jW8rBNX/sb26p098-pickle-toast.jpg) | ![sb26p069-red-nose](https://i.ibb.co/ScRSctH/sb26p069-red-nose.jpg) |
-| -------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+![sb55p069-color](https://i.ibb.co/HqsynCv/sb55p069-color.jpg)
+
+![sb26p098-pickle-toast](https://i.ibb.co/jW8rBNX/sb26p098-pickle-toast.jpg)
+
+![sb26p069-red-nose](https://i.ibb.co/ScRSctH/sb26p069-red-nose.jpg)
+
+Some watercolor examples from my sketchbooks.
 :::
+
+In [part 2 - Embedding Filtering](/blog/posts/slml_part2.qmd), I cover how I'm using embeddings to filter my dataset of drawings. I used embeddings to solve the problem of filtering everything out of my sketchbook data that wasn't a single-line drawing - particularly my watercolors.
 
 I also made an exploratory browser to visualize the embedding space of the drawings, and published it at [projector.andrewlook.com](https://projector.andrewlook.com). Here's a demo video:
 
@@ -91,48 +105,149 @@ I also made an exploratory browser to visualize the embedding space of the drawi
 {{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/emb-projector.mp4" >}}
 :::
 
-In [part 3 - Dataset Vectorization](/blog/posts/slml_part3.qmd), I cover how I'm vectorizing the scans to prepare them for RNN/transformer training. I also wrote some fun preprocessing code to [join SVG paths](https://singleline-dataset.andrewlook.com/strokes.html) up into continuous lines. Here's a debug video I made to flip through part of my dataset and watch drawings go from multiple strokes (one color per stroke) to a single stroke:
+In [part 3 - Dataset Vectorization](/blog/posts/slml_part3.qmd), I cover how I'm vectorizing the scans to prepare them for RNN/transformer training. At this stage in the process, my drawings were converted to centerline-traced vector paths, but they were represented as a series of separate strokes. It's visible in @fig-sepstrokes how the strokes are out of order, since strokes don't start where the previous stroke left off.
 
-:::{.column-body-outset}
-{{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/new_file_fps20.mp4" >}}
+:::{#fig-sepstrokes .column-body}
+{{< video https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/stroke3-sepstrokes1.mp4 >}}
+
+Example of separate strokes after my vectorization process.
 :::
+<!-- ![separate strokes](https://i.ibb.co/s21gLTQ/stroke3-01-sepstrokes.png) -->
 
 ## SketchRNN Experiments
 
 <!-- TODO(important): call out parts 5 and 6 -->
 
-In [part 4 - Training SketchRNN](/blog/posts/slml_part4.qmd), I cover a series of experiment results from training SketchRNN with different regularization and data augmentation, to see how it affects the results that the models can generate. 
+[Part 4](/blog/posts/slml_part4.qmd) covers how the dataset I used to train my first model contained drawings with too many short strokes, as in @fig-sepstrokes. Models trained on this dataset produced frenetic drawings such as @fig-before-sse. I experimented with some RNN training improvements and after filtering short strokes out of my first datasets and training a new model I saw a big improvment, as in @fig-after-sse.
 
+:::{#fig-i16-results .column-body-outset layout-ncol=2}
+![Before Short-Stroke Exclusion](https://i.ibb.co/Nnrn9jL/phase1-sample-0111-epoch-00330-decoded.png){#fig-before-sse}
+
+![After Short-Stroke Exclusion](https://i.ibb.co/jzgHHPS/phase2-sample-0145-epoch-11500-decoded.png){#fig-after-sse}
+
+Sample generated results from models trained before and after filtering out strokes with less than 10 points.
+:::
+
+<!--
+:::{#fig-i16-results .column-screen-inset layout-ncol=3}
+![](https://i.ibb.co/Nnrn9jL/phase1-sample-0111-epoch-00330-decoded.png)
+
+![](https://i.ibb.co/fSnW50p/phase1-sample-0115-epoch-00310-decoded.png)
+
+![](https://i.ibb.co/LNdGhBb/phase1-sample-0177-epoch-06000-decoded.png)
+
+Generated outputs from SketchRNN trained on dataset `look_i16`.
+:::
+:::{#fig-i16-results .column-screen-inset layout-ncol=3}
+![](https://i.ibb.co/hXBK8Zb/phase2-sample-0066-epoch-11700-decoded.png)
+
+![](https://i.ibb.co/jzgHHPS/phase2-sample-0145-epoch-11500-decoded.png)
+
+![](https://i.ibb.co/0mwbJBw/phase2-sample-0291-epoch-13200-decoded.png)
+
+Generated outputs from SketchRNN trained on dataset `look_i16__minn10`.
+:::
+-->
+
+[Part 5](/blog/posts/slml_part5.qmd) covers improvements I made to my preprocessing of the dataset by [joining SVG paths](https://singleline-dataset.andrewlook.com/strokes.html) up into continuous lines so that the model could learn from longer sequences.
+
+:::{#fig-joining .column-body-outset layout-ncol=3}
+![Original: 22 strokes](https://i.ibb.co/s21gLTQ/stroke3-01-sepstrokes.png){#fig-original}
+
+![After path-joining: 4 strokes](https://i.ibb.co/602dKpr/stroke3-01-joinedstrokes.png){#fig-joined}
+
+![After path-splicing: 2 strokes](https://i.ibb.co/rtnZMq1/stroke3-01-splicedstrokes1.png){#fig-spliced}
+
+Comparison of number of strokes before and after preprocessing, with one color per stroke.
+:::
+
+<!--
+Here's a debug video I made to flip through part of my dataset and watch drawings go from multiple strokes (one color per stroke) to a single stroke:
+
+:::{.column-body}
+{{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/new_file_fps20.mp4" height="400" >}}
+:::
+-->
+
+The generated results at this stage were uncanny, but showed a big improvement from the initial results. There were at least some recognizable faces and bodies, as seen in @fig-gen-spliced.
+
+:::{#fig-gen-spliced .column-screen-inset layout-ncol=3}
+![](https://i.ibb.co/ZGLMZ4H/phase3-runid-dhzx8671-epoch-00200-sample-0338-decoded.png)
+
+![](https://i.ibb.co/5TVZG6H/phase3-runid-dhzx8671-epoch-00400-sample-0338-decoded.png)
+
+![](https://i.ibb.co/KxRj62q/phase3-runid-093xwcex-epoch-01000-sample-0061-decoded.png)
+
+Generated samples from a model trained on path-spliced dataset.
+:::
+
+Also in Part 5, I a preprocessing step to decompose strokes into seperate drawings if their bounding boxes didn't overlap sufficiently. The size of the dataset roughly doubled, since sketchbook pages containing multiple drawings were broken out into separate training examples as in @fig-bbox-split-example.
+
+:::{#fig-bbox-split-example .column-screen-inset layout-ncol=4}
+![Original](https://i.ibb.co/SrpsMWZ/bbox-20.png){#fig-prebbox}
+
+![](https://i.ibb.co/PNLqQLG/bbox-21.png){#fig-postbbox-1}
+
+![](https://i.ibb.co/wWKK6zC/bbox-22.png){#fig-postbbox-2}
+
+![](https://i.ibb.co/N18YMC0/bbox-23.png){#fig-postbbox-3}
+
+Original drawing (left) was one row in dataset `v2-splicedata`. The rightmost three drawings are distinct rows in dataset `20231214`.
+:::
+
+[Part 6](/blog/posts/slml_part6.qmd) covers how I filtered drawings by visual similarity. Though I did an earlier pass on visual similarity to filter watercolors out from my single-line drawings, this time I wanted to explore the embedding space of the individual drawings after bounding-box separation had been applied. I found that clustering the drawing embeddings identified clusters I wanted to exlcude from the training data like @fig-c0 and @fig-c13, and helped me identify clusters that I wanted to include in the training data like @fig-c5.
+
+:::{#fig-chains .column-screen-inset layout-ncol=3}
+![Cluster of complex drawings I wanted to filter out](https://i.ibb.co/ZghFLD3/c0.png){#fig-c0}
+
+![Cluster of simple drawings I wanted to filter out](https://i.ibb.co/mBnwc2N/c13.png){#fig-c13}
+
+![Cluster of good drawings I wanted to include](https://i.ibb.co/3MsTpmc/c5.png){#fig-c5}
+
+Example groupings after running K-Means on visual embeddings of individual drawings.
+:::
+
+The drawings generated by models trained on this visually-filtered dataset started to look recognizable as containing distinct people or faces, as in @fig-gen-bboxsep. Still odd and convoluted, but interesting enough to give me new ideas for drawings or paintings.
+
+:::{#fig-gen-bboxsep .column-screen-inset layout-ncol=3}
+![](https://i.ibb.co/85p1XNk/phase5-test.png)
+
+![](https://i.ibb.co/R41PJTS/phase5-test2.png)
+
+![](https://i.ibb.co/SymDvdW/phase5-test3.png)
+
+Generated samples after training with visual filtering on bbox-separated dataset.
+:::
+
+[Part 7](/blog/posts/slml_part7.qmd) covers experiments I tried using data augmentation, using tricks to take my existing set of drawings and create a more diverse set of training data. For regular computer vision algorithms looking at images in terms of pixels, it's common to randomly crop the images, flip them horizontally, and change the colors. For vector drawings like I'm working with, there are a different set of techniques available.
+
+:::{#fig-data-aug .column-body-outset layout-ncol=3}
+![Original drawing](https://i.ibb.co/sq9YtDX/aug0.png)
+
+![After "Stroke Augmentation" drops points from lines at random](https://i.ibb.co/VDp5d3D/aug1.png)
+
+![Randomly rotated and scaled](https://i.ibb.co/z59gv5S/aug2.png)
+
+Examples of data augmentation.
+:::
+
+
+
+## Interpreting the Results
 
 <!-- TODO(important): split into a separate analysis section? -->
 
-It has also been fun to connect the model's generation function to an animation builder, so I can watch the machine "draw" in real time. Compared with viewing a static output, the animations reminds me that part of what I love about single-line drawings is the surprise as a viewer. The drawing might start off nonsensical, and then end up with something recognizable enough to be an abstract figure drawing.
+It has also been fun to connect the model's generation function to an animation builder, so I can watch the machine "draw" in real time. Compared with viewing a static output, the animations reminds me that part of what I love about single-line drawings is the surprise as a viewer. 
 
-:::{.column-body-outset layout-ncol=2}
-{{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/video-8.mp4" >}}
+{{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/video-8.mp4" height="400" >}}
 
-{{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/video-11.mp4" >}}
-:::
+The drawing might start off nonsensical, and then end up with something recognizable enough to be an abstract figure drawing. Even when I'm drawing, I don't always know where the drawing is going to end up. 
 
-Even when I'm drawing, I don't always know where the drawing is going to end up. I'm adjusting as my hand moves, and adapting to any unexpected moves or mistakes to try and arrive at a drawing that I like. Maybe it's not so different from how SketchRNN represents it - I'm sampling from a probability distribution of possible next moves, and my decision is made by the muscle memory of what's happened so far.
+{{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/video-11.mp4" height="400" >}}
 
-Here are a few more of the resulting drawings:
+I'm adjusting as my hand moves, and adapting to any unexpected moves or mistakes to try and arrive at a drawing that I like. This is not so different from how SketchRNN generates drawings. One way to look at it is that I'm sampling from a probability distribution of possible next moves, and my decision is made by the muscle memory of what's happened so far.
 
-:::{.column-screen-inset layout-ncol=3}
-![](https://i.ibb.co/85p1XNk/phase5-test.png){group="phase5"}
-
-![](https://i.ibb.co/R41PJTS/phase5-test2.png){group="phase5"}
-
-![](https://i.ibb.co/SymDvdW/phase5-test3.png){group="phase5"}
-
-<!--
-![](https://i.ibb.co/xqfCt4n/phase5-test4.png){group="phase5"}
-
-![](https://i.ibb.co/cbh6D3F/phase5-test5.png){group="phase5"}
--->
-:::
-
-They remind me of an experiment I've tried: drawing with my eyes closed.
+Looking at some of the results generated from my SketchRNN models such as @fig-gen-bboxsep, they remind me of an experiment I've tried in drawing with my eyes closed.
 
 I was curious about how much I'm adjusting drawings based on what I see while I'm drawing. I wanted to see how much of my drawings come exclusively from the muscle memory I've developed in drawing faces.
 
@@ -174,7 +289,7 @@ Apparently I have muscle memory when I draw eyes and a note in close proximity, 
 {{< video "https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/video-9.mp4" >}}
 -->
 
-This got me interested in how [Transformer models]([The Illustrated Transformer – Jay Alammar – Visualizing machine learning one concept at a time.](https://jalammar.github.io/illustrated-transformer/)) use attention mechanisms to let each step in the sequence take into account the entire sequence at once.
+This got me interested in how [Transformer models](https://jalammar.github.io/illustrated-transformer/) use attention mechanisms to let each step in the sequence take into account the entire sequence at once.
 
 ![](https://jalammar.github.io/images/t/transformer_self-attention_visualization.png)
 
