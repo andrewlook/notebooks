@@ -100,3 +100,14 @@ div.description {
 .figure-caption {
   text-align: center;
 }
+
+/* toc */
+.sidebar nav[role="doc-toc"] ul {
+  font-size: 0.65rem;
+}
+.sidebar nav[role="doc-toc"] > h2 {
+  font-size: 0.65rem;
+}
+.sidebar nav[role="doc-toc"] .toc-actions p {
+  font-size: 0.65rem !important;
+}
