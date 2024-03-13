@@ -3,7 +3,7 @@ title: "SLML Part 5 - SketchRNN Experiments: Path Preprocessing"
 description: Experiments training SketchRNN on my dataset of single-line drawings.
 categories: [singleline, machinelearning, slml]
 author: Andrew Look
-date: 2023-12-03
+date: 2023-12-14
 image: https://i.ibb.co/BPdSrTQ/phase1-wandb-with-without-minn10.png
 sidebar: false
 comments:

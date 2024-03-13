@@ -99,7 +99,12 @@ In [part 3 - Dataset Vectorization](/blog/posts/slml_part3.qmd), I cover how I'm
 
 ## SketchRNN Experiments
 
+<!-- TODO(important): call out parts 5 and 6 -->
+
 In [part 4 - Training SketchRNN](/blog/posts/slml_part4.qmd), I cover a series of experiment results from training SketchRNN with different regularization and data augmentation, to see how it affects the results that the models can generate. 
+
+
+<!-- TODO(important): split into a separate analysis section? -->
 
 It has also been fun to connect the model's generation function to an animation builder, so I can watch the machine "draw" in real time. Compared with viewing a static output, the animations reminds me that part of what I love about single-line drawings is the surprise as a viewer. The drawing might start off nonsensical, and then end up with something recognizable enough to be an abstract figure drawing.
 
