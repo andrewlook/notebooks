@@ -31,9 +31,10 @@ listing:
 <!--
 ![scary-horizon](https://i.ibb.co/8mbK9b8/scary-horizon.jpg)
 ![deepdream-littlemonster](https://i.ibb.co/kKYvhq1/deepdream-littlemonster.jpg)
--->
+
 :::{#posts-list}
 :::
+-->
 
 !["Desert Dreams", 2017](https://i.ibb.co/vqsHbSD/0c-jtree-painting.jpg)
 
