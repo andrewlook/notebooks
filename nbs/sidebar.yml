@@ -28,10 +28,15 @@ website:
           - jupyter/20_part1_computing_embeddings.ipynb
           - jupyter/21_part2_exploring_embeddings.ipynb
           - jupyter/30_singleline_dataset_second_attempt.ipynb
+          - jupyter/scratch_tokenize.ipynb
         href: jupyter/index.qmd
       - section: projects
         contents:
+          - projects/painting_deepdreams.qmd
           - projects/slml.qmd
+          - section: painting_deepdreams
+            contents:
+              - projects/painting_deepdreams/desert_dreams.qmd
       - section: resume
         contents: []
         href: resume/index.qmd

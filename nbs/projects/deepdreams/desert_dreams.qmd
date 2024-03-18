@@ -1,0 +1,19 @@
+---
+title: Desert Dreams
+description: Acrylic & Oil on Canvas, 24" x 36"
+categories: [painting, machinelearning, deepdreams]
+author: Andrew Look
+date: 2017-11-22
+# image: 
+comments:
+  utterances:
+    repo: andrewlook/notebooks
+cap-location: bottom
+sidebar: false
+toc: true
+lightbox: auto
+---
+
+# Desert Dreams
+
+> Acrylic & Oil on Canvas, 24" x 36"
