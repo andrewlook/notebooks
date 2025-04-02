@@ -1,0 +1,819 @@
+[
+  {
+    "objectID": "projects/slml.html",
+    "href": "projects/slml.html",
+    "title": "Single-Line Machine Learning",
+    "section": "",
+    "text": "Lately I’ve been working on training ML models to generate single-line drawings in my style. I’ve open-sourced the code for my models and the code I used to prepare the dataset.\nI’ve started writing deep dives for each phase of the project.\n\n\n\n\n\nTitle\n\n\n\n\n\n\nSLML Part 0 - My Single-Line Drawing Practice\n\n\n\n\nSLML Part 1 - Why I Decided to Train SketchRNN on My Drawings\n\n\n\n\nSLML Part 2 - Assembling the Dataset\n\n\n\n\nSLML Part 3 - JPEG to SVG to Stroke-3\n\n\n\n\nSLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization\n\n\n\n\nSLML Part 5 - SketchRNN Experiments: Path Preprocessing\n\n\n\n\nSLML Part 6 - SketchRNN Experiments: Granular Visual Filtering\n\n\n\n\nSLML Part 7 - SketchRNN Experiments: Data Augmentation\n\n\n\n\n\nNo matching items\n\n\nThis page includes a broader overview of the story as a whole, linking to the individual sections for more detail.\n\n\nIn part 0 I share how I got started making single-line drawings, and why I found them interesting enough to make them as a daily practice.\n\n\n\nIn part 1 - Discovering SketchRNN I cover how SketchRNN captured my imagination and why I decided to try training it on my own data. For example, I imagined turning the “variability” up, and generating new drawings based on my old ones?\n\n\n\n\ndistill.pub’s handwriting demo\n\n\n\nI hit my first roadbloack when I reached out to the authors of SketchRNN. They estimated that I’d need thousands of examples in order to train a model, but I only had a few hundred at the time.\nI decided to keep making drawings in my sketchbooks, numbering the pages, and scanning them to store with a standardized file naming scheme.\n\n\n\nIn the back of my mind, I held on to the idea that one day I’d have enough drawings to train a model on them.\nSeveral years went by. More sketchbooks accumulated. Eventually, I ran a file count and saw a few thousand distinct drawings.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 1: Some example single-line drawings from my sketchbooks.\n\n\n\n\n\n\nI was finally ready to get started. I was going to need:\n\na thousand JPEGs of my drawings (at least)\na stroke-3 conversion process for my JPEG scans\na SketchRNN model and trainer\nthe patience to experiment with hyperparameters\n\nI started by collecting my sketchbook page JPEGs into usable training data.\n\n\n\n\n\n\n\n\nsb26p068-purple-hair\n\n\n\n\n\n\n\nsb55p069-color\n\n\n\n\n\n\n\nsb26p098-pickle-toast\n\n\n\n\n\n\n\nsb26p069-red-nose\n\n\n\n\n\n\nFigure 2: Some watercolor examples from my sketchbooks.\n\n\n\nIn part 2 - Embedding Filtering, I cover how I’m using embeddings to filter my dataset of drawings. I used embeddings to solve the problem of filtering everything out of my sketchbook data that wasn’t a single-line drawing - particularly my watercolors.\nI also made an exploratory browser to visualize the embedding space of the drawings, and published it at projector.andrewlook.com. Here’s a demo video:\n\n\n\nIn part 3 - Dataset Vectorization, I cover how I’m vectorizing the scans to prepare them for RNN/transformer training. At this stage in the process, my drawings were converted to centerline-traced vector paths, but they were represented as a series of separate strokes. It’s visible in Figure 3 how the strokes are out of order, since strokes don’t start where the previous stroke left off.\n\n\n\n\n\n\nFigure 3: Example of separate strokes after my vectorization process.\n\n\n\n\n\n\n\n\nPart 4 covers how the dataset I used to train my first model contained drawings with too many short strokes, as in Figure 3. Models trained on this dataset produced frenetic drawings such as Figure 4 (a). I experimented with some RNN training improvements and after filtering short strokes out of my first datasets and training a new model I saw a big improvment, as in Figure 4 (b).\n\n\n\n\n\n\n\n\n\n\n\n(a) Before Short-Stroke Exclusion\n\n\n\n\n\n\n\n\n\n\n\n(b) After Short-Stroke Exclusion\n\n\n\n\n\n\n\nFigure 4: Sample generated results from models trained before and after filtering out strokes with less than 10 points.\n\n\n\n\nPart 5 covers improvements I made to my preprocessing of the dataset by joining SVG paths up into continuous lines so that the model could learn from longer sequences.\n\n\n\n\n\n\n\n\n\n\n\n(a) Original: 22 strokes\n\n\n\n\n\n\n\n\n\n\n\n(b) After path-joining: 4 strokes\n\n\n\n\n\n\n\n\n\n\n\n(c) After path-splicing: 2 strokes\n\n\n\n\n\n\n\nFigure 5: Comparison of number of strokes before and after preprocessing, with one color per stroke.\n\n\n\n\nThe generated results at this stage were uncanny, but showed a big improvement from the initial results. There were at least some recognizable faces and bodies, as seen in Figure 6.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 6: Generated samples from a model trained on path-spliced dataset.\n\n\n\nAlso in Part 5, I a preprocessing step to decompose strokes into seperate drawings if their bounding boxes didn’t overlap sufficiently. The size of the dataset roughly doubled, since sketchbook pages containing multiple drawings were broken out into separate training examples as in Figure 7.\n\n\n\n\n\n\n\n\n\n\n\n(a) Original\n\n\n\n\n\n\n\n\n\n\n\n(b)\n\n\n\n\n\n\n\n\n\n\n\n(c)\n\n\n\n\n\n\n\n\n\n\n\n(d)\n\n\n\n\n\n\n\nFigure 7: Original drawing (left) was one row in dataset v2-splicedata. The rightmost three drawings are distinct rows in dataset 20231214.\n\n\n\nPart 6 covers how I filtered drawings by visual similarity. Though I did an earlier pass on visual similarity to filter watercolors out from my single-line drawings, this time I wanted to explore the embedding space of the individual drawings after bounding-box separation had been applied. I found that clustering the drawing embeddings identified clusters I wanted to exlcude from the training data like Figure 8 (a) and Figure 8 (b), and helped me identify clusters that I wanted to include in the training data like Figure 8 (c).\n\n\n\n\n\n\n\n\n\n\n\n(a) Cluster of complex drawings I wanted to filter out\n\n\n\n\n\n\n\n\n\n\n\n(b) Cluster of simple drawings I wanted to filter out\n\n\n\n\n\n\n\n\n\n\n\n(c) Cluster of good drawings I wanted to include\n\n\n\n\n\n\n\nFigure 8: Example groupings after running K-Means on visual embeddings of individual drawings.\n\n\n\nThe drawings generated by models trained on this visually-filtered dataset started to look recognizable as containing distinct people or faces, as in Figure 9. Still odd and convoluted, but interesting enough to give me new ideas for drawings or paintings.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 9: Generated samples after training with visual filtering on bbox-separated dataset.\n\n\n\nPart 7 covers experiments I tried using data augmentation, using tricks to take my existing set of drawings and create a more diverse set of training data. For regular computer vision algorithms looking at images in terms of pixels, it’s common to randomly crop the images, flip them horizontally, and change the colors. For vector drawings like I’m working with, there are a different set of techniques available.\n\n\n\n\n\n\n\n\nOriginal drawing\n\n\n\n\n\n\n\nAfter “Stroke Augmentation” drops points from lines at random\n\n\n\n\n\n\n\nRandomly rotated and scaled\n\n\n\n\n\n\nFigure 10: Examples of data augmentation.\n\n\n\n\n\n\n\nIt has also been fun to connect the model’s generation function to an animation builder, so I can watch the machine “draw” in real time. Compared with viewing a static output, the animations reminds me that part of what I love about single-line drawings is the surprise as a viewer.\n\nThe drawing might start off nonsensical, and then end up with something recognizable enough to be an abstract figure drawing. Even when I’m drawing, I don’t always know where the drawing is going to end up.\n\nI’m adjusting as my hand moves, and adapting to any unexpected moves or mistakes to try and arrive at a drawing that I like. This is not so different from how SketchRNN generates drawings. One way to look at it is that I’m sampling from a probability distribution of possible next moves, and my decision is made by the muscle memory of what’s happened so far.\nLooking at some of the results generated from my SketchRNN models such as Figure 9, they remind me of an experiment I’ve tried in drawing with my eyes closed.\nI was curious about how much I’m adjusting drawings based on what I see while I’m drawing. I wanted to see how much of my drawings come exclusively from the muscle memory I’ve developed in drawing faces.\nDrawing with eyes closed is a great analogy for how SketchRNN draws. The model is only receiving information about the path has traveled so far. No visual information is available about what the final drawing looks like in pixel space as a real image.\n\n\n\n\n\n\n\n\n\n\n\n\n \n\n\n\nErrors like the ones in my eyes-closed drawings made me think about a common issue with models like SketchRNN that rely on recurrent neural networks.\nThe problem of “long-term dependencies” refers to the poor performance RNN’s exhibit in understand things that are too far apart in a sequence.\nIn the case of a drawing, long term dependencies would be things that are far apart in terms of the path the pen takes.\n\n\n\nRecurrent neural networks read a sequence and update the “hidden” layer. The hidden layers act as a kind of memory, allowing later steps in the sequence to incorporate information from earlier parts of the sequence. Each step incorporates more information to the same vector before passing it to the next step in the sequnce. As the RNN model steps through the sequence, the signal from earlier in the sequence tends to “decay” in favor of more recent information later in the sequence.\n\n\nThe long-term dependency problem makes intuitive sense to me when I consider my eyes-closed drawings.\nApparently I have muscle memory when I draw eyes and a note in close proximity, and in drawings lips and a chin, but without looking it’s hard to swoop down from eyes to lips and have them be aligned to the nose I drew earlier.\n\n\nThis got me interested in how Transformer models use attention mechanisms to let each step in the sequence take into account the entire sequence at once.\n\nI came across a paper called Sketchformer: Transformer-based Representation for Sketched Structure, which made a transformer model based on SketchRNN. I decided to try adapting that model for my dataset, and seeing how it compares on handling long-term dependencies.\n\n\n\n\nArchitecture of the SketchFormer model.\n\n\n\nIn my next section on “Training Sketchformer” (coming soon), I cover my experiments using a transformer model instead of an RNN, to see if the model can better handle long-term dependencies within the drawings.",
+    "crumbs": [
+      "blog",
+      "projects",
+      "Single-Line Machine Learning"
+    ]
+  },
+  {
+    "objectID": "projects/slml.html#why-this-project",
+    "href": "projects/slml.html#why-this-project",
+    "title": "Single-Line Machine Learning",
+    "section": "",
+    "text": "In part 0 I share how I got started making single-line drawings, and why I found them interesting enough to make them as a daily practice.\n\n\n\nIn part 1 - Discovering SketchRNN I cover how SketchRNN captured my imagination and why I decided to try training it on my own data. For example, I imagined turning the “variability” up, and generating new drawings based on my old ones?\n\n\n\n\ndistill.pub’s handwriting demo\n\n\n\nI hit my first roadbloack when I reached out to the authors of SketchRNN. They estimated that I’d need thousands of examples in order to train a model, but I only had a few hundred at the time.\nI decided to keep making drawings in my sketchbooks, numbering the pages, and scanning them to store with a standardized file naming scheme.\n\n\n\nIn the back of my mind, I held on to the idea that one day I’d have enough drawings to train a model on them.\nSeveral years went by. More sketchbooks accumulated. Eventually, I ran a file count and saw a few thousand distinct drawings.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 1: Some example single-line drawings from my sketchbooks.",
+    "crumbs": [
+      "blog",
+      "projects",
+      "Single-Line Machine Learning"
+    ]
+  },
+  {
+    "objectID": "projects/slml.html#preparing-the-dataset",
+    "href": "projects/slml.html#preparing-the-dataset",
+    "title": "Single-Line Machine Learning",
+    "section": "",
+    "text": "I was finally ready to get started. I was going to need:\n\na thousand JPEGs of my drawings (at least)\na stroke-3 conversion process for my JPEG scans\na SketchRNN model and trainer\nthe patience to experiment with hyperparameters\n\nI started by collecting my sketchbook page JPEGs into usable training data.\n\n\n\n\n\n\n\n\nsb26p068-purple-hair\n\n\n\n\n\n\n\nsb55p069-color\n\n\n\n\n\n\n\nsb26p098-pickle-toast\n\n\n\n\n\n\n\nsb26p069-red-nose\n\n\n\n\n\n\nFigure 2: Some watercolor examples from my sketchbooks.\n\n\n\nIn part 2 - Embedding Filtering, I cover how I’m using embeddings to filter my dataset of drawings. I used embeddings to solve the problem of filtering everything out of my sketchbook data that wasn’t a single-line drawing - particularly my watercolors.\nI also made an exploratory browser to visualize the embedding space of the drawings, and published it at projector.andrewlook.com. Here’s a demo video:\n\n\n\nIn part 3 - Dataset Vectorization, I cover how I’m vectorizing the scans to prepare them for RNN/transformer training. At this stage in the process, my drawings were converted to centerline-traced vector paths, but they were represented as a series of separate strokes. It’s visible in Figure 3 how the strokes are out of order, since strokes don’t start where the previous stroke left off.\n\n\n\n\n\n\nFigure 3: Example of separate strokes after my vectorization process.",
+    "crumbs": [
+      "blog",
+      "projects",
+      "Single-Line Machine Learning"
+    ]
+  },
+  {
+    "objectID": "projects/slml.html#sketchrnn-experiments",
+    "href": "projects/slml.html#sketchrnn-experiments",
+    "title": "Single-Line Machine Learning",
+    "section": "",
+    "text": "Part 4 covers how the dataset I used to train my first model contained drawings with too many short strokes, as in Figure 3. Models trained on this dataset produced frenetic drawings such as Figure 4 (a). I experimented with some RNN training improvements and after filtering short strokes out of my first datasets and training a new model I saw a big improvment, as in Figure 4 (b).\n\n\n\n\n\n\n\n\n\n\n\n(a) Before Short-Stroke Exclusion\n\n\n\n\n\n\n\n\n\n\n\n(b) After Short-Stroke Exclusion\n\n\n\n\n\n\n\nFigure 4: Sample generated results from models trained before and after filtering out strokes with less than 10 points.\n\n\n\n\nPart 5 covers improvements I made to my preprocessing of the dataset by joining SVG paths up into continuous lines so that the model could learn from longer sequences.\n\n\n\n\n\n\n\n\n\n\n\n(a) Original: 22 strokes\n\n\n\n\n\n\n\n\n\n\n\n(b) After path-joining: 4 strokes\n\n\n\n\n\n\n\n\n\n\n\n(c) After path-splicing: 2 strokes\n\n\n\n\n\n\n\nFigure 5: Comparison of number of strokes before and after preprocessing, with one color per stroke.\n\n\n\n\nThe generated results at this stage were uncanny, but showed a big improvement from the initial results. There were at least some recognizable faces and bodies, as seen in Figure 6.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 6: Generated samples from a model trained on path-spliced dataset.\n\n\n\nAlso in Part 5, I a preprocessing step to decompose strokes into seperate drawings if their bounding boxes didn’t overlap sufficiently. The size of the dataset roughly doubled, since sketchbook pages containing multiple drawings were broken out into separate training examples as in Figure 7.\n\n\n\n\n\n\n\n\n\n\n\n(a) Original\n\n\n\n\n\n\n\n\n\n\n\n(b)\n\n\n\n\n\n\n\n\n\n\n\n(c)\n\n\n\n\n\n\n\n\n\n\n\n(d)\n\n\n\n\n\n\n\nFigure 7: Original drawing (left) was one row in dataset v2-splicedata. The rightmost three drawings are distinct rows in dataset 20231214.\n\n\n\nPart 6 covers how I filtered drawings by visual similarity. Though I did an earlier pass on visual similarity to filter watercolors out from my single-line drawings, this time I wanted to explore the embedding space of the individual drawings after bounding-box separation had been applied. I found that clustering the drawing embeddings identified clusters I wanted to exlcude from the training data like Figure 8 (a) and Figure 8 (b), and helped me identify clusters that I wanted to include in the training data like Figure 8 (c).\n\n\n\n\n\n\n\n\n\n\n\n(a) Cluster of complex drawings I wanted to filter out\n\n\n\n\n\n\n\n\n\n\n\n(b) Cluster of simple drawings I wanted to filter out\n\n\n\n\n\n\n\n\n\n\n\n(c) Cluster of good drawings I wanted to include\n\n\n\n\n\n\n\nFigure 8: Example groupings after running K-Means on visual embeddings of individual drawings.\n\n\n\nThe drawings generated by models trained on this visually-filtered dataset started to look recognizable as containing distinct people or faces, as in Figure 9. Still odd and convoluted, but interesting enough to give me new ideas for drawings or paintings.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 9: Generated samples after training with visual filtering on bbox-separated dataset.\n\n\n\nPart 7 covers experiments I tried using data augmentation, using tricks to take my existing set of drawings and create a more diverse set of training data. For regular computer vision algorithms looking at images in terms of pixels, it’s common to randomly crop the images, flip them horizontally, and change the colors. For vector drawings like I’m working with, there are a different set of techniques available.\n\n\n\n\n\n\n\n\nOriginal drawing\n\n\n\n\n\n\n\nAfter “Stroke Augmentation” drops points from lines at random\n\n\n\n\n\n\n\nRandomly rotated and scaled\n\n\n\n\n\n\nFigure 10: Examples of data augmentation.",
+    "crumbs": [
+      "blog",
+      "projects",
+      "Single-Line Machine Learning"
+    ]
+  },
+  {
+    "objectID": "projects/slml.html#interpreting-the-results",
+    "href": "projects/slml.html#interpreting-the-results",
+    "title": "Single-Line Machine Learning",
+    "section": "",
+    "text": "It has also been fun to connect the model’s generation function to an animation builder, so I can watch the machine “draw” in real time. Compared with viewing a static output, the animations reminds me that part of what I love about single-line drawings is the surprise as a viewer.\n\nThe drawing might start off nonsensical, and then end up with something recognizable enough to be an abstract figure drawing. Even when I’m drawing, I don’t always know where the drawing is going to end up.\n\nI’m adjusting as my hand moves, and adapting to any unexpected moves or mistakes to try and arrive at a drawing that I like. This is not so different from how SketchRNN generates drawings. One way to look at it is that I’m sampling from a probability distribution of possible next moves, and my decision is made by the muscle memory of what’s happened so far.\nLooking at some of the results generated from my SketchRNN models such as Figure 9, they remind me of an experiment I’ve tried in drawing with my eyes closed.\nI was curious about how much I’m adjusting drawings based on what I see while I’m drawing. I wanted to see how much of my drawings come exclusively from the muscle memory I’ve developed in drawing faces.\nDrawing with eyes closed is a great analogy for how SketchRNN draws. The model is only receiving information about the path has traveled so far. No visual information is available about what the final drawing looks like in pixel space as a real image.\n\n\n\n\n\n\n\n\n\n\n\n\n \n\n\n\nErrors like the ones in my eyes-closed drawings made me think about a common issue with models like SketchRNN that rely on recurrent neural networks.\nThe problem of “long-term dependencies” refers to the poor performance RNN’s exhibit in understand things that are too far apart in a sequence.\nIn the case of a drawing, long term dependencies would be things that are far apart in terms of the path the pen takes.\n\n\n\nRecurrent neural networks read a sequence and update the “hidden” layer. The hidden layers act as a kind of memory, allowing later steps in the sequence to incorporate information from earlier parts of the sequence. Each step incorporates more information to the same vector before passing it to the next step in the sequnce. As the RNN model steps through the sequence, the signal from earlier in the sequence tends to “decay” in favor of more recent information later in the sequence.\n\n\nThe long-term dependency problem makes intuitive sense to me when I consider my eyes-closed drawings.\nApparently I have muscle memory when I draw eyes and a note in close proximity, and in drawings lips and a chin, but without looking it’s hard to swoop down from eyes to lips and have them be aligned to the nose I drew earlier.\n\n\nThis got me interested in how Transformer models use attention mechanisms to let each step in the sequence take into account the entire sequence at once.\n\nI came across a paper called Sketchformer: Transformer-based Representation for Sketched Structure, which made a transformer model based on SketchRNN. I decided to try adapting that model for my dataset, and seeing how it compares on handling long-term dependencies.\n\n\n\n\nArchitecture of the SketchFormer model.\n\n\n\nIn my next section on “Training Sketchformer” (coming soon), I cover my experiments using a transformer model instead of an RNN, to see if the model can better handle long-term dependencies within the drawings.",
+    "crumbs": [
+      "blog",
+      "projects",
+      "Single-Line Machine Learning"
+    ]
+  },
+  {
+    "objectID": "projects/deepdreams/desert_dreams.html",
+    "href": "projects/deepdreams/desert_dreams.html",
+    "title": "Desert Dreams",
+    "section": "",
+    "text": "Desert Dreams\n\nAcrylic & Oil on Canvas, 24” x 36”",
+    "crumbs": [
+      "blog",
+      "projects",
+      "deepdreams",
+      "Desert Dreams"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part6.html",
+    "href": "blog/posts/slml_part6.html",
+    "title": "SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering",
+    "section": "",
+    "text": "This post is part 6 of “SLML” - Single-Line Machine Learning.\nTo read the previous post, check out part 5.\nIf you want to keep reading, check out part 7.\n\n\n\nThough I’d grown my training dataset by bounding-box separating single pages into multiple drawings, I was concerned about the tradeoff of filtering drawings out versus having a more coherent dataset with similar subject matter.\nTo make up for more aggressive filtering, I decided to incorporate several additional sketchbooks I scanned and labeled into a new dataset epoch 20240104.\nDifferences in dataset 20240104 compared to dataset 20231214:\n\nMore raw input drawings\nSame preprocessing, with a modified “adaptive” RDP simplification 1.\n\n\n\n\nIn previous datasets, I had chosen the same strength of RDP line simplification for the whole dataset. Some drawings had been simplified reasonably, but other had been simple to begin with and ended up as a series of straight lines much sharper than the original curves.\n\n\n\n\n\n\nFigure 1: 30 points\n\n\n\nFor the remaining drawings, I ran the RDP algorithm with varying values for its epsilon parameter, until the number of points dipped under 250. Then I saved the result as a zipped numpy file.\n\n\n\n\n\n\n\n\n\nFigure 2: Training and validation loss metrics from models trained on 20240104 using visual filtering on the bounding-box separated drawings, with maxiumum sequence lengths of 200 (gray) and 250 (blue).\n\n\n\nAfter training on 20240104, the validation losses (gray and blue lines in Figure 2) seemed substantially lower than the validation losses from the models trained on the previous dataset (beige, light green).\n\n\n\nOne failure mode I noticed in the results generated after training on the bounding-box separated dataset 20231214-filtered was that some generated drawings had knotted, gnarled lines as in Figure 3.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 3: Generated examples with too much complexity.\n\n\n\nReviewing the bounding box-separated dataset I noticed that some drawings were of one figure, and some drawings were patterned or chained with many faces.\n\n\n\n\n\n\n\n\n\n\n\n(a) 1093 points\n\n\n\n\n\n\n\n\n\n\n\n(b) 1127 points\n\n\n\n\n\n\n\n\n\n\n\n(c) 329 points\n\n\n\n\n\n\n\nFigure 4: Drawings with over 300 points.\n\n\n\nSometimes I make patterns by chaining repeating sequences of faces into long continuous lines. I wondered whether the presence of this kind of drawing in the training data was occasionally encouraging the model to make long continuous chains rather than drawing a single person.\n\n\n\n\n\n\nchains example\n\n\n\n\nFigure 5: Example of a “diagonal chain” single-line pattern I draw.\n\n\n\nI wanted to exclude those patterns/chains from my training data, so I could give my model the best chance of learning to draw one person at a time.\n\n\n\nI decided to make a subset 20240104-furtherfiltered of dataset 20240104.\nMy plan was to compute embeddings for every bounding-box separated drawing in dataset 20240104. Then I could K-Means clustering on them, and decide which clusters I wanted to exclude in bulk. 2\nRight away I spotted the “too complex” chained line drawings in cluster 0 (Figure 6 (a)). There were also several chained line drawings in cluster 3 (Figure 6 (b)) mixed in with some squarish horizontal drawings that I was happy to exclude from my training set, as they looked too different from my more typical standalone drawings of individual faces/people.\n\n\n\n\n\n\n\n\n\n\n\n(a) Cluster 0\n\n\n\n\n\n\n\n\n\n\n\n(b) Cluster 3\n\n\n\n\n\n\n\nFigure 6: Clusters with drawings that were “too complex”.\n\n\n\nI also noticed some clusters with drawings that were “too simple”. It seems like many of the drawings in cluster 13 (Figure 7 (a)) were stray lines accidentally separated from any context by the bounding-box preprocessing. Cluster 9 (Figure 7 (b)) had many similar nonsensical lines, though they were mixed in with some false positives - valid drawings that I’d prefer to keep in the dataset.\n\n\n\n\n\n\n\n\n\n\n\n(a) Cluster 13\n\n\n\n\n\n\n\n\n\n\n\n(b) Cluster 9\n\n\n\n\n\n\n\nFigure 7: Clusters with drawings that were “too simple”.\n\n\n\nI was excited to notice some distinct categories in my drawings, seeing them from a distance. In the future, as I add more drawings, it’d be great to explicitly label these drawing categories and even train separate models on them. For now, given that I don’t have enough drawings scanned yet, I’m choosing to keep them in one dataset.\nClusters 1, 4, and 11 (in Figure 8 (a), Figure 8 (c), and Figure 8 (i), respectively) all have vertical, narrow, whole-body figures.\nCluster 2, in Figure 8 (b), mostly has rounder compositions of individual faces without a complete body.\nClusters 8 and 15, in Figure 8 (g) and Figure 8 (l), seem to have more complex drawings but mostly still contain drawings of standalone people.\nThe remaining clusters contain reasonably uniform drawings of standalone people, in vertical compositions, that are not too narrow. Hovering your mouse over these links Figure 8 (d), Figure 8 (e), Figure 8 (f), Figure 7 (b), Figure 8 (h), Figure 8 (j), Figure 8 (k).\n\n\n\n\n\n\n\n\n\n\n\n(a) Cluster 1\n\n\n\n\n\n\n\n\n\n\n\n(b) Cluster 2\n\n\n\n\n\n\n\n\n\n\n\n(c) Cluster 4\n\n\n\n\n\n\n\n\n\n\n\n(d) Cluster 5\n\n\n\n\n\n\n\n\n\n\n\n\n\n(e) Cluster 6\n\n\n\n\n\n\n\n\n\n\n\n(f) Cluster 7\n\n\n\n\n\n\n\n\n\n\n\n(g) Cluster 8\n\n\n\n\n\n\n\n\n\n\n\n(h) Cluster 10\n\n\n\n\n\n\n\n\n\n\n\n\n\n(i) Cluster 11\n\n\n\n\n\n\n\n\n\n\n\n(j) Cluster 12\n\n\n\n\n\n\n\n\n\n\n\n(k) Cluster 14\n\n\n\n\n\n\n\n\n\n\n\n(l) Cluster 15\n\n\n\n\n\n\n\nFigure 8: Clusters with drawings that looked good to me.\n\n\n\n\n\n\nThe remainder of the clusters, in Figure 8, looked “good enough” for me to include in my training set. I all other clusters, and saved a filtered-down dataset as 20240104-furtherfiltered.\nCompared to dataset 20240104, it’s clear in the top row of Figure 9 that in the filtered dataset variant, the distribution of number of strokes has shifted away from the long tail of many-stroke drawings.\n\n\n\n\n\n\nFigure 9: Comparing to unfiltered dataset 20240104 (2100 drawings) to the filtered dataset 20240104-furtherfiltered (1300 drawings).\n\n\n\nComparing the training metrics in Figure 10 for the model trained on filtered dataset 20240104-furtherfiltered (in red) with the previous model runs on unfiltered dataset 20240104 (in gray and blue) is not a perfect comparison. Since the validation set for 20240104-furtherfiltered was also filtered, it’s a smaller (and likely noisier) validation set. Still, the new model’s validation loss was roughly within the bounds of what I expected.\n\n\n\n\n\n\nFigure 10: Training and validation loss metrics from models trained on 20240104-furtherfiltered using visual filtering on the bounding-box separated drawings (red).\n\n\n\n\nQualitatively, the generated results after visual similarity filtering were significantly improved.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 11: Generated samples after training with visual filtering on bbox-separated dataset.\n\n\n\nEven the generated results that looked less like people/faces to me still had appealing curves and flowing patterns, which I recognize from my own drawing style.\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 12: Generated samples after training with visual filtering on bbox-separated dataset.\n\n\n\n\nIf you want to keep reading, check out part 7 of my SLML series.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part6.html#new-dataset-20240104",
+    "href": "blog/posts/slml_part6.html#new-dataset-20240104",
+    "title": "SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering",
+    "section": "",
+    "text": "Though I’d grown my training dataset by bounding-box separating single pages into multiple drawings, I was concerned about the tradeoff of filtering drawings out versus having a more coherent dataset with similar subject matter.\nTo make up for more aggressive filtering, I decided to incorporate several additional sketchbooks I scanned and labeled into a new dataset epoch 20240104.\nDifferences in dataset 20240104 compared to dataset 20231214:\n\nMore raw input drawings\nSame preprocessing, with a modified “adaptive” RDP simplification 1.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part6.html#rdp-and-sequence-length",
+    "href": "blog/posts/slml_part6.html#rdp-and-sequence-length",
+    "title": "SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering",
+    "section": "",
+    "text": "In previous datasets, I had chosen the same strength of RDP line simplification for the whole dataset. Some drawings had been simplified reasonably, but other had been simple to begin with and ended up as a series of straight lines much sharper than the original curves.\n\n\n\n\n\n\nFigure 1: 30 points\n\n\n\nFor the remaining drawings, I ran the RDP algorithm with varying values for its epsilon parameter, until the number of points dipped under 250. Then I saved the result as a zipped numpy file.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part6.html#training-on-20240104",
+    "href": "blog/posts/slml_part6.html#training-on-20240104",
+    "title": "SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering",
+    "section": "",
+    "text": "Figure 2: Training and validation loss metrics from models trained on 20240104 using visual filtering on the bounding-box separated drawings, with maxiumum sequence lengths of 200 (gray) and 250 (blue).\n\n\n\nAfter training on 20240104, the validation losses (gray and blue lines in Figure 2) seemed substantially lower than the validation losses from the models trained on the previous dataset (beige, light green).",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part6.html#overly-complex-drawings",
+    "href": "blog/posts/slml_part6.html#overly-complex-drawings",
+    "title": "SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering",
+    "section": "",
+    "text": "One failure mode I noticed in the results generated after training on the bounding-box separated dataset 20231214-filtered was that some generated drawings had knotted, gnarled lines as in Figure 3.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 3: Generated examples with too much complexity.\n\n\n\nReviewing the bounding box-separated dataset I noticed that some drawings were of one figure, and some drawings were patterned or chained with many faces.\n\n\n\n\n\n\n\n\n\n\n\n(a) 1093 points\n\n\n\n\n\n\n\n\n\n\n\n(b) 1127 points\n\n\n\n\n\n\n\n\n\n\n\n(c) 329 points\n\n\n\n\n\n\n\nFigure 4: Drawings with over 300 points.\n\n\n\nSometimes I make patterns by chaining repeating sequences of faces into long continuous lines. I wondered whether the presence of this kind of drawing in the training data was occasionally encouraging the model to make long continuous chains rather than drawing a single person.\n\n\n\n\n\n\nchains example\n\n\n\n\nFigure 5: Example of a “diagonal chain” single-line pattern I draw.\n\n\n\nI wanted to exclude those patterns/chains from my training data, so I could give my model the best chance of learning to draw one person at a time.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part6.html#similarity-filtered-dataset",
+    "href": "blog/posts/slml_part6.html#similarity-filtered-dataset",
+    "title": "SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering",
+    "section": "",
+    "text": "I decided to make a subset 20240104-furtherfiltered of dataset 20240104.\nMy plan was to compute embeddings for every bounding-box separated drawing in dataset 20240104. Then I could K-Means clustering on them, and decide which clusters I wanted to exclude in bulk. 2\nRight away I spotted the “too complex” chained line drawings in cluster 0 (Figure 6 (a)). There were also several chained line drawings in cluster 3 (Figure 6 (b)) mixed in with some squarish horizontal drawings that I was happy to exclude from my training set, as they looked too different from my more typical standalone drawings of individual faces/people.\n\n\n\n\n\n\n\n\n\n\n\n(a) Cluster 0\n\n\n\n\n\n\n\n\n\n\n\n(b) Cluster 3\n\n\n\n\n\n\n\nFigure 6: Clusters with drawings that were “too complex”.\n\n\n\nI also noticed some clusters with drawings that were “too simple”. It seems like many of the drawings in cluster 13 (Figure 7 (a)) were stray lines accidentally separated from any context by the bounding-box preprocessing. Cluster 9 (Figure 7 (b)) had many similar nonsensical lines, though they were mixed in with some false positives - valid drawings that I’d prefer to keep in the dataset.\n\n\n\n\n\n\n\n\n\n\n\n(a) Cluster 13\n\n\n\n\n\n\n\n\n\n\n\n(b) Cluster 9\n\n\n\n\n\n\n\nFigure 7: Clusters with drawings that were “too simple”.\n\n\n\nI was excited to notice some distinct categories in my drawings, seeing them from a distance. In the future, as I add more drawings, it’d be great to explicitly label these drawing categories and even train separate models on them. For now, given that I don’t have enough drawings scanned yet, I’m choosing to keep them in one dataset.\nClusters 1, 4, and 11 (in Figure 8 (a), Figure 8 (c), and Figure 8 (i), respectively) all have vertical, narrow, whole-body figures.\nCluster 2, in Figure 8 (b), mostly has rounder compositions of individual faces without a complete body.\nClusters 8 and 15, in Figure 8 (g) and Figure 8 (l), seem to have more complex drawings but mostly still contain drawings of standalone people.\nThe remaining clusters contain reasonably uniform drawings of standalone people, in vertical compositions, that are not too narrow. Hovering your mouse over these links Figure 8 (d), Figure 8 (e), Figure 8 (f), Figure 7 (b), Figure 8 (h), Figure 8 (j), Figure 8 (k).\n\n\n\n\n\n\n\n\n\n\n\n(a) Cluster 1\n\n\n\n\n\n\n\n\n\n\n\n(b) Cluster 2\n\n\n\n\n\n\n\n\n\n\n\n(c) Cluster 4\n\n\n\n\n\n\n\n\n\n\n\n(d) Cluster 5\n\n\n\n\n\n\n\n\n\n\n\n\n\n(e) Cluster 6\n\n\n\n\n\n\n\n\n\n\n\n(f) Cluster 7\n\n\n\n\n\n\n\n\n\n\n\n(g) Cluster 8\n\n\n\n\n\n\n\n\n\n\n\n(h) Cluster 10\n\n\n\n\n\n\n\n\n\n\n\n\n\n(i) Cluster 11\n\n\n\n\n\n\n\n\n\n\n\n(j) Cluster 12\n\n\n\n\n\n\n\n\n\n\n\n(k) Cluster 14\n\n\n\n\n\n\n\n\n\n\n\n(l) Cluster 15\n\n\n\n\n\n\n\nFigure 8: Clusters with drawings that looked good to me.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part6.html#training-on-filtered-dataset",
+    "href": "blog/posts/slml_part6.html#training-on-filtered-dataset",
+    "title": "SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering",
+    "section": "",
+    "text": "The remainder of the clusters, in Figure 8, looked “good enough” for me to include in my training set. I all other clusters, and saved a filtered-down dataset as 20240104-furtherfiltered.\nCompared to dataset 20240104, it’s clear in the top row of Figure 9 that in the filtered dataset variant, the distribution of number of strokes has shifted away from the long tail of many-stroke drawings.\n\n\n\n\n\n\nFigure 9: Comparing to unfiltered dataset 20240104 (2100 drawings) to the filtered dataset 20240104-furtherfiltered (1300 drawings).\n\n\n\nComparing the training metrics in Figure 10 for the model trained on filtered dataset 20240104-furtherfiltered (in red) with the previous model runs on unfiltered dataset 20240104 (in gray and blue) is not a perfect comparison. Since the validation set for 20240104-furtherfiltered was also filtered, it’s a smaller (and likely noisier) validation set. Still, the new model’s validation loss was roughly within the bounds of what I expected.\n\n\n\n\n\n\nFigure 10: Training and validation loss metrics from models trained on 20240104-furtherfiltered using visual filtering on the bounding-box separated drawings (red).\n\n\n\n\nQualitatively, the generated results after visual similarity filtering were significantly improved.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 11: Generated samples after training with visual filtering on bbox-separated dataset.\n\n\n\nEven the generated results that looked less like people/faces to me still had appealing curves and flowing patterns, which I recognize from my own drawing style.\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 12: Generated samples after training with visual filtering on bbox-separated dataset.\n\n\n\n\nIf you want to keep reading, check out part 7 of my SLML series.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part6.html#footnotes",
+    "href": "blog/posts/slml_part6.html#footnotes",
+    "title": "SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering",
+    "section": "Footnotes",
+    "text": "Footnotes\n\n\nbased on what I observed when filtering the bounding-box dataset by number of points↩︎\nsimilar to what I did with full sketchbook pages in part 1↩︎",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 6 - SketchRNN Experiments: Granular Visual Filtering"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part1.html",
+    "href": "blog/posts/slml_part1.html",
+    "title": "SLML Part 1 - Why I Decided to Train SketchRNN on My Drawings",
+    "section": "",
+    "text": "This post is part 1 of “SLML” - Single-Line Machine Learning.\nIf you want some context on how I got into single-line drawings, check out the part 0.\nNext in the series is part 2 where I assemble the training data, and filter it using visual embeddings.\n\n\n\nDavid Ha and Doug Eck from the Magenta team at Google had crowdsourced over 100,000 drawings using a game call “Quick, Draw”. The game would give users a prompt such as “Yoga” or “Pig” and users would have 20 seconds to draw it in the browser. This produced a dataset of line drawings for each category. Then, they trained a model called SketchRNN on these drawings. They trained a separate model for each category that users were prompted to draw, so there’s a separate model trained for “yoga”, “pig”, etc.\nI was fascinated by Magenta’s SketchRNN demo where you start a drawing, and the SketchRNN model tries continuously to complete it in new ways. It makes me think about the conditional probability that evolves as a drawing progresses. Given that one line exists on the page, how does that influence what line the artist is most likely to draw next?\nMy favorite example is to select the yoga model, and then draw a rhombus shape simulating a yoga mat. I love watching stick figures emerge in various poses, all centered on and interacting with the yoga mat.\n\n\n\nmagenta-demo-01-draw-and-gen\n\n\nSome of the same authors from the Magenta paper collaborated with distill.pub, using the same SketchRNN model trained on a handwriting dataset, to publish an explorable explanation called Experiments in Handwriting with a Neural Network.\n\n\n\nI wanted to apply SketchRNN to my own single-line drawings.\nI’d considered training an ML model on my single-line drawings, but the pixel-based GAN’s and VAE’s available in 2017/2018 when I started thinking about this didn’t seem like they’d yield good results on images that are mostly composed of white pixels with narrow black lines interspersed. What SketchRNN produces sequences, the generated results could be animated. I see single-line drawing as a sort of performance. A video of me drawing a single-line is inherently a proof that I didn’t lift my pen from the page.\nIt struck me that it could give a new window into my own drawing style. If my own drawing style evolves slowly over time, would I be able to notice the difference between a model trained on drawings I made recently from one trained on drawings I made several years ago?\nHow cool would it be to have an interface, similar to Andy Muatuschak’s scrying pen, where I could start drawing and see live completions, showing me how the probability space of subsequent strokes in my drawing is changing?\n\n\n\nscrying pen demo\n\n\n\nWhat new ideas might I get from turning the “variability” up, like the slider in distill.pub’s handwriting demo, and generating new drawings based on my old ones?  Or running stroke prediction along the length of a drawing:\n\n\n\ndistill-vary-strokes\n\n\n\n\n\ndistill-vary-strokes-legend\n\n\n\n\n\n\nWhen I reached out to the authors of SketchRNN, they estimated that I’d need several thousand examples in order to train a model. I only had a few hundred at the time. But I kept making new drawings in my sketchbooks, and numbering the pages and the sketchbooks so that I could scan them and store them in a consistent way. In the back of my mind, I held on to the idea that one day I’d have enough drawings to train a model on them.\nSeveral years went by. More sketchbooks accumulated.\nEventually, I ran a file count and saw a few thousand distinct drawings. I was finally ready to get started. I was going to need:\n\nat least a thousand drawings\nthe ability to convert my scanned drawings into stroke-3 format\nto train a model on my drawings, and experiment until I found a configuration producing results that I liked.\n\n\nNext in my SLML series is part 2, where I convert my JPEG scans into vector representations in preparation for training SketchRNN.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 1 - Why I Decided to Train SketchRNN on My Drawings"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part1.html#discovering-sketchrnn",
+    "href": "blog/posts/slml_part1.html#discovering-sketchrnn",
+    "title": "SLML Part 1 - Why I Decided to Train SketchRNN on My Drawings",
+    "section": "",
+    "text": "David Ha and Doug Eck from the Magenta team at Google had crowdsourced over 100,000 drawings using a game call “Quick, Draw”. The game would give users a prompt such as “Yoga” or “Pig” and users would have 20 seconds to draw it in the browser. This produced a dataset of line drawings for each category. Then, they trained a model called SketchRNN on these drawings. They trained a separate model for each category that users were prompted to draw, so there’s a separate model trained for “yoga”, “pig”, etc.\nI was fascinated by Magenta’s SketchRNN demo where you start a drawing, and the SketchRNN model tries continuously to complete it in new ways. It makes me think about the conditional probability that evolves as a drawing progresses. Given that one line exists on the page, how does that influence what line the artist is most likely to draw next?\nMy favorite example is to select the yoga model, and then draw a rhombus shape simulating a yoga mat. I love watching stick figures emerge in various poses, all centered on and interacting with the yoga mat.\n\n\n\nmagenta-demo-01-draw-and-gen\n\n\nSome of the same authors from the Magenta paper collaborated with distill.pub, using the same SketchRNN model trained on a handwriting dataset, to publish an explorable explanation called Experiments in Handwriting with a Neural Network.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 1 - Why I Decided to Train SketchRNN on My Drawings"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part1.html#why-train-a-model-on-my-single-line-drawings",
+    "href": "blog/posts/slml_part1.html#why-train-a-model-on-my-single-line-drawings",
+    "title": "SLML Part 1 - Why I Decided to Train SketchRNN on My Drawings",
+    "section": "",
+    "text": "I wanted to apply SketchRNN to my own single-line drawings.\nI’d considered training an ML model on my single-line drawings, but the pixel-based GAN’s and VAE’s available in 2017/2018 when I started thinking about this didn’t seem like they’d yield good results on images that are mostly composed of white pixels with narrow black lines interspersed. What SketchRNN produces sequences, the generated results could be animated. I see single-line drawing as a sort of performance. A video of me drawing a single-line is inherently a proof that I didn’t lift my pen from the page.\nIt struck me that it could give a new window into my own drawing style. If my own drawing style evolves slowly over time, would I be able to notice the difference between a model trained on drawings I made recently from one trained on drawings I made several years ago?\nHow cool would it be to have an interface, similar to Andy Muatuschak’s scrying pen, where I could start drawing and see live completions, showing me how the probability space of subsequent strokes in my drawing is changing?\n\n\n\nscrying pen demo\n\n\n\nWhat new ideas might I get from turning the “variability” up, like the slider in distill.pub’s handwriting demo, and generating new drawings based on my old ones?  Or running stroke prediction along the length of a drawing:\n\n\n\ndistill-vary-strokes\n\n\n\n\n\ndistill-vary-strokes-legend",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 1 - Why I Decided to Train SketchRNN on My Drawings"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part1.html#getting-started",
+    "href": "blog/posts/slml_part1.html#getting-started",
+    "title": "SLML Part 1 - Why I Decided to Train SketchRNN on My Drawings",
+    "section": "",
+    "text": "When I reached out to the authors of SketchRNN, they estimated that I’d need several thousand examples in order to train a model. I only had a few hundred at the time. But I kept making new drawings in my sketchbooks, and numbering the pages and the sketchbooks so that I could scan them and store them in a consistent way. In the back of my mind, I held on to the idea that one day I’d have enough drawings to train a model on them.\nSeveral years went by. More sketchbooks accumulated.\nEventually, I ran a file count and saw a few thousand distinct drawings. I was finally ready to get started. I was going to need:\n\nat least a thousand drawings\nthe ability to convert my scanned drawings into stroke-3 format\nto train a model on my drawings, and experiment until I found a configuration producing results that I liked.\n\n\nNext in my SLML series is part 2, where I convert my JPEG scans into vector representations in preparation for training SketchRNN.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 1 - Why I Decided to Train SketchRNN on My Drawings"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part2.html",
+    "href": "blog/posts/slml_part2.html",
+    "title": "SLML Part 2 - Assembling the Dataset",
+    "section": "",
+    "text": "This post is part 2 of “SLML” - Single-Line Machine Learning.\nCheck out the previous post, part 1, for some background on why I got started training SketchRNN on my own drawings.\nNext in the series is part 3, where I convert my JPEGs into stroke-3 format in preparation for model training.\n\nFor years, I’ve maintained a daily practice of making single-line drawings in my sketchbooks.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nWhen I finish a sketchbook, I scan its pages, number them, and put them into a similar folder structure. I marked which pages were diagrams/mindmaps/etc and put them in a subfolder called notes - the drawings (and watercolors) are in a folder called art. Unfortunately, I didn’t tag watercolors in advance.\nSome detail on the subfolders:\n\nart subfolders contain drawings / watercolors.\nnotes subfolders contain diagrams, mindmaps, and anything else technical I’m working on. I used to have a separate notebook for these, but I got tired of carrying around an extra sketchbook everywhere I go, so at some point they just ended up merging with my art practice.\nxtra contains any bad scans or funny bloopers from my scanning process. I kind of like the scans with my hands in them and thought they might be useful for a future project, so I kept them in their own folder.\ncover contains a scan of the notebook cover. Each cover at least has a post-it with the sketchbook ID number and the start/end dates of when I used that sketchbook. Often I’ll make a little collage on the front of the notebook with airplane tickets / stickers / scraps of paper relevant to somewhere I traveled when I used that sketchbook.\n\n\n\n\n\n\n\nMy first problem is that the “art” sections of my sketchbooks don’t just contain single-line drawings. They also contain watercolor paintings, since I don’t exclusively fill my sketchbooks with single-line drawings.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nLooking for a scalable way to filter the drawings out of my art scans, I decided to try computing visual embeddings.\n\nI decided to fine-tune a vision model on my dataset to distinguish “art” pages from “notes” pages. My hope was that the model would learn to distinguish some features within the visual domain of my scanned sketchbook pages. Even though I don’t intend to use the predictions of an algorithm trained to classify art-vs-notes, this will produce more meaningful embeddings.\n\nUltimately, what I want to see is that when I take the embeddings of my sketchbook pages and cluster them, the notes and drawings should neatly separate into separate clusters. Also, I want the watercolors to cleanly separate into their own clusters, away from the single-line drawings.\n\n\n\nAfter I fine-tuned my vision model, I computed the embeddings for all the sketchbook pages I had on hand. As a sanity check, I want to verify that the embedding space has cleanly separated regions for the labels is was trained on.\nIt’s hard to visualize 512 dimensions, so the T-SNE dimensionality reduction is a good visualization technique to view the data. T-SNE projects the higher number of dimensions into 2D or 3D, with the goal that any 2 points close together in high-dimensional space are close together in lower-dimensional space.\nI colorized the points in the resulting graph based on their label, so it’s easy to see at a glance that embedding space has learned something useful about this dataset, as I hoped.\n\n\n\nT-SNE representation of sketchbook pages. art pages are blue, notes pages are orange, and cover pages are brown.\n\n\n\n\n\nNow I’m hoping to find the watercolors in the dataset. Given that the embedding space captures visual similarity, I want to identify groups of pages that are similar to each other. This lets me label data in bulk, rather than going through the images one-by-one. K-Means Clustering was a quick solution for this. I can decide to ask for K distinct “clusters”, and the algorithm picks K “centroids”.\n\n\n\nGiven a request for K clusters, pick K random points as the starting centroids. Then, repeat these steps for N iterations: For each point, select the nearest centroid point and compute the distance between these two. Adjusts the centroids with the goal of minimizing the total distance from all points to their nearest centroids.\n\n\n\n\n\n\nAfter some experimentation, I found that using K=16 produced groupings that would be useful to me. Each row in the image below consists of the top images from one cluster.\n\n\n\nSince each cluster’s centroid is a vector in the same space as the image embeddings, I can “classify” any image embedding by doing a nearest-neighbor search of comparing the embedding of the query image to each of the cluster centroid vectors, and choosing the cluster centroid with the smallest distance. This is also called a K-Nearest Neighbor classifier.\nWhen I applied this process to each of the images, I glanced at a t-SNE colorized by these clusters:\n\n\n\nT-SNE representation of sketchbook pages, colored by which of the 16 clusters they were classified by K-Means using the pages’ visual embeddings.\n\n\n\n\n\n\nI went through and grouped these clusters based on what I wanted to identify automatically. In particular, I wanted to take only the drawings and separate them from the watercolors. After inspecting the clusters, I also realized that there were a number of bad scans / incorrectly cropped images that I wanted to exclude as well.\n\n\n\n\n\n\n\nI went through the dataset again, and based on the cluster assigned to each image, I assigned it a higher-level group based on the hand-mapping of clusters above.\nWhen I looked at the t-SNE colorized by this higher-level cluster mapping, it was encouraging to see that my embedding space had neatly separated the groups I cared about:\n\n\n\nT-SNE representation of pages, colored by cluster group. drawings are purple, notes are dark green, watercolors are yellow, bad scans are blue, covers are light green.\n\n\nSince my images were tagged with these higher-level groups, I was able to select only the drawings, and begin converting them into usable training data.\n\nNext in my SLML series is part 3, where I convert my JPEGs into stroke-3 format in preparation for model training.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 2 - Assembling the Dataset"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part2.html#the-problem-filtering",
+    "href": "blog/posts/slml_part2.html#the-problem-filtering",
+    "title": "SLML Part 2 - Assembling the Dataset",
+    "section": "",
+    "text": "My first problem is that the “art” sections of my sketchbooks don’t just contain single-line drawings. They also contain watercolor paintings, since I don’t exclusively fill my sketchbooks with single-line drawings.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 2 - Assembling the Dataset"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part2.html#measuring-visual-similarity-with-embeddings",
+    "href": "blog/posts/slml_part2.html#measuring-visual-similarity-with-embeddings",
+    "title": "SLML Part 2 - Assembling the Dataset",
+    "section": "",
+    "text": "Looking for a scalable way to filter the drawings out of my art scans, I decided to try computing visual embeddings.\n\nI decided to fine-tune a vision model on my dataset to distinguish “art” pages from “notes” pages. My hope was that the model would learn to distinguish some features within the visual domain of my scanned sketchbook pages. Even though I don’t intend to use the predictions of an algorithm trained to classify art-vs-notes, this will produce more meaningful embeddings.\n\nUltimately, what I want to see is that when I take the embeddings of my sketchbook pages and cluster them, the notes and drawings should neatly separate into separate clusters. Also, I want the watercolors to cleanly separate into their own clusters, away from the single-line drawings.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 2 - Assembling the Dataset"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part2.html#inspecting-the-embeddings",
+    "href": "blog/posts/slml_part2.html#inspecting-the-embeddings",
+    "title": "SLML Part 2 - Assembling the Dataset",
+    "section": "",
+    "text": "After I fine-tuned my vision model, I computed the embeddings for all the sketchbook pages I had on hand. As a sanity check, I want to verify that the embedding space has cleanly separated regions for the labels is was trained on.\nIt’s hard to visualize 512 dimensions, so the T-SNE dimensionality reduction is a good visualization technique to view the data. T-SNE projects the higher number of dimensions into 2D or 3D, with the goal that any 2 points close together in high-dimensional space are close together in lower-dimensional space.\nI colorized the points in the resulting graph based on their label, so it’s easy to see at a glance that embedding space has learned something useful about this dataset, as I hoped.\n\n\n\nT-SNE representation of sketchbook pages. art pages are blue, notes pages are orange, and cover pages are brown.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 2 - Assembling the Dataset"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part2.html#clustering-to-identify-sub-groups",
+    "href": "blog/posts/slml_part2.html#clustering-to-identify-sub-groups",
+    "title": "SLML Part 2 - Assembling the Dataset",
+    "section": "",
+    "text": "Now I’m hoping to find the watercolors in the dataset. Given that the embedding space captures visual similarity, I want to identify groups of pages that are similar to each other. This lets me label data in bulk, rather than going through the images one-by-one. K-Means Clustering was a quick solution for this. I can decide to ask for K distinct “clusters”, and the algorithm picks K “centroids”.\n\n\n\nGiven a request for K clusters, pick K random points as the starting centroids. Then, repeat these steps for N iterations: For each point, select the nearest centroid point and compute the distance between these two. Adjusts the centroids with the goal of minimizing the total distance from all points to their nearest centroids.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 2 - Assembling the Dataset"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part2.html#using-clusters-to-classify",
+    "href": "blog/posts/slml_part2.html#using-clusters-to-classify",
+    "title": "SLML Part 2 - Assembling the Dataset",
+    "section": "",
+    "text": "After some experimentation, I found that using K=16 produced groupings that would be useful to me. Each row in the image below consists of the top images from one cluster.\n\n\n\nSince each cluster’s centroid is a vector in the same space as the image embeddings, I can “classify” any image embedding by doing a nearest-neighbor search of comparing the embedding of the query image to each of the cluster centroid vectors, and choosing the cluster centroid with the smallest distance. This is also called a K-Nearest Neighbor classifier.\nWhen I applied this process to each of the images, I glanced at a t-SNE colorized by these clusters:\n\n\n\nT-SNE representation of sketchbook pages, colored by which of the 16 clusters they were classified by K-Means using the pages’ visual embeddings.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 2 - Assembling the Dataset"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part2.html#making-sense-of-the-clusters",
+    "href": "blog/posts/slml_part2.html#making-sense-of-the-clusters",
+    "title": "SLML Part 2 - Assembling the Dataset",
+    "section": "",
+    "text": "I went through and grouped these clusters based on what I wanted to identify automatically. In particular, I wanted to take only the drawings and separate them from the watercolors. After inspecting the clusters, I also realized that there were a number of bad scans / incorrectly cropped images that I wanted to exclude as well.\n\n\n\n\n\n\n\nI went through the dataset again, and based on the cluster assigned to each image, I assigned it a higher-level group based on the hand-mapping of clusters above.\nWhen I looked at the t-SNE colorized by this higher-level cluster mapping, it was encouraging to see that my embedding space had neatly separated the groups I cared about:\n\n\n\nT-SNE representation of pages, colored by cluster group. drawings are purple, notes are dark green, watercolors are yellow, bad scans are blue, covers are light green.\n\n\nSince my images were tagged with these higher-level groups, I was able to select only the drawings, and begin converting them into usable training data.\n\nNext in my SLML series is part 3, where I convert my JPEGs into stroke-3 format in preparation for model training.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 2 - Assembling the Dataset"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part5.html",
+    "href": "blog/posts/slml_part5.html",
+    "title": "SLML Part 5 - SketchRNN Experiments: Path Preprocessing",
+    "section": "",
+    "text": "This post is part 5 of “SLML” - Single-Line Machine Learning.\nTo read the previous post, check out part 4. If you want to keep reading, check out part 6.\n\n\n\nDespite some improvement within the strokes, my latest models were still producing many short strokes. So I figured that improving my dataset would give better results than fiddling with hyper-parameters or my model.\nLooking at my training data, I returned to an issue from the stroke3-conversion process: autotrace hadn’t realized that the different segments of my lines were actually connected. It was producing a series of small, centerline-traced segments, as seen in Figure 1 (a).\nI’d need some preprocessing to connect the smaller strokes into larger strokes, so that my SketchRNN model would learn to generate long contiguous single-line drawings.\n\n\n\n\n\n\n\n\n\n\n\n(a) Original: 22 strokes\n\n\n\n\n\n\n\n\n\n\n\n(b) After path-joining: 4 strokes\n\n\n\n\n\n\n\n\n\n\n\n(c) After path-splicing: 2 strokes\n\n\n\n\n\n\n\nFigure 1: Comparison of number of strokes before and after preprocessing, with one color per stroke.\n\n\n\nMy first preprocesing improvement was simple algorithm that I called “path joining”.\nEach of my drawings is represented as a collection of line segments, each with a start and end point. I try to find the shortest connection I can draw to connect two segments. Starting with the longest stroke, I compare it each of the other strokes and calculate the minimum distance between the start and end points of the line segments. After going through all the strokes in a drawing, I connect the two strokes with the shortest gap between their endpoints. I repeat this process, joining the strokes until no strokes remain with endpoints more than 30 pixels apart. I set an upper bound on the path-joining distance of 30 pixels (in a 200x200 pixel image) was the maximum distance I observed made sense before I started to erroneously join strokes that were too far apart.\nThough path-joining improved the average stroke length as seen in Figure 1 (b), I noticed some drawings had large contiguous strokes that weren’t getting connected. I realized that while the strokes were close together and in some cases touching, their start and end points were far apart from each other.\n\n\n\nMy next preprocessing improvement, “path splicing”, would run after “path joining” and attempt to address this problem.\nAfter path joining leaves a smaller number of strokes, I want to find the shortest connections to combine multiple longer strokes. Starting with the longest path, I look for a smaller stroke that I could “splice” into the middle of the larger stroke. For each candidate stroke, I’d step through each point on the larger stroke and compare its distance from the start and end points of the shorter paths. When I found the smallest gap, I would “splice” the shorter line into the longer path at the point with the smallest distance.\nWhile not every drawing was turned into a single stroke, this was a big improvement, as seen in Figure 1 (c).\n\n\n\n\n\n\nFigure 2: Previous dataset look_i16__minn10, left, compared to path-spliced dataset v2-splicedata, right.\n\n\n\nBased my earlier experiment showing the benefits of short-stroke exclusion, I wanted to try training a model on this new dataset.\n\n\n\nI ran the preprocessing on the whole dataset. Next, I filtered the original 1300 drawings to exclude any drawings with more than 6 strokes, resulting in a new dataset of 1200 drawings that I named v2-splicedata. Then I trained a new set of models, keeping the layernorm and recurrent dropout enabled.\n\n\n\n\n\n\nFigure 3: Training and validation loss metrics of recurrent dropout model (light green) alongside models trained on this joined/spliced dataset (turquoise/dark green).\n\n\n\nAfter training some models on a path-spliced dataset the training metrics aren’t a perfect comparison, since the content of the validation also changed when I applied path-splicing. Still, I can see from the validation loss graph that the model started to overfit around 1000 steps. The roughly similar shapes of the early train and validation loss curves at least convinced me that the model hadn’t gotten dramatically worse.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 4: Generated samples from a model trained on path-spliced dataset.\n\n\n\nQualitatively, the generated drawings showed a big improvement. The model had learned to generate longer unbroken strokes. I started to notice results that looked more like single-line drawings of people. In some cases they look surreal, but I started to see some more recognizable face elements and in some cases full bodies.\n\n\n\n\n\n\nFigure 5: Iterating through full dataset, with 3 frames per drawing: original, path-joined, and path-spliced. I liked the slight jitter in the animation as I watched the drawings go from colorful (many strokes) to fully blue (single stroke).\n\n\n\n\n\n\nMy last remaining problem: there were some pages where I’d make 4 or 5 separate drawings that had nothing to do with each other, and had a lot of space between them.\nI wanted to separate those into separate examples before making a training dataset, for 2 reasons:\n\nTo get more training examples from my limited number of scanned drawings.\nTo avoid confusing the model when some examples are complex drawings with multiple people, and other drawings are just one person. \n\nIf the model sometimes learngs to make a complete drawing and then start a second unrelated drawing, how does the model know when to finish a drawing vs. when to start a second drawing alongside the first one?My intuition for my third preprocessing improvement, “bounding box separation”, came when I noticed how unrelated strokes within a drawing didn’t overlap much, and tended to be spaced far apart. For each of the stroke within a drawing, I’d determine its top/bottom/left/right extremes and consider a box around each stroke as in Figure 6.\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 6: Example drawing with multiple unrelated strokes. \n\n\n\nThen for each combination of bounding boxes, I’d compute a ratio of the area of their overlap compared to the area of the non-overlapping parts as in Figure 7.\n\n\n\n\n\n\n\nFigure 7: Intersection over Union (“IOU”) Metric.\n\n\nIf the ratio exceeds some threshold, I consider them to be part of the same drawing, and I merge the bounding boxes as in Figure 9 (a). Combining that merged bounding box along with all the remaining bounding boxes, I repeat the process until no bounding-box intersections remain that exceed the threshold.\n\n\n\n\n\n\n\n\nIOU = 0.03\n\n\n\n\n\n\n\nIOU = 0.12\n\n\n\n\n\n\n\n\n\n\n(a) Merged BBoxes\n\n\n\n\n\n\n\nFigure 8: Comparison of high-IOU vs. low-IOU bounding box intersections.\n\n\n\nAlso, if any bounding boxes have a really small area, I just drop them. It turns out this helps exclude small scribbles of text that were ending up in my training data as separate strokes - for example, the page number at the bottom right of Figure 9 (a).\n\n\n\n\n\n\n\n\nOriginal: 4 Strokes\n\n\n\n\n\n\n\n\n\n\n(a) Tiny page number: 1 stroke\n\n\n\n\n\n\n\n\nMerge: 3 Strokes\n\n\n\n\n\n\n\nResult\n\n\n\n\n\n\nFigure 9: Example from training set of a very small stroke being removed.\n\n\n\n\n\n\nOnce I have all the separated strokes, I save then into a new dataset as separate drawings. While the previous dataset v2-splicedata only has 1200 drawings, the new bounding-box separated dataset 20231214 has 2400 drawings.\n\n\n\n\n\n\nFigure 10: Comparison of previous dataset v2-splicedata with 20231214 and 20231214-filtered.\n\n\n\nThe dataset grew from 1200 to 2400 drawings because pages containing multiple distinct drawings (such as Figure 11 (a)) were divided into separate rows in the new training set (like Figure 11 (b), Figure 11 (c), Figure 11 (d)).\n\n\n\n\n\n\n\n\n\n\n\n(a) Original\n\n\n\n\n\n\n\n\n\n\n\n(b)\n\n\n\n\n\n\n\n\n\n\n\n(c)\n\n\n\n\n\n\n\n\n\n\n\n(d)\n\n\n\n\n\n\n\nFigure 11: Original drawing (left) was one row in dataset v2-splicedata. The rightmost three drawings are distinct rows in dataset 20231214.\n\n\n\nThe new separated drawings looked more visually consistent with the average drawing out of the training set as a whole. The new dataset contains far more single-character drawings, so I expect that the RNN will benefit on learning from a set of drawings with more similar subject matter.\nI hypothesized that the bbox-separated dataset will be a big improvement because of the consistency of the resulting drawings. Before, the model was learning that sometimes drawings end after one person is drawn, but sometimes we move the pen and start a new person.\n\n\n\nLooking at the distribution of number of points per drawing in the new dataset 20231214 in the bottom-middle chart in Figure 10, I noticed a long tail of drawings with more than 500 points. To explore this, I created a variant dataset 20231214-filtered.\nDataset 20231214-filtered which was filtered down to 1800 drawings, keeping only drawings with more than 50 and less than 300 points as you can see in the bottom-right chart in Figure 10.\nWondering if drawings with many points were less likely to have consistent subject matter (individual people) than the rest of the training set, I sampled some drawings with over 300 points. While drawings such as Figure 12 (a) and Figure 12 (b) were obvious candidates to exlcude, there were valid drawings near the margin such as Figure 12 (c) that I would be excluding after I picked a threshold.Possible Improvement: Filtering by visual embedding might be more reliable to exclude complex drawings\n\n\n\n\n\n\n\n\n\n\n\n(a) 1093 points\n\n\n\n\n\n\n\n\n\n\n\n(b) 1127 points\n\n\n\n\n\n\n\n\n\n\n\n(c) 329 points\n\n\n\n\n\n\n\nFigure 12: Drawings with over 300 points.\n\n\n\nI also looked at the low end of the distribution and found drawings with under 50 points. There were nonsensical squiggles such as Figure 13 (a) that I was happy to exclude. There were cases below the 50 point threshold such as Figure 13 (b) and Figure 13 (c) that looked recognizable as my drawings, but had been simplified by RDP too aggressively. Possible Improvement: Applying RDP after bounding box separation rather than before.\n\n\n\n\n\n\n\n\n\n\n\n(a) 21 points\n\n\n\n\n\n\n\n\n\n\n\n(b) 30 points\n\n\n\n\n\n\n\n\n\n\n\n(c) 41 points\n\n\n\n\n\n\n\nFigure 13: Drawings with under 50 points.\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 14: Training and validation loss metrics comparing model trained on 20231214 (beige) compared with models trained on dataset 20231214-filtered with and without stroke augmentation (green, burgundy).\n\n\n\nAfter training on the unfiltered dataset 20231214, I noticed that some drawings were devolving into a sequence of repeated face features without forming a cohesive person or face, as in Figure 15.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 15: Generated results after training on unfiltered dataset 20231214.\n\n\n\n\nThe model results in Figure 16 after training on filtered dataset 20231214-filtered appear qualitatively better to me. The best results I could find had long coherent strokes capturing part of a face and sometimes a corresponding body.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 16: Generated results after training on filtered dataset 20231214-filtered.\n\n\n\n\nThe model results in Figure 17 after training with stroke-augmentation on filtered dataset 20231214-filtered appear to be roughly of similar quality to . The best results I could find had long coherent strokes capturing part of a face and sometimes a corresponding body.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 17: Generated results after training on filtered dataset 20231214-filtered, with stroke augmentation enabled.\n\n\n\n\n\n\nIf you want to keep reading, check out part 6 of my SLML series.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 5 - SketchRNN Experiments: Path Preprocessing"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part5.html#path-joining",
+    "href": "blog/posts/slml_part5.html#path-joining",
+    "title": "SLML Part 5 - SketchRNN Experiments: Path Preprocessing",
+    "section": "",
+    "text": "Despite some improvement within the strokes, my latest models were still producing many short strokes. So I figured that improving my dataset would give better results than fiddling with hyper-parameters or my model.\nLooking at my training data, I returned to an issue from the stroke3-conversion process: autotrace hadn’t realized that the different segments of my lines were actually connected. It was producing a series of small, centerline-traced segments, as seen in Figure 1 (a).\nI’d need some preprocessing to connect the smaller strokes into larger strokes, so that my SketchRNN model would learn to generate long contiguous single-line drawings.\n\n\n\n\n\n\n\n\n\n\n\n(a) Original: 22 strokes\n\n\n\n\n\n\n\n\n\n\n\n(b) After path-joining: 4 strokes\n\n\n\n\n\n\n\n\n\n\n\n(c) After path-splicing: 2 strokes\n\n\n\n\n\n\n\nFigure 1: Comparison of number of strokes before and after preprocessing, with one color per stroke.\n\n\n\nMy first preprocesing improvement was simple algorithm that I called “path joining”.\nEach of my drawings is represented as a collection of line segments, each with a start and end point. I try to find the shortest connection I can draw to connect two segments. Starting with the longest stroke, I compare it each of the other strokes and calculate the minimum distance between the start and end points of the line segments. After going through all the strokes in a drawing, I connect the two strokes with the shortest gap between their endpoints. I repeat this process, joining the strokes until no strokes remain with endpoints more than 30 pixels apart. I set an upper bound on the path-joining distance of 30 pixels (in a 200x200 pixel image) was the maximum distance I observed made sense before I started to erroneously join strokes that were too far apart.\nThough path-joining improved the average stroke length as seen in Figure 1 (b), I noticed some drawings had large contiguous strokes that weren’t getting connected. I realized that while the strokes were close together and in some cases touching, their start and end points were far apart from each other.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 5 - SketchRNN Experiments: Path Preprocessing"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part5.html#path-splicing",
+    "href": "blog/posts/slml_part5.html#path-splicing",
+    "title": "SLML Part 5 - SketchRNN Experiments: Path Preprocessing",
+    "section": "",
+    "text": "My next preprocessing improvement, “path splicing”, would run after “path joining” and attempt to address this problem.\nAfter path joining leaves a smaller number of strokes, I want to find the shortest connections to combine multiple longer strokes. Starting with the longest path, I look for a smaller stroke that I could “splice” into the middle of the larger stroke. For each candidate stroke, I’d step through each point on the larger stroke and compare its distance from the start and end points of the shorter paths. When I found the smallest gap, I would “splice” the shorter line into the longer path at the point with the smallest distance.\nWhile not every drawing was turned into a single stroke, this was a big improvement, as seen in Figure 1 (c).\n\n\n\n\n\n\nFigure 2: Previous dataset look_i16__minn10, left, compared to path-spliced dataset v2-splicedata, right.\n\n\n\nBased my earlier experiment showing the benefits of short-stroke exclusion, I wanted to try training a model on this new dataset.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 5 - SketchRNN Experiments: Path Preprocessing"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part5.html#training-after-path-splicing",
+    "href": "blog/posts/slml_part5.html#training-after-path-splicing",
+    "title": "SLML Part 5 - SketchRNN Experiments: Path Preprocessing",
+    "section": "",
+    "text": "I ran the preprocessing on the whole dataset. Next, I filtered the original 1300 drawings to exclude any drawings with more than 6 strokes, resulting in a new dataset of 1200 drawings that I named v2-splicedata. Then I trained a new set of models, keeping the layernorm and recurrent dropout enabled.\n\n\n\n\n\n\nFigure 3: Training and validation loss metrics of recurrent dropout model (light green) alongside models trained on this joined/spliced dataset (turquoise/dark green).\n\n\n\nAfter training some models on a path-spliced dataset the training metrics aren’t a perfect comparison, since the content of the validation also changed when I applied path-splicing. Still, I can see from the validation loss graph that the model started to overfit around 1000 steps. The roughly similar shapes of the early train and validation loss curves at least convinced me that the model hadn’t gotten dramatically worse.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 4: Generated samples from a model trained on path-spliced dataset.\n\n\n\nQualitatively, the generated drawings showed a big improvement. The model had learned to generate longer unbroken strokes. I started to notice results that looked more like single-line drawings of people. In some cases they look surreal, but I started to see some more recognizable face elements and in some cases full bodies.\n\n\n\n\n\n\nFigure 5: Iterating through full dataset, with 3 frames per drawing: original, path-joined, and path-spliced. I liked the slight jitter in the animation as I watched the drawings go from colorful (many strokes) to fully blue (single stroke).",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 5 - SketchRNN Experiments: Path Preprocessing"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part5.html#bounding-boxes",
+    "href": "blog/posts/slml_part5.html#bounding-boxes",
+    "title": "SLML Part 5 - SketchRNN Experiments: Path Preprocessing",
+    "section": "",
+    "text": "My last remaining problem: there were some pages where I’d make 4 or 5 separate drawings that had nothing to do with each other, and had a lot of space between them.\nI wanted to separate those into separate examples before making a training dataset, for 2 reasons:\n\nTo get more training examples from my limited number of scanned drawings.\nTo avoid confusing the model when some examples are complex drawings with multiple people, and other drawings are just one person. \n\nIf the model sometimes learngs to make a complete drawing and then start a second unrelated drawing, how does the model know when to finish a drawing vs. when to start a second drawing alongside the first one?My intuition for my third preprocessing improvement, “bounding box separation”, came when I noticed how unrelated strokes within a drawing didn’t overlap much, and tended to be spaced far apart. For each of the stroke within a drawing, I’d determine its top/bottom/left/right extremes and consider a box around each stroke as in Figure 6.\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 6: Example drawing with multiple unrelated strokes. \n\n\n\nThen for each combination of bounding boxes, I’d compute a ratio of the area of their overlap compared to the area of the non-overlapping parts as in Figure 7.\n\n\n\n\n\n\n\nFigure 7: Intersection over Union (“IOU”) Metric.\n\n\nIf the ratio exceeds some threshold, I consider them to be part of the same drawing, and I merge the bounding boxes as in Figure 9 (a). Combining that merged bounding box along with all the remaining bounding boxes, I repeat the process until no bounding-box intersections remain that exceed the threshold.\n\n\n\n\n\n\n\n\nIOU = 0.03\n\n\n\n\n\n\n\nIOU = 0.12\n\n\n\n\n\n\n\n\n\n\n(a) Merged BBoxes\n\n\n\n\n\n\n\nFigure 8: Comparison of high-IOU vs. low-IOU bounding box intersections.\n\n\n\nAlso, if any bounding boxes have a really small area, I just drop them. It turns out this helps exclude small scribbles of text that were ending up in my training data as separate strokes - for example, the page number at the bottom right of Figure 9 (a).\n\n\n\n\n\n\n\n\nOriginal: 4 Strokes\n\n\n\n\n\n\n\n\n\n\n(a) Tiny page number: 1 stroke\n\n\n\n\n\n\n\n\nMerge: 3 Strokes\n\n\n\n\n\n\n\nResult\n\n\n\n\n\n\nFigure 9: Example from training set of a very small stroke being removed.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 5 - SketchRNN Experiments: Path Preprocessing"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part5.html#dataset-20231214",
+    "href": "blog/posts/slml_part5.html#dataset-20231214",
+    "title": "SLML Part 5 - SketchRNN Experiments: Path Preprocessing",
+    "section": "",
+    "text": "Once I have all the separated strokes, I save then into a new dataset as separate drawings. While the previous dataset v2-splicedata only has 1200 drawings, the new bounding-box separated dataset 20231214 has 2400 drawings.\n\n\n\n\n\n\nFigure 10: Comparison of previous dataset v2-splicedata with 20231214 and 20231214-filtered.\n\n\n\nThe dataset grew from 1200 to 2400 drawings because pages containing multiple distinct drawings (such as Figure 11 (a)) were divided into separate rows in the new training set (like Figure 11 (b), Figure 11 (c), Figure 11 (d)).\n\n\n\n\n\n\n\n\n\n\n\n(a) Original\n\n\n\n\n\n\n\n\n\n\n\n(b)\n\n\n\n\n\n\n\n\n\n\n\n(c)\n\n\n\n\n\n\n\n\n\n\n\n(d)\n\n\n\n\n\n\n\nFigure 11: Original drawing (left) was one row in dataset v2-splicedata. The rightmost three drawings are distinct rows in dataset 20231214.\n\n\n\nThe new separated drawings looked more visually consistent with the average drawing out of the training set as a whole. The new dataset contains far more single-character drawings, so I expect that the RNN will benefit on learning from a set of drawings with more similar subject matter.\nI hypothesized that the bbox-separated dataset will be a big improvement because of the consistency of the resulting drawings. Before, the model was learning that sometimes drawings end after one person is drawn, but sometimes we move the pen and start a new person.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 5 - SketchRNN Experiments: Path Preprocessing"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part5.html#filtering-by-number-of-points",
+    "href": "blog/posts/slml_part5.html#filtering-by-number-of-points",
+    "title": "SLML Part 5 - SketchRNN Experiments: Path Preprocessing",
+    "section": "",
+    "text": "Looking at the distribution of number of points per drawing in the new dataset 20231214 in the bottom-middle chart in Figure 10, I noticed a long tail of drawings with more than 500 points. To explore this, I created a variant dataset 20231214-filtered.\nDataset 20231214-filtered which was filtered down to 1800 drawings, keeping only drawings with more than 50 and less than 300 points as you can see in the bottom-right chart in Figure 10.\nWondering if drawings with many points were less likely to have consistent subject matter (individual people) than the rest of the training set, I sampled some drawings with over 300 points. While drawings such as Figure 12 (a) and Figure 12 (b) were obvious candidates to exlcude, there were valid drawings near the margin such as Figure 12 (c) that I would be excluding after I picked a threshold.Possible Improvement: Filtering by visual embedding might be more reliable to exclude complex drawings\n\n\n\n\n\n\n\n\n\n\n\n(a) 1093 points\n\n\n\n\n\n\n\n\n\n\n\n(b) 1127 points\n\n\n\n\n\n\n\n\n\n\n\n(c) 329 points\n\n\n\n\n\n\n\nFigure 12: Drawings with over 300 points.\n\n\n\nI also looked at the low end of the distribution and found drawings with under 50 points. There were nonsensical squiggles such as Figure 13 (a) that I was happy to exclude. There were cases below the 50 point threshold such as Figure 13 (b) and Figure 13 (c) that looked recognizable as my drawings, but had been simplified by RDP too aggressively. Possible Improvement: Applying RDP after bounding box separation rather than before.\n\n\n\n\n\n\n\n\n\n\n\n(a) 21 points\n\n\n\n\n\n\n\n\n\n\n\n(b) 30 points\n\n\n\n\n\n\n\n\n\n\n\n(c) 41 points\n\n\n\n\n\n\n\nFigure 13: Drawings with under 50 points.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 5 - SketchRNN Experiments: Path Preprocessing"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part5.html#training-after-bounding-boxes",
+    "href": "blog/posts/slml_part5.html#training-after-bounding-boxes",
+    "title": "SLML Part 5 - SketchRNN Experiments: Path Preprocessing",
+    "section": "",
+    "text": "Figure 14: Training and validation loss metrics comparing model trained on 20231214 (beige) compared with models trained on dataset 20231214-filtered with and without stroke augmentation (green, burgundy).\n\n\n\nAfter training on the unfiltered dataset 20231214, I noticed that some drawings were devolving into a sequence of repeated face features without forming a cohesive person or face, as in Figure 15.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 15: Generated results after training on unfiltered dataset 20231214.\n\n\n\n\nThe model results in Figure 16 after training on filtered dataset 20231214-filtered appear qualitatively better to me. The best results I could find had long coherent strokes capturing part of a face and sometimes a corresponding body.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 16: Generated results after training on filtered dataset 20231214-filtered.\n\n\n\n\nThe model results in Figure 17 after training with stroke-augmentation on filtered dataset 20231214-filtered appear to be roughly of similar quality to . The best results I could find had long coherent strokes capturing part of a face and sometimes a corresponding body.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 17: Generated results after training on filtered dataset 20231214-filtered, with stroke augmentation enabled.\n\n\n\n\n\n\nIf you want to keep reading, check out part 6 of my SLML series.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 5 - SketchRNN Experiments: Path Preprocessing"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part4.html",
+    "href": "blog/posts/slml_part4.html",
+    "title": "SLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization",
+    "section": "",
+    "text": "This post is part 4 of “SLML” - Single-Line Machine Learning.\nTo read the previous post, check out part 3. If you want to keep reading, check out part 5.\n\nNow that I had a repeatable process to convert JPEGs into stroke-3, I decided to start training models with my first dataset (which I called look_i16).\n\n\nThe training data in my first dataset, look_i16, had lots of tiny strokes mixed in with longer ones, and no inherent order to them.\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 1: Samples from dataset look_i16.\n\n\n\nUnsurprisingly, my first models produced odd smatterings composed of many small strokes.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 2: Generated outputs from SketchRNN trained on dataset look_i16.\n\n\n\nAs a quick experiment, I tried just filtering out any really short strokes out of the dataset - I decided to iterate through each of the 1300 drawings in the training set, and filter out any strokes with less than 10 points - I called this dataset look_i16__minn10. I recognized that I’d need a more systematic solution to improve my training data, but I wanted to try a quick improvement before going deeper. See part 5 for how I updated my preprocessing to reduce the number of strokes in my training data.\n\n\n\n\n\n\nFigure 3: Distribution of num_strokes and num_points in datasets look_i16 and look_i16__minn10. Both datasets have 1300 entries in the training set.\n\n\n\nNote that the average number of strokes in look_i16 is around 40, while it’s closer to 10 in look_i16__minn10. It seems that there were many very short strokes in the training data. I also simplified the drawings more aggressively for look_i16__minn10 by increasing RDP’s epsilon parameter to 1.0 when preprocessing the data, which further reduced the number of points per drawing.\n\n\n\n\n\n\nFigure 4: Training and validation loss metrics for look_i16 (pink) and look_i16__minn10 (yellow).\n\n\n\nWhen training models, I’m measuring the reconstruction loss. I feed in a drawing, the model encodes it into an embedding vector, and then decodes the embedding vector back into a drawing. I can compute the loss at each step in the reconstructed drawing compare to the original. Periodically, after processing several batches of training data, I compute the reconstruction metrics on a validation set. This is a portion of the dataset I’m not using to actually update the weights of the model during training.\nBy comparing the reconstruction loss on the training set vs. the validation set over time, I can identify when the model starts “overfitting”. Intuitively, if the model is learning to perform better on the training data while performing worse on the validation data, that means it is effectively memorizing the training set rather than learning to generalize its learnings to drawings it wasn’t trained on.\nThe model trained on look_i16__minn10 performed slightly better than the model trained on look_i16 in terms of the error when reconstructing a drawing. It’s visible in Figure 4 that the loss values were lower, and the validation loss didn’t start to increase until slightly later.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 5: Generated outputs from SketchRNN trained on dataset look_i16__minn10.\n\n\n\nThe results produced after training on look_i16__minn10 were much less chaotic. While they didn’t resemble coherent drawings, this was the first time I spotted some elements of my drawing style (head shape, eye style, lips, chin).\n\n\n\n\nThe Magenta team had recommended using Layer Normalization and Recurrent Dropout with Memory Loss.\nI noticed that when I let the trainer run overnight, I’d get wild spikes in the training loss. I decided to start with Layer Normalization.\n\n\n\n\n\n\nFigure 6: Training and validation loss metrics from training on look_i16__minn10 without layernorm (yellow) and with layernorm (burgundy: learnable=True, gray: learnable=False). The yellow line without layernorm enabled is the same as in Figure 4, but this graph shows more than 150,000 train steps while the previous graph showed only 7,000 train steps.\n\n\n\nAdding layer normalization showed a dramatic difference, visible in Figure 6. The yellow line (without layer norm) has a massive increase in validation loss, and many big spikes, while the burgundy and gray lines (with layer norm integrated) have much lower validation loss and don’t have any comparable spikes.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 7: Generated samples from model trained with Layer Normalization.\n\n\n\n\n\n\n\nThe results from the layernorm models in Figure 7 had some hints of my drawing style, while still struggling to form coherent drawings.\nNext, I kept layernorm enabled and enabled recurrent dropout. I ran one separate runs with and without stroke augmentation enabled.\n\n\n\n\n\n\nFigure 8: Training and validation loss metrics for layernorm-only models (burgundy and gray) alongside models trained with recurrent dropout (green) and with stroke augmentation (pink).\n\n\n\nCompared to the layernorm-only models (burgundy and gray), the one recurrent dropout model (green) achieved a lower validation loss relatively quickly, before starting to overfit.\nThe model trained with recurrent dropout and stroke augmentation (pink) clearly performed worse than with recurrent dropout (in terms of higher validation loss).\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 9: Generated samples from model trained with Recurrent Dropout as well as Layer Normalization.\n\n\n\nThe resulting generations from model with layernorm and recurrent dropout in Figure 9 weren’t obviously better or worse than those from the layernorm-only model in Figure 7.\n\n\nIf you want to keep reading, check out part 5 of my SLML series.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part4.html#filtering-out-short-strokes",
+    "href": "blog/posts/slml_part4.html#filtering-out-short-strokes",
+    "title": "SLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization",
+    "section": "",
+    "text": "The training data in my first dataset, look_i16, had lots of tiny strokes mixed in with longer ones, and no inherent order to them.\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 1: Samples from dataset look_i16.\n\n\n\nUnsurprisingly, my first models produced odd smatterings composed of many small strokes.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 2: Generated outputs from SketchRNN trained on dataset look_i16.\n\n\n\nAs a quick experiment, I tried just filtering out any really short strokes out of the dataset - I decided to iterate through each of the 1300 drawings in the training set, and filter out any strokes with less than 10 points - I called this dataset look_i16__minn10. I recognized that I’d need a more systematic solution to improve my training data, but I wanted to try a quick improvement before going deeper. See part 5 for how I updated my preprocessing to reduce the number of strokes in my training data.\n\n\n\n\n\n\nFigure 3: Distribution of num_strokes and num_points in datasets look_i16 and look_i16__minn10. Both datasets have 1300 entries in the training set.\n\n\n\nNote that the average number of strokes in look_i16 is around 40, while it’s closer to 10 in look_i16__minn10. It seems that there were many very short strokes in the training data. I also simplified the drawings more aggressively for look_i16__minn10 by increasing RDP’s epsilon parameter to 1.0 when preprocessing the data, which further reduced the number of points per drawing.\n\n\n\n\n\n\nFigure 4: Training and validation loss metrics for look_i16 (pink) and look_i16__minn10 (yellow).\n\n\n\nWhen training models, I’m measuring the reconstruction loss. I feed in a drawing, the model encodes it into an embedding vector, and then decodes the embedding vector back into a drawing. I can compute the loss at each step in the reconstructed drawing compare to the original. Periodically, after processing several batches of training data, I compute the reconstruction metrics on a validation set. This is a portion of the dataset I’m not using to actually update the weights of the model during training.\nBy comparing the reconstruction loss on the training set vs. the validation set over time, I can identify when the model starts “overfitting”. Intuitively, if the model is learning to perform better on the training data while performing worse on the validation data, that means it is effectively memorizing the training set rather than learning to generalize its learnings to drawings it wasn’t trained on.\nThe model trained on look_i16__minn10 performed slightly better than the model trained on look_i16 in terms of the error when reconstructing a drawing. It’s visible in Figure 4 that the loss values were lower, and the validation loss didn’t start to increase until slightly later.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 5: Generated outputs from SketchRNN trained on dataset look_i16__minn10.\n\n\n\nThe results produced after training on look_i16__minn10 were much less chaotic. While they didn’t resemble coherent drawings, this was the first time I spotted some elements of my drawing style (head shape, eye style, lips, chin).",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part4.html#layer-normalization",
+    "href": "blog/posts/slml_part4.html#layer-normalization",
+    "title": "SLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization",
+    "section": "",
+    "text": "The Magenta team had recommended using Layer Normalization and Recurrent Dropout with Memory Loss.\nI noticed that when I let the trainer run overnight, I’d get wild spikes in the training loss. I decided to start with Layer Normalization.\n\n\n\n\n\n\nFigure 6: Training and validation loss metrics from training on look_i16__minn10 without layernorm (yellow) and with layernorm (burgundy: learnable=True, gray: learnable=False). The yellow line without layernorm enabled is the same as in Figure 4, but this graph shows more than 150,000 train steps while the previous graph showed only 7,000 train steps.\n\n\n\nAdding layer normalization showed a dramatic difference, visible in Figure 6. The yellow line (without layer norm) has a massive increase in validation loss, and many big spikes, while the burgundy and gray lines (with layer norm integrated) have much lower validation loss and don’t have any comparable spikes.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 7: Generated samples from model trained with Layer Normalization.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part4.html#recurrent-dropout",
+    "href": "blog/posts/slml_part4.html#recurrent-dropout",
+    "title": "SLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization",
+    "section": "",
+    "text": "The results from the layernorm models in Figure 7 had some hints of my drawing style, while still struggling to form coherent drawings.\nNext, I kept layernorm enabled and enabled recurrent dropout. I ran one separate runs with and without stroke augmentation enabled.\n\n\n\n\n\n\nFigure 8: Training and validation loss metrics for layernorm-only models (burgundy and gray) alongside models trained with recurrent dropout (green) and with stroke augmentation (pink).\n\n\n\nCompared to the layernorm-only models (burgundy and gray), the one recurrent dropout model (green) achieved a lower validation loss relatively quickly, before starting to overfit.\nThe model trained with recurrent dropout and stroke augmentation (pink) clearly performed worse than with recurrent dropout (in terms of higher validation loss).\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 9: Generated samples from model trained with Recurrent Dropout as well as Layer Normalization.\n\n\n\nThe resulting generations from model with layernorm and recurrent dropout in Figure 9 weren’t obviously better or worse than those from the layernorm-only model in Figure 7.\n\n\nIf you want to keep reading, check out part 5 of my SLML series.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part7.html",
+    "href": "blog/posts/slml_part7.html",
+    "title": "SLML Part 7 - SketchRNN Experiments: Data Augmentation",
+    "section": "",
+    "text": "This post is part 7 of “SLML” - Single-Line Machine Learning.\nTo read the previous post, check out part 6.\n\n\n\n\nI was curious about why my earlier experiment using stroke augmentation didn’t show benefits (and in some cases made the models perform much worse on validation metrics). In Figure 1, it’s clear that the pink line (without stroke augmentation) has a faster-growing validation loss after the point of overfitting.\n\n\n\n\n\n\nFigure 1: Training and validation loss metrics for layernorm-only models (burgundy and gray) alongside models trained with recurrent dropout (green) and with stroke augmentation (pink).\n\n\n\nThose experiments used stroke augmentation as a hyperparameter on the dataset - so at runtime when the model started training, it would modify the drawings before assembling them into batches for the trainer.\nI decided to create a dataset where I ran the augmentation ahead of time and saved the result so I could inspect the results more closely. For each entry in the dataset, I included the original drawing as well as a seperate entry for the drawing in reverse with a “flipped” sequence. This doubled the size of the dataset. Another idea I’d like to try is applying local distortions or dilations, since that would change the directions certain strokes take without losing the overal subject of the drawing. Radial Basis Functions or Warp Grids seem like promising approaches to try.\nThen I took each drawing and randomly:\n\nApplied stroke agumentation to drop points, with a probability up to 0.5.\nRandomly rotated -15 to 15 degrees\nRandomly scaled between 100% to 120% of original size.\n\nSome examples of the augmentations are visible in Figure 2.\n\n\n\n\n\n\n\n\nOriginal drawing\n\n\n\n\n\n\n\nAfter “Stroke Augmentation” drops points from lines at random\n\n\n\n\n\n\n\nRandomly rotated and scaled\n\n\n\n\n\n\nFigure 2: Examples of data augmentation.\n\n\n\n\n\n\nComparing the validation loss metrics in Figure 3 from the models trained on augmented dataset (purple) with my previous round of best-performing models, the augmented dataset takes longer to converge but the validation loss keeps sloping downwards. This is encouraging to me since it seems like the more diverse drawings in the augmented dataset are helping the model learn to generalize more than pervious models trained on non-augmented datasets.\n\n\n\n\n\n\nFigure 3: Training and validation loss metrics from augmented dataset 20240221-dataaug10x (purple).\n\n\n\nAs a small side experiment, I wanted to confirm my finding in part 4 that layer norm caused a meaningful improvement. Looking at the loss metrics in Figure 4, it appears that disabling layernorm (light green) causes a significant drop in performance. Disabling recurrent dropout doesn’t have a significant effect, as far as I can tell.\n\n\n\n\n\n\nphase6-wandb-without-ln-rd\n\n\n\n\nFigure 4: Training and validation loss metrics from augmented dataset 20240221-dataaug10x (purple) compared to variants without layernorm (light green) and without recurrent dropout (magenta / dark red).",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 7 - SketchRNN Experiments: Data Augmentation"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part7.html#preprocessing-for-data-augmentation",
+    "href": "blog/posts/slml_part7.html#preprocessing-for-data-augmentation",
+    "title": "SLML Part 7 - SketchRNN Experiments: Data Augmentation",
+    "section": "",
+    "text": "I was curious about why my earlier experiment using stroke augmentation didn’t show benefits (and in some cases made the models perform much worse on validation metrics). In Figure 1, it’s clear that the pink line (without stroke augmentation) has a faster-growing validation loss after the point of overfitting.\n\n\n\n\n\n\nFigure 1: Training and validation loss metrics for layernorm-only models (burgundy and gray) alongside models trained with recurrent dropout (green) and with stroke augmentation (pink).\n\n\n\nThose experiments used stroke augmentation as a hyperparameter on the dataset - so at runtime when the model started training, it would modify the drawings before assembling them into batches for the trainer.\nI decided to create a dataset where I ran the augmentation ahead of time and saved the result so I could inspect the results more closely. For each entry in the dataset, I included the original drawing as well as a seperate entry for the drawing in reverse with a “flipped” sequence. This doubled the size of the dataset. Another idea I’d like to try is applying local distortions or dilations, since that would change the directions certain strokes take without losing the overal subject of the drawing. Radial Basis Functions or Warp Grids seem like promising approaches to try.\nThen I took each drawing and randomly:\n\nApplied stroke agumentation to drop points, with a probability up to 0.5.\nRandomly rotated -15 to 15 degrees\nRandomly scaled between 100% to 120% of original size.\n\nSome examples of the augmentations are visible in Figure 2.\n\n\n\n\n\n\n\n\nOriginal drawing\n\n\n\n\n\n\n\nAfter “Stroke Augmentation” drops points from lines at random\n\n\n\n\n\n\n\nRandomly rotated and scaled\n\n\n\n\n\n\nFigure 2: Examples of data augmentation.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 7 - SketchRNN Experiments: Data Augmentation"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part7.html#training-with-augmented-dataset",
+    "href": "blog/posts/slml_part7.html#training-with-augmented-dataset",
+    "title": "SLML Part 7 - SketchRNN Experiments: Data Augmentation",
+    "section": "",
+    "text": "Comparing the validation loss metrics in Figure 3 from the models trained on augmented dataset (purple) with my previous round of best-performing models, the augmented dataset takes longer to converge but the validation loss keeps sloping downwards. This is encouraging to me since it seems like the more diverse drawings in the augmented dataset are helping the model learn to generalize more than pervious models trained on non-augmented datasets.\n\n\n\n\n\n\nFigure 3: Training and validation loss metrics from augmented dataset 20240221-dataaug10x (purple).\n\n\n\nAs a small side experiment, I wanted to confirm my finding in part 4 that layer norm caused a meaningful improvement. Looking at the loss metrics in Figure 4, it appears that disabling layernorm (light green) causes a significant drop in performance. Disabling recurrent dropout doesn’t have a significant effect, as far as I can tell.\n\n\n\n\n\n\nphase6-wandb-without-ln-rd\n\n\n\n\nFigure 4: Training and validation loss metrics from augmented dataset 20240221-dataaug10x (purple) compared to variants without layernorm (light green) and without recurrent dropout (magenta / dark red).",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 7 - SketchRNN Experiments: Data Augmentation"
+    ]
+  },
+  {
+    "objectID": "about/index.html",
+    "href": "about/index.html",
+    "title": "about me",
+    "section": "",
+    "text": "Hi, I’m Andrew Look.\nI’m a machine learning engineer working on Notion AI. I’m also an AI advisor at Long Journey, where I help startups think through how to build with AI and how to hire great technical talent. Previously I was CTO at URX (YC S’13, acquired by Pinterest) and Plato Design (YC S’13). In my spare time, I like to make art - painting, drawing, pottery. More recently I’ve been making audio-reactive visual LED/projector art for concerts with Titanic’s End.\n\nWork\nI recently left my most recent startup, Aesthetic (Y Combinator Summer 2018).\nBefore that, I did ML engineering at Pinterest from 2016-2018.\nPreviously, I worked on a mobile ad startup called URX from 2013 until 2016 when we were acquired by Pinterest.\n\n\nSide Projects\nI’m also an AI advisor to Long Journey Ventures, occasionally helping with technical due diligence on companies with an AI/ML focus.\nIn spare time, I’m building audio-reactive digital art and training new team members as Head of Software for the Titanic’s End Mutant Vehicle.\n\n\nArt\nI’ve been painting since 2013 (when I really needed a hobby to unwind from the stress of startup life).\nI’ve been experimenting with ML art and generative AI since 2016 (when I started playing with DeepDreams and GANs and making physical paintings from the outputs).\nI’ve been making single-line drawings since 2018 (when I decided to experiment with adding a constraint to my art practice).\nI’ve been making pottery since 2022 (when I wanted to experiment with making art in three dimensions rather than two).",
+    "crumbs": [
+      "blog",
+      "about"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "home",
+    "section": "",
+    "text": "I’m an ML engineer, ex-startup founder, and part-time artist based in Brooklyn, NY.\nYou can learn more about me on my “about” page, or you can check out my “resume” page.",
+    "crumbs": [
+      "blog",
+      "home"
+    ]
+  },
+  {
+    "objectID": "index.html#hi-im-andrew-look.",
+    "href": "index.html#hi-im-andrew-look.",
+    "title": "home",
+    "section": "",
+    "text": "I’m an ML engineer, ex-startup founder, and part-time artist based in Brooklyn, NY.\nYou can learn more about me on my “about” page, or you can check out my “resume” page.",
+    "crumbs": [
+      "blog",
+      "home"
+    ]
+  },
+  {
+    "objectID": "index.html#projects",
+    "href": "index.html#projects",
+    "title": "home",
+    "section": "Projects",
+    "text": "Projects\n\n\n\n\n\nTitle\n\n\n\n\n\n\nSingle-Line Machine Learning\n\n\n\n\nPainting Deepdreams\n\n\n\n\n\nNo matching items",
+    "crumbs": [
+      "blog",
+      "home"
+    ]
+  },
+  {
+    "objectID": "index.html#posts",
+    "href": "index.html#posts",
+    "title": "home",
+    "section": "Posts",
+    "text": "Posts\n\n\n\n\n\nTitle\n\n\n\n\n\n\nSLML Part 7 - SketchRNN Experiments: Data Augmentation\n\n\n\n\nSLML Part 6 - SketchRNN Experiments: Granular Visual Filtering\n\n\n\n\nSLML Part 5 - SketchRNN Experiments: Path Preprocessing\n\n\n\n\nSLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization\n\n\n\n\nSLML Part 3 - JPEG to SVG to Stroke-3\n\n\n\n\nSLML Part 2 - Assembling the Dataset\n\n\n\n\nSLML Part 1 - Why I Decided to Train SketchRNN on My Drawings\n\n\n\n\nSLML Part 0 - My Single-Line Drawing Practice\n\n\n\n\nA Tour of AI Art in 2018\n\n\n\n\n\nNo matching items",
+    "crumbs": [
+      "blog",
+      "home"
+    ]
+  },
+  {
+    "objectID": "blog/index.html",
+    "href": "blog/index.html",
+    "title": "andrewlook",
+    "section": "",
+    "text": "Title\n\n\nDate\n\n\n\n\n\n\nSLML Part 7 - SketchRNN Experiments: Data Augmentation\n\n\n2024-01-04\n\n\n\n\nSLML Part 6 - SketchRNN Experiments: Granular Visual Filtering\n\n\n2024-01-04\n\n\n\n\nSLML Part 5 - SketchRNN Experiments: Path Preprocessing\n\n\n2023-12-14\n\n\n\n\nSLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization\n\n\n2023-12-03\n\n\n\n\nSLML Part 3 - JPEG to SVG to Stroke-3\n\n\n2023-11-07\n\n\n\n\nSLML Part 2 - Assembling the Dataset\n\n\n2023-11-01\n\n\n\n\nSLML Part 1 - Why I Decided to Train SketchRNN on My Drawings\n\n\n2023-10-27\n\n\n\n\nSLML Part 0 - My Single-Line Drawing Practice\n\n\n2023-10-20\n\n\n\n\nA Tour of AI Art in 2018\n\n\n2018-04-18\n\n\n\n\n\nNo matching items",
+    "crumbs": [
+      "blog"
+    ]
+  },
+  {
+    "objectID": "blog/posts/2018_ai_art_tour.html",
+    "href": "blog/posts/2018_ai_art_tour.html",
+    "title": "A Tour of AI Art in 2018",
+    "section": "",
+    "text": "By the end of this tour, my goal is to help you understand how some existing artists are incorporating AI tools and concepts into their work, and how using AI art tools might augment your creativity.\nDisclaimer: I’m not a real expert on computer vision, neuroscience or art. But I have spent a couple years learning about the space, so I’ll do my best to explain things as I understand them so far.\nFor those more familiar with AI, I plan on making some broad generalizations in the interest of brevity. If you’re interested in the technical details, I’ve done my best to include relevant links on where to go deeper.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "A Tour of AI Art in 2018"
+    ]
+  },
+  {
+    "objectID": "blog/posts/2018_ai_art_tour.html#what-is-ai-art",
+    "href": "blog/posts/2018_ai_art_tour.html#what-is-ai-art",
+    "title": "A Tour of AI Art in 2018",
+    "section": "What is AI art?",
+    "text": "What is AI art?\nMany artistic tools come from people striving to understand how algorithms affect our lives. I’ve distilled a framework to understand different types of AI Art, and am sharing it in the hopes that it makes the concepts easier to discuss and compare.\nHere are 3 ways I can think of to define “AI Art”:\n\nMaking creative use of outputs from an AI Tool\nLeveraging how AI represents information to deliberately craft an Effect\nExploring the Concepts within AI and what they mean for us",
+    "crumbs": [
+      "blog",
+      "posts",
+      "A Tour of AI Art in 2018"
+    ]
+  },
+  {
+    "objectID": "blog/posts/2018_ai_art_tour.html#some-definitions",
+    "href": "blog/posts/2018_ai_art_tour.html#some-definitions",
+    "title": "A Tour of AI Art in 2018",
+    "section": "Some Definitions",
+    "text": "Some Definitions\nGiven the amount of cultural baggage we all associate with words like “AI” and “art”, it’s worth clarifying some definitions up front. “AI Art” has stuck as a phrase to describe an emerging category of creative work, but it might be more accurate to call it “Machine Learning Art.”\nThe art I’m discussing here is mostly made by humans using statistical methods, not by sentient robots with their own creative ideas. Sorry to disappoint, but this post isn’t dedicated to anthropomorphic machines that paint:\n\n\n\n\nnot this\n\n\nSPIRAL by Deepmind (blog, pdf, youtube)\n\n\nAI\nAI is a term used in so many contexts, that it’s a bit of a loaded term. Most mentions of AI can be bucketed into one of two broad categories:\n\nGeneral AI: The futuristic aspiration of computers that experience consciousness\nSpecialized AI: Systems using statistics to learn patterns from data in order to make predictions.\n\nI’ll be focused on artistic applications of techniques that have sprung out of real-world research from the category of Specialized AI, also known as Machine Learning.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "A Tour of AI Art in 2018"
+    ]
+  },
+  {
+    "objectID": "blog/posts/2018_ai_art_tour.html#machine-learning",
+    "href": "blog/posts/2018_ai_art_tour.html#machine-learning",
+    "title": "A Tour of AI Art in 2018",
+    "section": "Machine Learning",
+    "text": "Machine Learning\nMachine Learning (usually) refers to a type of algorithm that (1) is built to perform a clearly-defined task, and (2) learns patterns and relationships from training data\n\nFor example, imagine that we want to predict housing prices. We’d probably start with a spreadsheet of prices we know to be true, alongside features for each house that we expect to be related to the price. If we plot price vs. size on this toy dataset, we can start to see a slope.\n\n \n\nIf we were to draw a line through these points, the “slope” would be what you multiply the size by in order to get the price (plus a “bias” term, if the slope doesn’t meet the Y-axis right at zero). The objective of an ML algorithm is to find a line to draw through these points that minimizes the error in its predictions. You can visualize the error as the distance from each real data point’s Y coordinate to the prediction: the line’s value at the corresponding X coordinate.\n\n \n\n“Art is everything that you don’t have to do.” - brian eno\nWhole books could be written in an attempt to define art, so I won’t attempt an exhaustive definition.\n\n\n“Fountain,” Marcel Duchamp, 1917 (wikipedia)\n\nThe truth is that art can be defined by whoever is creating it, and art history is full of boundary-pushing acts leading onlookers to ask “but is it art?”",
+    "crumbs": [
+      "blog",
+      "posts",
+      "A Tour of AI Art in 2018"
+    ]
+  },
+  {
+    "objectID": "blog/posts/2018_ai_art_tour.html#back-to-ai-art",
+    "href": "blog/posts/2018_ai_art_tour.html#back-to-ai-art",
+    "title": "A Tour of AI Art in 2018",
+    "section": "Back to AI Art",
+    "text": "Back to AI Art\nNow I’ll step through three possible ways to define AI art and provide some examples along the way.\n\nMaking creative use of outputs from an AI Tool\nLeveraging how AI represents information to deliberately craft an Effect\nExploring the Concepts within AI and what they mean for us",
+    "crumbs": [
+      "blog",
+      "posts",
+      "A Tour of AI Art in 2018"
+    ]
+  },
+  {
+    "objectID": "blog/posts/2018_ai_art_tour.html#definition-1-making-creative-use-of-outputs-from-an-ai-tool",
+    "href": "blog/posts/2018_ai_art_tour.html#definition-1-making-creative-use-of-outputs-from-an-ai-tool",
+    "title": "A Tour of AI Art in 2018",
+    "section": "Definition #1: Making creative use of outputs from an AI Tool",
+    "text": "Definition #1: Making creative use of outputs from an AI Tool\nThe simplest definition of AI art is any artifact generated from a tool the makes use of AI, whether or not the artist makes this a central part of the work.\nApps such as Prisma, for example, make it easy for anyone to take a photo on their phone and render it in a painterly style.\nEven without much context on how they work, easy-to-use tools such as pix2pix can be fun to play with and yield weird results.\n\n?&gt;\n“Image-to-Image Translation with Conditional Adversarial Networks”, Isola et al, 2017 (pdf)\n\nWe’ll look at some more in-depth approaches later (time permitting), but for now this is just fun.\n\n\n\n\npix2pix_pyramid_cat",
+    "crumbs": [
+      "blog",
+      "posts",
+      "A Tour of AI Art in 2018"
+    ]
+  },
+  {
+    "objectID": "blog/posts/2018_ai_art_tour.html#definition-2-leveraging-how-ai-represents-information-to-deliberately-craft-an-effect",
+    "href": "blog/posts/2018_ai_art_tour.html#definition-2-leveraging-how-ai-represents-information-to-deliberately-craft-an-effect",
+    "title": "A Tour of AI Art in 2018",
+    "section": "Definition #2: Leveraging how AI represents information to deliberately craft an effect",
+    "text": "Definition #2: Leveraging how AI represents information to deliberately craft an effect\nA slightly more complex definition of AI art is one in which an artist uses his or her understanding of the machine learning internals to achieve a specific effect. For example, it’s possible to make some interesting visual artifacts by inspecting how machine learning algorithms represent information.\n\n\nsource\n\nIn fact, the spooky faces came from a visualization of Eigenfaces, which sought to “learn” how to represent faces in a “latent space”. For me, this early facila recognition output brings to mind one of my favorite quotes by Brian Eno (who I’m quoting more than once in this piece since he’s had so much to say about the overlap of technology and art).\n\n“Whatever you now find weird, ugly, uncomfortable, and nasty about a new medium will surely become its signature. CD distortion, the jitteriness of digital video, the crap sound of 8-bit, all of these will be cherished and emulated as soon as they can be avoided. It’s the sound of failure. So much modern art is the sound of things going out of control. Out of a medium, pushing to its limits and breaking apart.” - Brian Eno\n\n\nRecent generative algorithms have rapidly improved their ability both to learn latent spaces, and to generate images from any point in these latent spaces.\n\n\n\n\nfacespace\n\n\nFace Recognition using Eigenfaces, Turk et al, 1991 pdf\n\nMethods of encoding real images into vectors representing a point in latent space have since improved, as have the methods of decoding latent vectors back into realistic images.\nWhen we interpolate between two points in the latent space, we can smoothly generate images at each point along the way. In the uncanny example below, I find it striking that (almost) every point in between looks like a person. Looking at this work, I can’t help thinking that these algorithms are showing us something about our innate similarity to all other humans.\n\n\n\n\nceleb_1hr_man\n\n\nProgressive Growing of GANs for Improved Quality, Stability, and Variation, Karras et al, 2018 (pdf, youtube)\n\nOne striking example of a completely new type of tool leveraging this understanding is called Toposketch. It allows visual navigation of latent spaces in order to gain fine-grained control over the generated artifacts. This makes me wonder what kinds of creative tools could be built to leverage the information that machines are able to derive from the increaing volume of data that’s available to us today.\n\n\n\ntoposketch_man_loop",
+    "crumbs": [
+      "blog",
+      "posts",
+      "A Tour of AI Art in 2018"
+    ]
+  },
+  {
+    "objectID": "blog/posts/2018_ai_art_tour.html#definition-3-exploring-the-concepts-within-ai-and-what-they-means-for-us",
+    "href": "blog/posts/2018_ai_art_tour.html#definition-3-exploring-the-concepts-within-ai-and-what-they-means-for-us",
+    "title": "A Tour of AI Art in 2018",
+    "section": "Definition #3: Exploring the Concepts within AI and what they means for us",
+    "text": "Definition #3: Exploring the Concepts within AI and what they means for us\nAmong other things, this could encompass exploring AI’s relationships to:\n\nour society\nthe individual\nthe nature of consciousness\n\n\nExample: Treachery of Imagenet\nTom White made some beautifully designed prints, each of which fools a computer vision network into believing it’s actually a picture of a specific object (see the predicted categories to the right of the image below).\n\n\n\n\nimg\n\n\nsource\n\nThere’s a new field of security concerned with adversarial machine learning, concerned with how attackers can fool neural networks into misinterpreting what they see. It’s not intuitive, but the consequences can be serious - imagine a self-driving car fooled into missing a stop sign. I admire how Tom White took a complex concept and used it to make a visually appealing piece that sparks curiosity and raises awareness about concepts that may affect our lives but don’t have easy conversational entry points for outsiders.\n\n\nExample: Simulating How Humans Draw\nI’m fascinated when researchers attempt to mimic how humans draw. In particular, I’m interested in how the researchers set up an algorithm to mimic the process of drawing - they have to choose what happens next, how much the first part of the drawing affects what happens next, and how to define success.\n\n\n\n\nsimulating how humans draw\n\n\nsource\n\nIn my analog artworks, I’ve noticed that sometimes I start a drawing not knowing how it will end up. Small accidents or random movements early in the drawing lead me to see something unexpected, adjust my course and capture what I saw. Oddly enough, thinking about the rigid framing of machine learning problems (input: view of the canvas, output: X,Y,Z coordinates of brush movement) has led to some fun experiments. For example, what happens if i close my eyes and draw?",
+    "crumbs": [
+      "blog",
+      "posts",
+      "A Tour of AI Art in 2018"
+    ]
+  },
+  {
+    "objectID": "blog/posts/2018_ai_art_tour.html#in-conclusion",
+    "href": "blog/posts/2018_ai_art_tour.html#in-conclusion",
+    "title": "A Tour of AI Art in 2018",
+    "section": "In Conclusion",
+    "text": "In Conclusion\nGiven that there are several ways to define AI art (and I’m sure my list is not comprehensive), my hope is that we can broaden our view of what AI art means. While it does include fun images made using new mobile apps, I’d also like to think that there’s some more profound works out there. Works that can surprise people, help them understand the role of new technologies in their daily lives, and stoke their curiosity to learn more.\n\n“Stop thinking about art works as objects, and start thinking about them as triggers for experiences. … what makes a work of art ‘good’ for you is not something that is already ‘inside’ it, but something that happens inside you — so the value of the work lies in the degree to which it can help you have the kind of experience that you call art.”\nBrian Eno, via brainpickings",
+    "crumbs": [
+      "blog",
+      "posts",
+      "A Tour of AI Art in 2018"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part0.html",
+    "href": "blog/posts/slml_part0.html",
+    "title": "SLML Part 0 - My Single-Line Drawing Practice",
+    "section": "",
+    "text": "My Single-Line Drawing Practice\n\nThis post is the background to my series “SLML” - Single-Line Machine Learning.\nNext in the series is part 1, where I discovered SketchRNN and got curious about applying it to my own artwork.\n\nI started experimenting with single-line drawings around 2017. I’d been painting and drawing and experimenting with Machine Learning art for around 5 years at that point, but my art hobby had started to feel like a chore. I was taking on more and more ambitious painting projects, and there wasn’t a lot of simplicity or repetition in my art practice. A lot of my art felt premeditated, as I’d print out what I wanted to paint and then “execute” it on the canvas, painstakingly trying to represent what I’d decided to paint as accurately as possible.\nI got tired of painting but wanted to keep up my art practice, so I started just carrying around a sketchbook. Since I’d noticed a tendency to overthink my drawings I thought a pencil would give me too much freedom to erase, so I only brought a pen with me. I found myself wanting to practice the challenging parts of paintings that I’d struggled with, particularly drawing people and faces.\nFriends advised me that adding a constraint could help me to iterate quickly and not overthink my drawings. Since one of my patterns had been to spend too much time on individual drawings, I decided to adopt an extreme constraint: as soon as I lifted the pen from the page, I’d call the drawing done.\nI was drawn at first to the technical challenge. As a painter I’d already been learning about facial anatomy in an attempt to improve my drawings. Now I needed not only to know enough about anatomy to visualize a person or face I wanted to draw in three dimensions, but also to pick a path across that surface to make a finished drawing.\nAs a painter I’d grown accustomed to shading and blending to add or remove contrast. Once I started working only with lines, I had to find new tricks. Negative space in a drawing can create a good shadow. Concentric circles creates an illusion of depth. Putting lines close together makes something look darker.\nOver time, other aspects of single-line drawing pulled me in further. I found how much beauty there was to be found in what to leave out of a drawing. I learned how satisfying it is to choose just the essential lines needed to imply a facial expression or a pose.\n\nIf you want to keep reading, check out part 1 of my SLML series, where I discovered SketchRNN and got curious about applying it to my own artwork.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 0 - My Single-Line Drawing Practice"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part3.html",
+    "href": "blog/posts/slml_part3.html",
+    "title": "SLML Part 3 - JPEG to SVG to Stroke-3",
+    "section": "",
+    "text": "This post is part 3 of “SLML” - Single-Line Machine Learning.\nTo read the previous post, check out part 2.\nIf you want to keep reading, here is part 4.\n\nMost computer vision algorithms represent images as a rectangular grid of pixels on a screen. The model that the Magenta team trained, SketchRNN, instead interprets the drawings as a sequence of movements of a pen. They call this “stroke-3 format”, since each step in the sequence is represented by 3 values:\n\ndelta_x: how much did it move left-to-right?\ndelta_y: how much did it move up-and-down?\nlift_pen: was the pen down (continuing the current stroke) or was the pen lifted (moving to the start of a new stroke)\n\n\n\n\nFirst, I had to convert my JPEG scans into the “stroke-3” format. This would involve:\n\nconverting the files from JPEG to SVG\nconverting SVG to stroke-3\nsimplifying the drawings to reduce the number of points\n\n\n\nWhen I first started converting to SVG, I had trouble finding a tool that would give me a single, clean stroke for each line. Eventually I found a tool called autotrace that was able to correctly do a “centerline trace”.\n\n\n\n\n\n\n\n\n\n\n\n(a) potrace\n\n\n\n\n\n\n\n\n\n\n\n(b) autotrace\n\n\n\n\n\n\n\nFigure 1: Comparison of Vectorization Tools.\n\n\n\n\n\n\nThen I used a python library called svgpathtools to take the resulting SVG files, and convert each of the paths to a sequence of points. This step is necessary because SVG paths are often represented as Bezier curves.\nOne problem I noticed was that the drawings were represented as many separate strokes rather than one continuous line. For example, in the image below, each color represents a separate pen stroke.\n\n\n\nseparate strokes\n\n\n\n\n\nFinally, I’d apply the Ramer-Douglas-Pecker (“RDP”) algorithm on the resulting points, which uses an adjustable “epsilon” parameter to simplify down the drawings by reducing the number of points in a line’s path.\n\n\n\nRDP example\n\n\nThis is important because the SketchRNN model has difficulty with sequences longer than a few hundred points, so it’s helpful to simplify the drawings down by removing some of the very fine details while preserving the overall shape.\n\n\n\nphase1-sample-0177-epoch-01700-orig\n\n\n\nNext in my SLML series is part 4, where I experiment with hyperparams and datasets in training SketchRNN.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 3 - JPEG to SVG to Stroke-3"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part3.html#jpeg-to-svg",
+    "href": "blog/posts/slml_part3.html#jpeg-to-svg",
+    "title": "SLML Part 3 - JPEG to SVG to Stroke-3",
+    "section": "",
+    "text": "When I first started converting to SVG, I had trouble finding a tool that would give me a single, clean stroke for each line. Eventually I found a tool called autotrace that was able to correctly do a “centerline trace”.\n\n\n\n\n\n\n\n\n\n\n\n(a) potrace\n\n\n\n\n\n\n\n\n\n\n\n(b) autotrace\n\n\n\n\n\n\n\nFigure 1: Comparison of Vectorization Tools.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 3 - JPEG to SVG to Stroke-3"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part3.html#svg-to-points",
+    "href": "blog/posts/slml_part3.html#svg-to-points",
+    "title": "SLML Part 3 - JPEG to SVG to Stroke-3",
+    "section": "",
+    "text": "Then I used a python library called svgpathtools to take the resulting SVG files, and convert each of the paths to a sequence of points. This step is necessary because SVG paths are often represented as Bezier curves.\nOne problem I noticed was that the drawings were represented as many separate strokes rather than one continuous line. For example, in the image below, each color represents a separate pen stroke.\n\n\n\nseparate strokes",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 3 - JPEG to SVG to Stroke-3"
+    ]
+  },
+  {
+    "objectID": "blog/posts/slml_part3.html#line-simplification",
+    "href": "blog/posts/slml_part3.html#line-simplification",
+    "title": "SLML Part 3 - JPEG to SVG to Stroke-3",
+    "section": "",
+    "text": "Finally, I’d apply the Ramer-Douglas-Pecker (“RDP”) algorithm on the resulting points, which uses an adjustable “epsilon” parameter to simplify down the drawings by reducing the number of points in a line’s path.\n\n\n\nRDP example\n\n\nThis is important because the SketchRNN model has difficulty with sequences longer than a few hundred points, so it’s helpful to simplify the drawings down by removing some of the very fine details while preserving the overall shape.\n\n\n\nphase1-sample-0177-epoch-01700-orig\n\n\n\nNext in my SLML series is part 4, where I experiment with hyperparams and datasets in training SketchRNN.",
+    "crumbs": [
+      "blog",
+      "posts",
+      "SLML Part 3 - JPEG to SVG to Stroke-3"
+    ]
+  },
+  {
+    "objectID": "jupyter/index.html",
+    "href": "jupyter/index.html",
+    "title": "jupyter notebooks",
+    "section": "",
+    "text": "Title\n\n\nDate\n\n\n\n\n\n\n\nNo matching items",
+    "crumbs": [
+      "blog",
+      "jupyter"
+    ]
+  },
+  {
+    "objectID": "resume/index.html",
+    "href": "resume/index.html",
+    "title": "resume",
+    "section": "",
+    "text": "15+ years experience building technology, teams, companies.\nPassionate about machine learning and creativity.\nLooking for a technical role in AI / ML, especially in generative AI and creativity.\nY Combinator and UCLA CS alum.",
+    "crumbs": [
+      "blog",
+      "resume"
+    ]
+  },
+  {
+    "objectID": "resume/index.html#summary",
+    "href": "resume/index.html#summary",
+    "title": "resume",
+    "section": "",
+    "text": "15+ years experience building technology, teams, companies.\nPassionate about machine learning and creativity.\nLooking for a technical role in AI / ML, especially in generative AI and creativity.\nY Combinator and UCLA CS alum.",
+    "crumbs": [
+      "blog",
+      "resume"
+    ]
+  },
+  {
+    "objectID": "resume/index.html#experience",
+    "href": "resume/index.html#experience",
+    "title": "resume",
+    "section": "Experience",
+    "text": "Experience\n\nAesthetic (YC S’18)\nLLM-powered Language Learning Tools (June 2023 - October 2023)\n\nDeveloped a prototype for an audio-centric language learning application, leveraging LLMs to generate multilingual educational content.\nImplemented a prompt testing system to evaluate and enhance the quality of prompt engineering modifications incrementally.\n\nAI Assistant for Artists / Designers (July 2022 - May 2023)\n\nCreated a user-friendly app enabling artists to fine-tune generative models with their portfolios, facilitating rapid creation of new images using their own style.\nManaged backend processes to train and deploy models to an inference API.\nAutomated analysis of LoRA hyper-parameters for artistic style fine-tuning.\nExpanded the capabilities of the Dreambooth trainer to accommodate various concepts.\n\nToken-Gated Platform for NFT creators (Feb 2021 - June 2022)\n\nDeveloped a self-service platform enabling NFT creators to form their communities, conduct token sales, and offer exclusive features to token holders.\nAuthored versatile smart contracts allowing creators to independently manage collections and sales beyond conventional exchanges.\n\nAPI for Generating Design Assets (Jan 2020 - Jan 2021)\n\nCrafted a “Zapier for Design” API to produce on-demand templated social media images and animations using React for templating and Puppeteer/ffmpeg for rendering.\n\nSoftware-augmented design agency (June 2018 - October 2019)\n\nDeveloped a workflow system to monitor tasks and payments, catering to freelancers involved in design projects as the business scaled to a $1M ARR.\nHired and managed a 12-person remote engineering team.\nEstablished remote hiring and onboarding processes with a 100% interview-to-acceptance rate for new hires.\n\n\n\nLong Journey Ventures\nAI Advisor (May 2023 - Present)\n\nConducting due diligence on AI startups, delving into their technology to guide investment strategies.\n\n\n\nPinterest\nML Engineer (June 2016 - June 2018)\n\nSpearheaded the “Taste Graph” initiative, redesigning the ontology of user interests and developing classifiers for pins and queries.\nEnhanced overall revenue by 2.5% and boosted ecommerce conversion rates by 20% by substituting legacy user interests with taste graph data for ad targeting.\nIncreased revenue by 2% with the implementation of a FastText text classifier to align search queries with ad interests.\nOversaw data labeling initiatives and developed offline evaluation systems for interest classification models.\nDesigned tools for data science teams to perform statistical analysis on ad interest A/B testing outcomes.\n\n\n\nURX (YC S’13, Acq. Pinterest)\nCo-Founder / CTO (Jan 2013 - May 2016)\n\nEngineered a contextual search engine to expose pertinent content across mobile applications, capitalizing on deep-link traffic.\nDesigned a distributed system to index 2 billion pages of mobile deep-link content.\nLed machine learning projects to augment index entries, focusing on classification, disambiguation, and knowledge graph integration.\nGrew and nurtured a 25-member engineering team spanning engineering, infrastructure, and machine learning.\n\n\n\nShopzilla\nSenior Software Engineer (September 2011 - January 2013)\n\nDeveloped and scaled an SEM ad revenue prediction pipeline to assess 5MM keywords daily.\nImplemented a Solr-based recommendation engine for SEO, optimizing search relevancy and performance while streamlining index build and deployment.\n\nSoftware Engineer (August 2010 - September 2011)\n\nLed the transition of company-wide analytical workflows to a MapReduce environment, evaluating and prototyping relevant technologies.\n\nData Engineering Intern (June 2007 - Feb 2009)\n\nDeveloped Ruby on Rails applications to enhance efficiency in labeling processes.",
+    "crumbs": [
+      "blog",
+      "resume"
+    ]
+  },
+  {
+    "objectID": "resume/index.html#education",
+    "href": "resume/index.html#education",
+    "title": "resume",
+    "section": "Education",
+    "text": "Education\nUniversity of California, Los Angeles - BS. Computer Science (Sept 2006 - June 2010)",
+    "crumbs": [
+      "blog",
+      "resume"
+    ]
+  },
+  {
+    "objectID": "projects/painting_deepdreams.html",
+    "href": "projects/painting_deepdreams.html",
+    "title": "Painting Deepdreams",
+    "section": "",
+    "text": "Using the Deepdream technique to explore how computer vision algorithms perceive images that my friends and I share with one another, using neural networks similar to those used by the same social networks that the original images were shared on.\n\n\n\n\n\n“Desert Dreams”, 2017\n\n\nWe know that some kind of computer vision exists in our world and affects us, often invisibly: when we get our picture taken at customs before crossing a border, when social networks suggest friends for us to tag in photos, or when iPhone X users unlock their phones.\nBut what exactly happens to these images that are taken of us by security cameras, or that we upload to our favorite social media platforms? How can an algorithm even make sense of an image? What patterns or features of an image does an algorithm use to form an understanding? What types of situations cause these algorithms to make mistakes?\nUntil fairly recently, even top researchers didn’t have the answers to some of those questions. As computer vision algorithms have rapidly improved in accuracy, they’re also grown far more complex. As these techniques are increasingly being used behind-the-scenes by the apps and algorithms that affect our daily lives, understanding what goes on inside these “black box” algorithms becomes more pressing.\nWith this motivation, researchers have made progress in visualizing the internals of neural networks. “Deep Dreams” are one of the methods researchers have found to get neural networks to describe their archetypal representations of individual concepts they’ve been trained to recognize (e.g. the most “catlike” cat).\nI’ve grown interested in playing around with techniques like this for artistic purposes. It leads to interesting conversations, explaining to someone unfamiliar with AI why a picture of a hot pocket got turned into a bear.\n\n\n\n\n\n\n\n\nOriginal picture\n\n\n\n\n\n\n\nDeepdream, using original Caffe implementaion\n\n\n\n\n\n\n\nMy painting\n\n\n\n\n\n\nFigure 1: “Startup Breakfast” painting process.\n\n\n\n\n\n\nSo what kinds of tasks are these models used for? For the sake of simplicity, we’ll consider a common use case: “supervised learning”. These days, it’s not uncommon to have millions (or billions) of images laying around, and a pretty urgent need to understand what’s going on inside them. Specifically, we often want to “classify” our data - e.g. tell whether a handwritten digit is a 0 or a 1, or tell whether an image contains a cat or a dog. Supervised learning means that we start with a labeled dataset; for each input image, we have some reliable labels (often hand-curated by humans) of what a correct response from the classifier would be.\nWhat’s the point of going to all the trouble of curating labeled data and training a model? Paying a team of human workers go through and label each picture gets expensive. Suppose it costs a few cents per image. Even labeling 100,000 images (a relatively small number these days) costs thousands of dollars and takes dozens or hundreds of person-hours. With model trained on the right data, it’s possible to make the same assessments of images on a much larger scale - making billions of decisions in minutes or hours is well within the realm of possibility. Given the impact of these methods and the well-established tooling around them, this type of machine learning application is far more widely adopted in the industry than some of the things people tend to think of when they think of AI/ML, such as chat bots or driverless cars.\n\n\n\nIn a relatively short time span, neural networks have far surpassed previous techniques in computer vision. “Classic” computer vision techniques required programmers to hand-specify rules or patterns. For instance, “noses tend to be triangular shapes of similar-colored pixels”, or “eyes tend to be located above noses”. Neural network models are thought to outperform these methods in part because they allow programmers to set up an “empty slate” of neurons, layered into a hierarchy. The blank slate gives the model freedom to identify and learn only the patterns that are most useful for the task it’s being trained for, and the layering enables the model to learn not just pixel-level patterns, but also more abstract concepts and features.\nThe layered nature of neural networks means that given enough data, a sufficiently deep model’s hidden layer inputs could end up capturing more abstract and generalizable properties.\nHere’s another way to think about it. Imagine that it’s your job to classify these tiny images as 1’s or 0’s. Now suppose you’re allowed to ask several questions, without looking at the original image, and then base your classifications solely on the answers to those questions. If your questions aren’t working, you’re allowed to ask new ones. If you’re being judged on your accuracy and did this repeatedly, the quality of your questions will ultimately determine how accurate your predictions can be, rather than how well you’re able to interpret the output of mediocre questions.\nFor instance, questions like these are likely to help us understand if the image is a “1”:\n\nAre the pixels in a straight line?\nIs the total height of the filled-in pixels higher than the total width?\n\nWhile questions like these could be answered extremely accurately but fail to provide any help in our task of classification:\n\nAre more than half the pixels filled in?\nIs the top left pixel filled in?\n\nA simplified way of understanding the hidden layers is that they allow the network to store answers to these questions, where each question is a function of the input pixels. Then the output layer learns relationships between these questions and the classes it is trying to tell apart. The nuance is that during training, backpropagation forces the questions to gradually evolve into questions that help the model make more accurate decisions.\nTraining a model involves exploring this latent space of questions through trial and error, and preserving the questions that contribute to the most accurate answers. In a way, it can be thought of as a way of compressing the original information into a more compact form, preserving only the information most critical to making a correct prediction. In the example above, if we trained a model with 9 input pixels and 3 neurons in our hidden layer and it was only 5% less accurate than one with 9 neurons in the hidden layer, we’ve still managed to squeeze 95% of the relevant “information” into 1/3 the “space”.\n\n\n\nOn more complex problems, such as telling images of animals apart, a class of neural nets called convolutional neural nets (CNN’s) has been proven very successful at computer vision tasks previously considered extremely difficult. Without specific instructions on what to look for, its hidden layers will learn to identify features such as snouts, ears, eyes, fuzziness. This allows such models to generalize far beyond any patterns at the individual pixel.\nThe problem is, despite how well these algorithms work on supervised learning problems, researchers still have a hard time understanding why a network makes the choices it makes, or what kinds of features it’s actually learning. As these algorithms are increasingly integrated into systems that affect the lives of real people, we’re going to need to make sure that the models are learning features that we’re comfortable with it using. Bias in the Training Data Compiling labeled data is an inherently human process. It’s fraught with cultural biases based on our own understanding of the world, and it’s expensive enough to gather and label that there’s no way for the training data to ever fully encompass the range of inputs a model can expect to see once it’s out in the wild.\nFor instance, if a training dataset includes many pictures of wolves in the snow, it could incorrectly learn that the presence of snow indicates that an image contains a wolf. A real example from “Why should I trust you?”: Explaining the Predictions of Any Classifier, Ruberio et al. 2016:\n\n\n\n\n\n\n2-wolf\n\n\n\n\nFigure 2\n\n\n\nThis example is innocuous, but it’s proof that much worse could happen if machine learning practitioners aren’t careful. If algorithms determining our credit scores or criminal sentences began to take race into account, for example, the cost to society would be severe. Feature Visualization It’s nearly impossible to determine the level of bias in a dataset, given that we don’t know what kind of biases we’re looking for or which ones are harmful. As a result, researchers tend to examine trained models.\nWe can try to understand them as a black box, by showing them a range of examples and seeing which kinds of inputs cause incorrect answers. While undoubtedly helpful, black box approaches to understanding neural networks still don’t tell us exactly what the model is “seeing”.\nTo take a white-box approach, we can look inside the neural net, and inspect which neurons are activated for different inputs. However, current computer vision models often have millions of neurons, making it infeasible to try to understand them individually.\nAnother approach is to feed random noise pixels into the neural network and repeatedly modify the image’s pixels to increase the activation of a specific set of neurons, as a way of understanding what those particular neurons “mean” to the model.\nFor instance, if we pick the cat neuron and modify the image to maximize this, we trace from the output neuron for “cat” back through the strongest connections in the hierarchy of neurons (probably including ones meaning things like “fuzzy” and “ears”) and modify the noise in such a way that when fed back into the network, it will activate the target neuron (cat) more strongly.\nIn effect, this forces the network to morph our image into something resembling the “prototypical” cat features it has learned from seeing millions and millions of cats in the training data. Researchers began feeding in real images instead of random noise, and named this technique “deep dream”.\nThe resulting images often look like hallucinations. Experimenting with neurons at varying levels in the hierarchy of layers yields substantially different results. The lower levels, closer to the input pixels, tend to be more textural and sometimes give an impressionist feel to the resulting images.\n\n\n\n\n\n\n\n\nOriginal picture\n\n\n\n\n\n\n\nDeepdream, using Inception mixed3a layer\n\n\n\n\n\n\n\nMy painting\n\n\n\n\n\n\nFigure 3: “Naptime” painting process.\n\n\n\nAt the intermediate levels, the patterns get more complex and approach more recognizable forms:\n\n\n\n\n\n\n\n\nOriginal picture\n\n\n\n\n\n\n\nDeepdream\n\n\n\n\n\n\n\nPainting\n\n\n\n\n\n\nFigure 4: “Desert Dreams” painting process.\n\n\n\nHigher layers, closer to the output, tends to turn the most prominent features of an image into whatever object it most closely resembles.\n\n\n\nReference image for “Startup Breakfast”, 2016\n\n\nUsing deepdreams obviously hasn’t solved the problem of explainability in machine learning, but the technique is noteworthy because it simultaneously gives us a window into the internals of a neural network, while producing a visual artifact that is accessible to any viewer.\nOften the result is spooky or has some uncanny quality to it. I’ve found this gets people interested in how a computer learns to do this, and what it means to them personally.",
+    "crumbs": [
+      "blog",
+      "projects",
+      "Painting Deepdreams"
+    ]
+  },
+  {
+    "objectID": "projects/painting_deepdreams.html#what-are-vision-algorithms-used-for",
+    "href": "projects/painting_deepdreams.html#what-are-vision-algorithms-used-for",
+    "title": "Painting Deepdreams",
+    "section": "",
+    "text": "So what kinds of tasks are these models used for? For the sake of simplicity, we’ll consider a common use case: “supervised learning”. These days, it’s not uncommon to have millions (or billions) of images laying around, and a pretty urgent need to understand what’s going on inside them. Specifically, we often want to “classify” our data - e.g. tell whether a handwritten digit is a 0 or a 1, or tell whether an image contains a cat or a dog. Supervised learning means that we start with a labeled dataset; for each input image, we have some reliable labels (often hand-curated by humans) of what a correct response from the classifier would be.\nWhat’s the point of going to all the trouble of curating labeled data and training a model? Paying a team of human workers go through and label each picture gets expensive. Suppose it costs a few cents per image. Even labeling 100,000 images (a relatively small number these days) costs thousands of dollars and takes dozens or hundreds of person-hours. With model trained on the right data, it’s possible to make the same assessments of images on a much larger scale - making billions of decisions in minutes or hours is well within the realm of possibility. Given the impact of these methods and the well-established tooling around them, this type of machine learning application is far more widely adopted in the industry than some of the things people tend to think of when they think of AI/ML, such as chat bots or driverless cars.",
+    "crumbs": [
+      "blog",
+      "projects",
+      "Painting Deepdreams"
+    ]
+  },
+  {
+    "objectID": "projects/painting_deepdreams.html#why-neural-networks",
+    "href": "projects/painting_deepdreams.html#why-neural-networks",
+    "title": "Painting Deepdreams",
+    "section": "",
+    "text": "In a relatively short time span, neural networks have far surpassed previous techniques in computer vision. “Classic” computer vision techniques required programmers to hand-specify rules or patterns. For instance, “noses tend to be triangular shapes of similar-colored pixels”, or “eyes tend to be located above noses”. Neural network models are thought to outperform these methods in part because they allow programmers to set up an “empty slate” of neurons, layered into a hierarchy. The blank slate gives the model freedom to identify and learn only the patterns that are most useful for the task it’s being trained for, and the layering enables the model to learn not just pixel-level patterns, but also more abstract concepts and features.\nThe layered nature of neural networks means that given enough data, a sufficiently deep model’s hidden layer inputs could end up capturing more abstract and generalizable properties.\nHere’s another way to think about it. Imagine that it’s your job to classify these tiny images as 1’s or 0’s. Now suppose you’re allowed to ask several questions, without looking at the original image, and then base your classifications solely on the answers to those questions. If your questions aren’t working, you’re allowed to ask new ones. If you’re being judged on your accuracy and did this repeatedly, the quality of your questions will ultimately determine how accurate your predictions can be, rather than how well you’re able to interpret the output of mediocre questions.\nFor instance, questions like these are likely to help us understand if the image is a “1”:\n\nAre the pixels in a straight line?\nIs the total height of the filled-in pixels higher than the total width?\n\nWhile questions like these could be answered extremely accurately but fail to provide any help in our task of classification:\n\nAre more than half the pixels filled in?\nIs the top left pixel filled in?\n\nA simplified way of understanding the hidden layers is that they allow the network to store answers to these questions, where each question is a function of the input pixels. Then the output layer learns relationships between these questions and the classes it is trying to tell apart. The nuance is that during training, backpropagation forces the questions to gradually evolve into questions that help the model make more accurate decisions.\nTraining a model involves exploring this latent space of questions through trial and error, and preserving the questions that contribute to the most accurate answers. In a way, it can be thought of as a way of compressing the original information into a more compact form, preserving only the information most critical to making a correct prediction. In the example above, if we trained a model with 9 input pixels and 3 neurons in our hidden layer and it was only 5% less accurate than one with 9 neurons in the hidden layer, we’ve still managed to squeeze 95% of the relevant “information” into 1/3 the “space”.",
+    "crumbs": [
+      "blog",
+      "projects",
+      "Painting Deepdreams"
+    ]
+  },
+  {
+    "objectID": "projects/painting_deepdreams.html#convolutional-neural-nets",
+    "href": "projects/painting_deepdreams.html#convolutional-neural-nets",
+    "title": "Painting Deepdreams",
+    "section": "",
+    "text": "On more complex problems, such as telling images of animals apart, a class of neural nets called convolutional neural nets (CNN’s) has been proven very successful at computer vision tasks previously considered extremely difficult. Without specific instructions on what to look for, its hidden layers will learn to identify features such as snouts, ears, eyes, fuzziness. This allows such models to generalize far beyond any patterns at the individual pixel.\nThe problem is, despite how well these algorithms work on supervised learning problems, researchers still have a hard time understanding why a network makes the choices it makes, or what kinds of features it’s actually learning. As these algorithms are increasingly integrated into systems that affect the lives of real people, we’re going to need to make sure that the models are learning features that we’re comfortable with it using. Bias in the Training Data Compiling labeled data is an inherently human process. It’s fraught with cultural biases based on our own understanding of the world, and it’s expensive enough to gather and label that there’s no way for the training data to ever fully encompass the range of inputs a model can expect to see once it’s out in the wild.\nFor instance, if a training dataset includes many pictures of wolves in the snow, it could incorrectly learn that the presence of snow indicates that an image contains a wolf. A real example from “Why should I trust you?”: Explaining the Predictions of Any Classifier, Ruberio et al. 2016:\n\n\n\n\n\n\n2-wolf\n\n\n\n\nFigure 2\n\n\n\nThis example is innocuous, but it’s proof that much worse could happen if machine learning practitioners aren’t careful. If algorithms determining our credit scores or criminal sentences began to take race into account, for example, the cost to society would be severe. Feature Visualization It’s nearly impossible to determine the level of bias in a dataset, given that we don’t know what kind of biases we’re looking for or which ones are harmful. As a result, researchers tend to examine trained models.\nWe can try to understand them as a black box, by showing them a range of examples and seeing which kinds of inputs cause incorrect answers. While undoubtedly helpful, black box approaches to understanding neural networks still don’t tell us exactly what the model is “seeing”.\nTo take a white-box approach, we can look inside the neural net, and inspect which neurons are activated for different inputs. However, current computer vision models often have millions of neurons, making it infeasible to try to understand them individually.\nAnother approach is to feed random noise pixels into the neural network and repeatedly modify the image’s pixels to increase the activation of a specific set of neurons, as a way of understanding what those particular neurons “mean” to the model.\nFor instance, if we pick the cat neuron and modify the image to maximize this, we trace from the output neuron for “cat” back through the strongest connections in the hierarchy of neurons (probably including ones meaning things like “fuzzy” and “ears”) and modify the noise in such a way that when fed back into the network, it will activate the target neuron (cat) more strongly.\nIn effect, this forces the network to morph our image into something resembling the “prototypical” cat features it has learned from seeing millions and millions of cats in the training data. Researchers began feeding in real images instead of random noise, and named this technique “deep dream”.\nThe resulting images often look like hallucinations. Experimenting with neurons at varying levels in the hierarchy of layers yields substantially different results. The lower levels, closer to the input pixels, tend to be more textural and sometimes give an impressionist feel to the resulting images.\n\n\n\n\n\n\n\n\nOriginal picture\n\n\n\n\n\n\n\nDeepdream, using Inception mixed3a layer\n\n\n\n\n\n\n\nMy painting\n\n\n\n\n\n\nFigure 3: “Naptime” painting process.\n\n\n\nAt the intermediate levels, the patterns get more complex and approach more recognizable forms:\n\n\n\n\n\n\n\n\nOriginal picture\n\n\n\n\n\n\n\nDeepdream\n\n\n\n\n\n\n\nPainting\n\n\n\n\n\n\nFigure 4: “Desert Dreams” painting process.\n\n\n\nHigher layers, closer to the output, tends to turn the most prominent features of an image into whatever object it most closely resembles.\n\n\n\nReference image for “Startup Breakfast”, 2016\n\n\nUsing deepdreams obviously hasn’t solved the problem of explainability in machine learning, but the technique is noteworthy because it simultaneously gives us a window into the internals of a neural network, while producing a visual artifact that is accessible to any viewer.\nOften the result is spooky or has some uncanny quality to it. I’ve found this gets people interested in how a computer learns to do this, and what it means to them personally.",
+    "crumbs": [
+      "blog",
+      "projects",
+      "Painting Deepdreams"
+    ]
+  }
+]

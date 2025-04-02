@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.42">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Andrew Look">
+<meta name="dcterms.date" content="2023-12-03">
+<meta name="description" content="Experiments training SketchRNN on my dataset of single-line drawings.">
+
+<title>SLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization – andrewlook</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-16fb397360ac6373c2344189e05b0de0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="SLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization – andrewlook">
+<meta property="og:description" content="Experiments training SketchRNN on my dataset of single-line drawings.">
+<meta property="og:image" content="https://i.ibb.co/BPdSrTQ/phase1-wandb-with-without-minn10.png">
+<meta property="og:site_name" content="andrewlook">
+<meta name="twitter:title" content="SLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization – andrewlook">
+<meta name="twitter:description" content="Experiments training SketchRNN on my dataset of single-line drawings.">
+<meta name="twitter:image" content="https://i.ibb.co/BPdSrTQ/phase1-wandb-with-without-minn10.png">
+<meta name="twitter:creator" content="@andrewlook">
+<meta name="twitter:site" content="@andrewlook">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="https://i.ibb.co/GxrvZ2T/CROP-oneline-a-stoke1-5.png" alt="" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">andrew look</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog/index.html"> 
+<span class="menu-text">blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../resume/index.html"> 
+<span class="menu-text">resume</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about/index.html"> 
+<span class="menu-text">about</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/andrewlook"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text">github</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://instagram.com/andrewlookart"> <i class="bi bi-instagram" role="img">
+</i> 
+<span class="menu-text">instagram</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://twitter.com/andrewlook"> <i class="bi bi-twitter" role="img">
+</i> 
+<span class="menu-text">twitter</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#slml-part-4---sketchrnn-experiments-minimum-stroke-length-and-rnn-regularization" id="toc-slml-part-4---sketchrnn-experiments-minimum-stroke-length-and-rnn-regularization" class="nav-link active" data-scroll-target="#slml-part-4---sketchrnn-experiments-minimum-stroke-length-and-rnn-regularization">SLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization</a>
+  <ul class="collapse">
+  <li><a href="#filtering-out-short-strokes" id="toc-filtering-out-short-strokes" class="nav-link" data-scroll-target="#filtering-out-short-strokes">Filtering out Short Strokes</a></li>
+  <li><a href="#layer-normalization" id="toc-layer-normalization" class="nav-link" data-scroll-target="#layer-normalization">Layer Normalization</a></li>
+  <li><a href="#recurrent-dropout" id="toc-recurrent-dropout" class="nav-link" data-scroll-target="#recurrent-dropout">Recurrent Dropout</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/andrewlook/notebooks/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../blog/index.html">blog</a></li><li class="breadcrumb-item"><a href="../../blog/posts/2018_ai_art_tour.html">posts</a></li><li class="breadcrumb-item"><a href="../../blog/posts/slml_part4.html">SLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">SLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">singleline</div>
+    <div class="quarto-category">machinelearning</div>
+    <div class="quarto-category">slml</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Experiments training SketchRNN on my dataset of single-line drawings.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Andrew Look </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">December 3, 2023</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="slml-part-4---sketchrnn-experiments-minimum-stroke-length-and-rnn-regularization" class="level1 page-columns page-full">
+<h1>SLML Part 4 - SketchRNN Experiments: Minimum Stroke Length and RNN Regularization</h1>
+<blockquote class="blockquote">
+<p><em>This post is part 4 of <a href="../../projects/slml.html">“SLML” - Single-Line Machine Learning</a>.</em></p>
+<p><em>To read the previous post, check out <a href="../../blog/posts/slml_part3.html">part 3</a>. If you want to keep reading, check out <a href="../../blog/posts/slml_part5.html">part 5</a>.</em></p>
+</blockquote>
+<p>Now that I had a repeatable process to convert JPEGs into stroke-3, I decided to start training models with my first dataset (which I called <code>look_i16</code>).</p>
+<section id="filtering-out-short-strokes" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="filtering-out-short-strokes">Filtering out Short Strokes</h2>
+<p>The training data in my first dataset, <code>look_i16</code>, had lots of tiny strokes mixed in with longer ones, and no inherent order to them.</p>
+<div id="fig-i16-samples" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-i16-samples-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
+<p><img src="https://i.ibb.co/CB9BQTY/phase1-sample-0167-epoch-01700-orig.png" class="img-fluid figure-img"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
+<p><img src="https://i.ibb.co/0JBLg6Q/phase1-sample-0177-epoch-01700-orig.png" class="img-fluid figure-img"></p>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-i16-samples-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Samples from dataset <code>look_i16</code>.
+</figcaption>
+</figure>
+</div>
+<p>Unsurprisingly, my first models produced odd smatterings composed of many small strokes.</p>
+<div id="fig-i16-results" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-i16-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/Nnrn9jL/phase1-sample-0111-epoch-00330-decoded.png" class="img-fluid figure-img"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/fSnW50p/phase1-sample-0115-epoch-00310-decoded.png" class="img-fluid figure-img"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/LNdGhBb/phase1-sample-0177-epoch-06000-decoded.png" class="img-fluid figure-img"></p>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-i16-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Generated outputs from SketchRNN trained on dataset <code>look_i16</code>.
+</figcaption>
+</figure>
+</div>
+<div class="page-columns page-full"><p>As a quick experiment, I tried just filtering out any really short strokes out of the dataset - I decided to iterate through each of the 1300 drawings in the training set, and filter out any strokes with less than 10 points - I called this dataset <code>look_i16__minn10</code>. </p><div class="no-row-height column-margin column-container"><span class="margin-aside">I recognized that I’d need a more systematic solution to improve my training data, but I wanted to try a quick improvement before going deeper. See <a href="../../blog/posts/slml_part5.html">part 5</a> for how I updated my preprocessing to reduce the number of strokes in my training data.</span></div></div>
+<div id="fig-compare-i16" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-compare-i16-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://i.ibb.co/5RbWt2p/dataset-comparison-i16.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-compare-i16-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Distribution of num_strokes and num_points in datasets <code>look_i16</code> and <code>look_i16__minn10</code>. Both datasets have 1300 entries in the training set.
+</figcaption>
+</figure>
+</div>
+<p>Note that the average number of strokes in <code>look_i16</code> is around 40, while it’s closer to 10 in <code>look_i16__minn10</code>. It seems that there were many very short strokes in the training data. I also <a href="http://localhost:4954/blog/posts/slml_part3.html#line-simplification">simplified the drawings</a> more aggressively for <code>look_i16__minn10</code> by increasing RDP’s <code>epsilon</code> parameter to <code>1.0</code> when preprocessing the data, which further reduced the number of points per drawing.</p>
+<div id="fig-phase1-training" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-phase1-training-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca" class="page-columns page-full">
+<img src="https://i.ibb.co/BPdSrTQ/phase1-wandb-with-without-minn10.png" class="img-fluid figure-img column-page">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-phase1-training-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Training and validation <a href="https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/look_i16-vs-look_i16_minn10_epsilon1--Vmlldzo2OTQ1NDgz">loss metrics</a> for <code>look_i16</code> (pink) and <code>look_i16__minn10</code> (yellow).
+</figcaption>
+</figure>
+</div>
+<p>When training models, I’m measuring the reconstruction loss. I feed in a drawing, the model encodes it into an embedding vector, and then decodes the embedding vector back into a drawing. I can compute the loss at each step in the reconstructed drawing compare to the original. Periodically, after processing several batches of training data, I compute the reconstruction metrics on a validation set. This is a portion of the dataset I’m not using to actually update the weights of the model during training.</p>
+<p>By comparing the reconstruction loss on the training set vs.&nbsp;the validation set over time, I can identify when the model starts “overfitting”. Intuitively, if the model is learning to perform better on the training data while performing worse on the validation data, that means it is effectively memorizing the training set rather than learning to generalize its learnings to drawings it wasn’t trained on.</p>
+<p>The model trained on <code>look_i16__minn10</code> performed slightly better than the model trained on <code>look_i16</code> in terms of the error when reconstructing a drawing. It’s visible in <a href="#fig-phase1-training" class="quarto-xref">Figure&nbsp;4</a> that the loss values were lower, and the validation loss didn’t start to increase until slightly later.</p>
+<div id="fig-i16-results" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-i16-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/hXBK8Zb/phase2-sample-0066-epoch-11700-decoded.png" class="img-fluid figure-img"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/jzgHHPS/phase2-sample-0145-epoch-11500-decoded.png" class="img-fluid figure-img"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/0mwbJBw/phase2-sample-0291-epoch-13200-decoded.png" class="img-fluid figure-img"></p>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-i16-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Generated outputs from SketchRNN trained on dataset <code>look_i16__minn10</code>.
+</figcaption>
+</figure>
+</div>
+<p>The results produced after training on <code>look_i16__minn10</code> were much less chaotic. While they didn’t resemble coherent drawings, this was the first time I spotted some elements of my drawing style (head shape, eye style, lips, chin).</p>
+</section>
+<section id="layer-normalization" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="layer-normalization">Layer Normalization</h2>
+<!-- TODO: explain layer norm -->
+<p>The Magenta team had recommended using <a href="https://arxiv.org/abs/1607.06450">Layer Normalization</a> and <a href="https://arxiv.org/abs/1603.05118">Recurrent Dropout with Memory Loss</a>.</p>
+<p>I noticed that when I let the trainer run overnight, I’d get wild spikes in the training loss. I decided to start with Layer Normalization.</p>
+<div id="fig-training-layernorm" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-training-layernorm-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca" class="page-columns page-full">
+<img src="https://i.ibb.co/9vk4W7d/phase2-wandb-V2-before-after-layernorm.png" class="img-fluid figure-img column-body-outset">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-training-layernorm-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: Training and validation <a href="https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/look_i16_minn10-before-after-layernorm--Vmlldzo2OTQ1MzIw">loss metrics</a> from training on <code>look_i16__minn10</code> without layernorm (yellow) and with layernorm (burgundy: learnable=True, gray: learnable=False). The yellow line without layernorm enabled is the same as in <a href="#fig-phase1-training" class="quarto-xref">Figure&nbsp;4</a>, but this graph shows more than 150,000 train steps while the previous graph showed only 7,000 train steps.
+</figcaption>
+</figure>
+</div>
+<p>Adding layer normalization showed a dramatic difference, visible in <a href="#fig-training-layernorm" class="quarto-xref">Figure&nbsp;6</a>. The yellow line (without layer norm) has a massive increase in validation loss, and many big spikes, while the burgundy and gray lines (with layer norm integrated) have much lower validation loss and don’t have any comparable spikes.</p>
+<div id="fig-generated-layernorm" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-generated-layernorm-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/Y3bZmzg/phase2-runid-zjan5lxh-epoch-00200-sample-0124-decoded.png" class="img-fluid figure-img"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/JHc4C9R/phase2-runid-zjan5lxh-epoch-00200-sample-0230-decoded.png" class="img-fluid figure-img"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/fXX5tDX/phase2-runid-zjan5lxh-epoch-00200-sample-0122-decoded.png" class="img-fluid figure-img"></p>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-generated-layernorm-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7: Generated samples from model trained with Layer Normalization.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="recurrent-dropout" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="recurrent-dropout">Recurrent Dropout</h2>
+<!-- TODO: explain recurrent dropout -->
+<p>The results from the layernorm models in <a href="#fig-generated-layernorm" class="quarto-xref">Figure&nbsp;7</a> had some hints of my drawing style, while still struggling to form coherent drawings.</p>
+<p>Next, I kept layernorm enabled and enabled recurrent dropout. I ran one separate runs with and without stroke augmentation enabled.</p>
+<div id="fig-recurrentdropout" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-recurrentdropout-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca" class="page-columns page-full">
+<img src="https://i.ibb.co/xJD1VMg/phase2-wandb-V2-recurrent-dropout.png" class="img-fluid figure-img column-body-outset">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-recurrentdropout-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;8: Training and validation <a href="https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/look_i16_minn10-layernorm-with-without-recurrent-dropout--Vmlldzo2OTQ1Mzk5">loss metrics</a> for layernorm-only models (burgundy and gray) alongside models trained with recurrent dropout (green) and with stroke augmentation (pink).
+</figcaption>
+</figure>
+</div>
+<p>Compared to the layernorm-only models (burgundy and gray), the one recurrent dropout model (green) achieved a lower validation loss relatively quickly, before starting to overfit.</p>
+<p>The model trained with recurrent dropout and stroke augmentation (pink) clearly performed worse than with recurrent dropout (in terms of higher validation loss).</p>
+<div id="fig-generated-dropout" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-generated-dropout-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/f1v0NNP/phase2-runid-cal3jv56-epoch-01100-sample-0199-decoded.png" class="img-fluid figure-img"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/ZYB0NrB/runid-cal3jv56-epoch-01100-sample-0056-decoded.png" class="img-fluid figure-img"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/HzcbHny/runid-cal3jv56-epoch-01100-sample-0243-decoded.png" class="img-fluid figure-img"></p>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-generated-dropout-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9: Generated samples from model trained with Recurrent Dropout as well as Layer Normalization.
+</figcaption>
+</figure>
+</div>
+<p>The resulting generations from model with layernorm and recurrent dropout in <a href="#fig-generated-dropout" class="quarto-xref">Figure&nbsp;9</a> weren’t obviously better or worse than those from the layernorm-only model in <a href="#fig-generated-layernorm" class="quarto-xref">Figure&nbsp;7</a>.</p>
+<!--
+## TODO: Takeaways
+Removing short strokes from the training data made a big difference. Based on the gains from a simple filtering, I'm optimistic that better preprocessing will yield big improvements 
+-->
+<blockquote class="blockquote">
+<p><em>If you want to keep reading, check out <a href="../../blog/posts/slml_part5.html">part 5</a> of my <a href="../../projects/slml.html">SLML</a> series.</em></p>
+</blockquote>
+<!-- 
+==== Phase 1 ====
+- msiyyh0i: [pytorchsketchrnn-look\_i16-001 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/msiyyh0i?workspace=user-andrewlook)
+    - look_i16
+- xtnlxroi: [pytorchsketchrnn-look\_i16-002\_minn10 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/xtnlxroi?workspace=user-andrewlook)
+    - look_i16__minn10_epsilon1
+-->
+<!-- 
+==== Phase 2 ====
+Nov 30, Dec 1 (pre runid in filename)
+- [ ] samples 0291, 0145, 0066, 0016
+
+Dec 4:
+- [ ] 5eibyllb: [atomic-puddle-15 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/5eibyllb?workspace=user-andrewlook)
+    - Dataset: look_i16__minn10_epsilon1
+    - Layernorm, recurrent dropout
+- [ ] t6bcos6b: [ruby-resonance-16--fix-layernorm-learnableFalse | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/t6bcos6b?workspace=user-andrewlook)
+
+Dec 5:
+- [ ] gr5r7sft: [mild-galaxy-19 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/gr5r7sft?workspace=user-andrewlook)
+- [ ] zjan5lxh: [vague-field-20--rnnlib-with-layernorm | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/zjan5lxh?workspace=user-andrewlook)
+
+Dec 6:
+- [ ] cal3jv56: [sparkling-planet-24--augmentation-and-LR-decay | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/cal3jv56?workspace=user-andrewlook)
+- [ ] kb2eil37: [prime-star-23--rnnlib-recurrent-dropout | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/kb2eil37?workspace=user-andrewlook)
+
+-->
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/andrewlook\.com\/notebooks");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<script src="https://utteranc.es/client.js" repo="andrewlook/notebooks" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/andrewlook/notebooks/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

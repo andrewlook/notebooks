@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.42">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Andrew Look">
+<meta name="dcterms.date" content="2023-12-14">
+<meta name="description" content="Experiments training SketchRNN on my dataset of single-line drawings.">
+
+<title>SLML Part 5 - SketchRNN Experiments: Path Preprocessing – andrewlook</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-16fb397360ac6373c2344189e05b0de0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/videojs/video.min.js"></script>
+<link href="../../site_libs/quarto-contrib/videojs/video-js.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="SLML Part 5 - SketchRNN Experiments: Path Preprocessing – andrewlook">
+<meta property="og:description" content="Experiments training SketchRNN on my dataset of single-line drawings.">
+<meta property="og:image" content="https://i.ibb.co/BPdSrTQ/phase1-wandb-with-without-minn10.png">
+<meta property="og:site_name" content="andrewlook">
+<meta name="twitter:title" content="SLML Part 5 - SketchRNN Experiments: Path Preprocessing – andrewlook">
+<meta name="twitter:description" content="Experiments training SketchRNN on my dataset of single-line drawings.">
+<meta name="twitter:image" content="https://i.ibb.co/BPdSrTQ/phase1-wandb-with-without-minn10.png">
+<meta name="twitter:creator" content="@andrewlook">
+<meta name="twitter:site" content="@andrewlook">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="https://i.ibb.co/GxrvZ2T/CROP-oneline-a-stoke1-5.png" alt="" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">andrew look</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog/index.html"> 
+<span class="menu-text">blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../resume/index.html"> 
+<span class="menu-text">resume</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about/index.html"> 
+<span class="menu-text">about</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/andrewlook"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text">github</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://instagram.com/andrewlookart"> <i class="bi bi-instagram" role="img">
+</i> 
+<span class="menu-text">instagram</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://twitter.com/andrewlook"> <i class="bi bi-twitter" role="img">
+</i> 
+<span class="menu-text">twitter</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#slml-part-5---sketchrnn-experiments-path-preprocessing" id="toc-slml-part-5---sketchrnn-experiments-path-preprocessing" class="nav-link active" data-scroll-target="#slml-part-5---sketchrnn-experiments-path-preprocessing">SLML Part 5 - SketchRNN Experiments: Path Preprocessing</a>
+  <ul class="collapse">
+  <li><a href="#path-joining" id="toc-path-joining" class="nav-link" data-scroll-target="#path-joining">Path Joining</a></li>
+  <li><a href="#path-splicing" id="toc-path-splicing" class="nav-link" data-scroll-target="#path-splicing">Path Splicing</a></li>
+  <li><a href="#training-after-path-splicing" id="toc-training-after-path-splicing" class="nav-link" data-scroll-target="#training-after-path-splicing">Training after Path-Splicing</a></li>
+  <li><a href="#bounding-boxes" id="toc-bounding-boxes" class="nav-link" data-scroll-target="#bounding-boxes">Bounding Boxes</a></li>
+  <li><a href="#dataset-20231214" id="toc-dataset-20231214" class="nav-link" data-scroll-target="#dataset-20231214">Dataset <code>20231214</code></a></li>
+  <li><a href="#filtering-by-number-of-points" id="toc-filtering-by-number-of-points" class="nav-link" data-scroll-target="#filtering-by-number-of-points">Filtering by Number of Points</a></li>
+  <li><a href="#training-after-bounding-boxes" id="toc-training-after-bounding-boxes" class="nav-link" data-scroll-target="#training-after-bounding-boxes">Training after Bounding Boxes</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/andrewlook/notebooks/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../blog/index.html">blog</a></li><li class="breadcrumb-item"><a href="../../blog/posts/2018_ai_art_tour.html">posts</a></li><li class="breadcrumb-item"><a href="../../blog/posts/slml_part5.html">SLML Part 5 - SketchRNN Experiments: Path Preprocessing</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">SLML Part 5 - SketchRNN Experiments: Path Preprocessing</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">singleline</div>
+    <div class="quarto-category">machinelearning</div>
+    <div class="quarto-category">slml</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Experiments training SketchRNN on my dataset of single-line drawings.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Andrew Look </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">December 14, 2023</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="slml-part-5---sketchrnn-experiments-path-preprocessing" class="level1 page-columns page-full">
+<h1>SLML Part 5 - SketchRNN Experiments: Path Preprocessing</h1>
+<blockquote class="blockquote">
+<p><em>This post is part 5 of <a href="../../projects/slml.html">“SLML” - Single-Line Machine Learning</a>.</em></p>
+<p><em>To read the previous post, check out <a href="../../blog/posts/slml_part4.html">part 4</a>. If you want to keep reading, check out <a href="../../blog/posts/slml_part6.html">part 6</a>.</em></p>
+</blockquote>
+<section id="path-joining" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="path-joining">Path Joining</h2>
+<p>Despite some improvement within the strokes, my latest models were still producing many short strokes. So I figured that improving my dataset would give better results than fiddling with hyper-parameters or my model.</p>
+<p>Looking at my training data, I returned to an issue from the stroke3-conversion process: autotrace hadn’t realized that the different segments of my lines were actually connected. It was producing a series of small, centerline-traced segments, as seen in <a href="#fig-original" class="quarto-xref">Figure&nbsp;1 (a)</a>.</p>
+<p>I’d need some preprocessing to connect the smaller strokes into larger strokes, so that my SketchRNN model would learn to generate long contiguous single-line drawings.</p>
+<div id="fig-joining" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-joining-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-joining" style="flex-basis: 33.3%;justify-content: flex-start;">
+<div id="fig-original" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-original-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://i.ibb.co/s21gLTQ/stroke3-01-sepstrokes.png" class="img-fluid figure-img" data-ref-parent="fig-joining">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-original-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) Original: 22 strokes
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-joining" style="flex-basis: 33.3%;justify-content: flex-start;">
+<div id="fig-joined" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-joined-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://i.ibb.co/602dKpr/stroke3-01-joinedstrokes.png" class="img-fluid figure-img" data-ref-parent="fig-joining">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-joined-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b) After path-joining: 4 strokes
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-joining" style="flex-basis: 33.3%;justify-content: flex-start;">
+<div id="fig-spliced" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-spliced-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://i.ibb.co/rtnZMq1/stroke3-01-splicedstrokes1.png" class="img-fluid figure-img" data-ref-parent="fig-joining">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-spliced-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(c) After path-splicing: 2 strokes
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-joining-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Comparison of number of strokes before and after preprocessing, with one color per stroke.
+</figcaption>
+</figure>
+</div>
+<p>My first preprocesing improvement was simple algorithm that I called <a href="https://singleline-dataset.andrewlook.com/strokes.html#joining-paths">“path joining”</a>.</p>
+<div class="page-columns page-full"><p>Each of my drawings is represented as a collection of line segments, each with a start and end point. I try to find the shortest connection I can draw to connect two segments. Starting with the longest stroke, I compare it each of the other strokes and calculate the minimum distance between the start and end points of the line segments. After going through all the strokes in a drawing, I connect the two strokes with the shortest gap between their endpoints. I repeat this process, joining the strokes until no strokes remain with endpoints more than 30 pixels apart. </p><div class="no-row-height column-margin column-container"><span class="margin-aside">I set an upper bound on the path-joining distance of 30 pixels (in a 200x200 pixel image) was the maximum distance I observed made sense before I started to erroneously join strokes that were too far apart.</span></div></div>
+<p>Though path-joining improved the average stroke length as seen in <a href="#fig-joined" class="quarto-xref">Figure&nbsp;1 (b)</a>, I noticed some drawings had large contiguous strokes that weren’t getting connected. I realized that while the strokes were close together and in some cases touching, their start and end points were far apart from each other.</p>
+</section>
+<section id="path-splicing" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="path-splicing">Path Splicing</h2>
+<p>My next preprocessing improvement, <a href="https://singleline-dataset.andrewlook.com/strokes.html#splicing-strokes">“path splicing”</a>, would run after “path joining” and attempt to address this problem.</p>
+<p>After path joining leaves a smaller number of strokes, I want to find the shortest connections to combine multiple longer strokes. Starting with the longest path, I look for a smaller stroke that I could “splice” into the middle of the larger stroke. For each candidate stroke, I’d step through each point on the larger stroke and compare its distance from the start and end points of the shorter paths. When I found the smallest gap, I would “splice” the shorter line into the longer path at the point with the smallest distance.</p>
+<p>While not every drawing was turned into a single stroke, this was a big improvement, as seen in <a href="#fig-spliced" class="quarto-xref">Figure&nbsp;1 (c)</a>.</p>
+<div id="fig-compare-i16" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-compare-i16-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca" class="page-columns page-full">
+<img src="https://i.ibb.co/d6B6JQT/dataset-comparison-minn10-vs-splicedata.png" class="img-fluid figure-img column-body">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-compare-i16-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: <a href="../../blog/posts/slml_part4.html#filtering-out-short-strokes">Previous</a> dataset <code>look_i16__minn10</code>, left, compared to path-spliced dataset <code>v2-splicedata</code>, right.
+</figcaption>
+</figure>
+</div>
+<p>Based my earlier experiment showing the benefits of <a href="./slml_part4.html#filtering-out-short-strokes">short-stroke exclusion</a>, I wanted to try training a model on this new dataset.</p>
+</section>
+<section id="training-after-path-splicing" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="training-after-path-splicing">Training after Path-Splicing</h2>
+<p>I ran the preprocessing on the whole dataset. Next, I filtered the original 1300 drawings to exclude any drawings with more than 6 strokes, resulting in a new dataset of 1200 drawings that I named <code>v2-splicedata</code>. Then I trained a new set of models, keeping the layernorm and recurrent dropout enabled.</p>
+<div id="fig-train-splice" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-train-splice-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca" class="page-columns page-full">
+<img src="https://i.ibb.co/vDsPsK6/phase3-wandb-splicedata.png" class="img-fluid figure-img column-page">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-train-splice-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Training and validation <a href="https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/v2-splicedata-vs-look_i16_minn10--Vmlldzo2OTQ1NTIw">loss metrics</a> of recurrent dropout model (light green) alongside models trained on this joined/spliced dataset (turquoise/dark green).
+</figcaption>
+</figure>
+</div>
+<p>After training some models on a path-spliced dataset the training metrics aren’t a perfect comparison, since the content of the validation also changed when I applied path-splicing. Still, I can see from the validation loss graph that the model started to overfit around 1000 steps. The roughly similar shapes of the early train and validation loss curves at least convinced me that the model hadn’t gotten dramatically worse.</p>
+<div id="fig-gen-spliced" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-gen-spliced-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/ZGLMZ4H/phase3-runid-dhzx8671-epoch-00200-sample-0338-decoded.png" class="img-fluid figure-img"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/5TVZG6H/phase3-runid-dhzx8671-epoch-00400-sample-0338-decoded.png" class="img-fluid figure-img"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/KxRj62q/phase3-runid-093xwcex-epoch-01000-sample-0061-decoded.png" class="img-fluid figure-img"></p>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-gen-spliced-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Generated samples from a model trained on path-spliced dataset.
+</figcaption>
+</figure>
+</div>
+<p>Qualitatively, the generated drawings showed a big improvement. The model had learned to generate longer unbroken strokes. I started to notice results that looked more like single-line drawings of people. In some cases they look surreal, but I started to see some more recognizable face elements and in some cases full bodies.</p>
+<div id="fig-debug-splicing" class="column-body-outset quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-debug-splicing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-video"><video id="video_shortcode_videojs_video1" class="video-js vjs-default-skin vjs-fluid" controls="" preload="auto" data-setup="{}" title=""><source src="https://storage.googleapis.com/andrewlook-art-assets/andrewlook.com/videos/new_file_fps20.mp4"></video></div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-debug-splicing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Iterating through full dataset, with 3 frames per drawing: original, path-joined, and path-spliced. I liked the slight jitter in the animation as I watched the drawings go from colorful (many strokes) to fully blue (single stroke).
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="bounding-boxes" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="bounding-boxes">Bounding Boxes</h2>
+<p>My last remaining problem: there were some pages where I’d make 4 or 5 separate drawings that had nothing to do with each other, and had a lot of space between them.</p>
+<p>I wanted to separate those into separate examples before making a training dataset, for 2 reasons:</p>
+<ol type="1">
+<li><strong>To get more training examples</strong> from my limited number of scanned drawings.</li>
+<li><strong>To avoid confusing the model</strong> when some examples are complex drawings with multiple people, and other drawings are just one person. </li>
+</ol>
+<div class="no-row-height column-margin column-container"><span class="margin-aside">If the model sometimes learngs to make a complete drawing and then start a second unrelated drawing, how does the model know when to finish a drawing vs.&nbsp;when to start a second drawing alongside the first one?</span></div><p>My intuition for my third preprocessing improvement, <a href="https://singleline-dataset.andrewlook.com/bounding_boxes.html">“bounding box separation”</a>, came when I noticed how unrelated strokes within a drawing didn’t overlap much, and tended to be spaced far apart. For each of the stroke within a drawing, I’d determine its top/bottom/left/right extremes and consider a box around each stroke as in <a href="#fig-bbox-0" class="quarto-xref">Figure&nbsp;6</a>.</p>
+<div id="fig-bbox-0" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-bbox-0-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
+<p><img src="https://i.ibb.co/TRWchdV/bbox-0.png" class="img-fluid figure-img"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
+<p><img src="https://i.ibb.co/g3BZnn8/bbox-1.png" class="img-fluid figure-img"></p>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bbox-0-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: Example drawing with multiple unrelated strokes. <!--
+Resulting training records:
+![bbox-10](https://i.ibb.co/WWXtxmx/bbox-10.png)
+![bbox-11](https://i.ibb.co/3MLYQGs/bbox-11.png)
+![bbox-12](https://i.ibb.co/1R31PNF/bbox-12.png)
+![bbox-13](https://i.ibb.co/hHcFg6t/bbox-13.png)
+-->
+</figcaption>
+</figure>
+</div>
+<p>Then for each combination of bounding boxes, I’d compute a ratio of the area of their overlap compared to the area of the non-overlapping parts as in <a href="#fig-iou" class="quarto-xref">Figure&nbsp;7</a>.</p>
+
+<div class="no-row-height column-margin column-container"><div id="fig-iou" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-iou-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://i.ibb.co/txyxw7z/bbox-4-IOU.webp" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-iou-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7: Intersection over Union (“IOU”) Metric.
+</figcaption>
+</figure>
+</div></div><p>If the ratio exceeds some threshold, I consider them to be part of the same drawing, and I merge the bounding boxes as in <a href="#fig-merged" class="quarto-xref">Figure&nbsp;9 (a)</a>. Combining that merged bounding box along with all the remaining bounding boxes, I repeat the process until no bounding-box intersections remain that exceed the threshold.</p>
+<div id="fig-bbox-1" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-bbox-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: flex-start;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://i.ibb.co/gV1MFMZ/bbox-3.png" class="img-fluid figure-img"></p>
+<figcaption>IOU = 0.03</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: flex-start;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://i.ibb.co/PxDD7t6/bbox-2.png" class="img-fluid figure-img"></p>
+<figcaption>IOU = 0.12</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-bbox-1" style="flex-basis: 33.3%;justify-content: flex-start;">
+<div id="fig-merged" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-merged-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://i.ibb.co/x5gYgB1/bbox-5-merge.png" class="img-fluid figure-img" data-ref-parent="fig-bbox-1">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-merged-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) Merged BBoxes
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bbox-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;8: Comparison of high-IOU vs.&nbsp;low-IOU bounding box intersections.
+</figcaption>
+</figure>
+</div>
+<p>Also, if any bounding boxes have a really small area, I just drop them. It turns out this helps exclude small scribbles of text that were ending up in my training data as separate strokes - for example, the page number at the bottom right of <a href="#fig-pagenum" class="quarto-xref">Figure&nbsp;9 (a)</a>.</p>
+<div id="fig-bbox-1" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-bbox-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 25.0%;justify-content: flex-start;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://i.ibb.co/bQM69Jk/bbox-7.png" class="img-fluid figure-img"></p>
+<figcaption>Original: 4 Strokes</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-bbox-1" style="flex-basis: 25.0%;justify-content: flex-start;">
+<div id="fig-pagenum" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-pagenum-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://i.ibb.co/yN4Ct0g/bbox-9.png" class="img-fluid figure-img" data-ref-parent="fig-bbox-1">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-pagenum-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) Tiny page number: 1 stroke
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 25.0%;justify-content: flex-start;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://i.ibb.co/hDhs4Nz/bbox-6.png" class="img-fluid figure-img"></p>
+<figcaption>Merge: 3 Strokes</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 25.0%;justify-content: flex-start;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://i.ibb.co/93fz1zK/bbox-8.png" class="img-fluid figure-img"></p>
+<figcaption>Result</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bbox-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9: Example from training set of a very small stroke being removed.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="dataset-20231214" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="dataset-20231214">Dataset <code>20231214</code></h2>
+<p>Once I have all the separated strokes, I save then into a new dataset as separate drawings. While the previous dataset <code>v2-splicedata</code> only has 1200 drawings, the new bounding-box separated dataset <code>20231214</code> has 2400 drawings.</p>
+<div id="fig-compare-datasets" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-compare-datasets-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca" class="page-columns page-full">
+<img src="https://i.ibb.co/vvMWrDc/dataset-comparison-with-v2-splicedata.png" class="img-fluid figure-img column-body-outset">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-compare-datasets-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;10: Comparison of previous dataset <code>v2-splicedata</code> with <code>20231214</code> and <code>20231214-filtered</code>.
+</figcaption>
+</figure>
+</div>
+<p>The dataset grew from 1200 to 2400 drawings because pages containing multiple distinct drawings (such as <a href="#fig-prebbox" class="quarto-xref">Figure&nbsp;11 (a)</a>) were divided into separate rows in the new training set (like <a href="#fig-postbbox-1" class="quarto-xref">Figure&nbsp;11 (b)</a>, <a href="#fig-postbbox-2" class="quarto-xref">Figure&nbsp;11 (c)</a>, <a href="#fig-postbbox-3" class="quarto-xref">Figure&nbsp;11 (d)</a>).</p>
+<div id="fig-bbox-split-example" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-bbox-split-example-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-bbox-split-example" style="flex-basis: 25.0%;justify-content: flex-start;">
+<div id="fig-prebbox" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-prebbox-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://i.ibb.co/SrpsMWZ/bbox-20.png" class="img-fluid figure-img" data-ref-parent="fig-bbox-split-example">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-prebbox-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) Original
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-bbox-split-example" style="flex-basis: 25.0%;justify-content: flex-start;">
+<div id="fig-postbbox-1" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-postbbox-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://i.ibb.co/PNLqQLG/bbox-21.png" id="fig-postbbox-1" class="img-fluid figure-img" data-ref-parent="fig-bbox-split-example">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-postbbox-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b)
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-bbox-split-example" style="flex-basis: 25.0%;justify-content: flex-start;">
+<div id="fig-postbbox-2" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-postbbox-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://i.ibb.co/wWKK6zC/bbox-22.png" id="fig-postbbox-2" class="img-fluid figure-img" data-ref-parent="fig-bbox-split-example">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-postbbox-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(c)
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-bbox-split-example" style="flex-basis: 25.0%;justify-content: flex-start;">
+<div id="fig-postbbox-3" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-postbbox-3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://i.ibb.co/N18YMC0/bbox-23.png" id="fig-postbbox-3" class="img-fluid figure-img" data-ref-parent="fig-bbox-split-example">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-postbbox-3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(d)
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bbox-split-example-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;11: Original drawing (left) was one row in dataset <code>v2-splicedata</code>. The rightmost three drawings are distinct rows in dataset <code>20231214</code>.
+</figcaption>
+</figure>
+</div>
+<p>The new separated drawings looked more visually consistent with the average drawing out of the training set as a whole. The new dataset contains far more single-character drawings, so I expect that the RNN will benefit on learning from a set of drawings with more similar subject matter.</p>
+<p>I hypothesized that the bbox-separated dataset will be a big improvement because of the consistency of the resulting drawings. Before, the model was learning that sometimes drawings end after one person is drawn, but sometimes we move the pen and start a new person.</p>
+</section>
+<section id="filtering-by-number-of-points" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="filtering-by-number-of-points">Filtering by Number of Points</h2>
+<p>Looking at the distribution of number of points per drawing in the new dataset <code>20231214</code> in the bottom-middle chart in <a href="#fig-compare-datasets" class="quarto-xref">Figure&nbsp;10</a>, I noticed a long tail of drawings with more than 500 points. To explore this, I created a variant dataset <code>20231214-filtered</code>.</p>
+<p>Dataset <code>20231214-filtered</code> which was filtered down to 1800 drawings, keeping only drawings with more than 50 and less than 300 points as you can see in the bottom-right chart in <a href="#fig-compare-datasets" class="quarto-xref">Figure&nbsp;10</a>.</p>
+<div class="page-columns page-full"><p>Wondering if drawings with many points were less likely to have consistent subject matter (individual people) than the rest of the training set, I sampled some drawings with over 300 points. While drawings such as <a href="#fig-1093" class="quarto-xref">Figure&nbsp;12 (a)</a> and <a href="#fig-1127" class="quarto-xref">Figure&nbsp;12 (b)</a> were obvious candidates to exlcude, there were valid drawings near the margin such as <a href="#fig-329" class="quarto-xref">Figure&nbsp;12 (c)</a> that I would be excluding after I picked a threshold.</p><div class="no-row-height column-margin column-container"><span class="margin-aside">Possible Improvement: Filtering by visual embedding might be more reliable to exclude complex drawings</span></div></div>
+<div id="fig-over300" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-over300-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-over300" style="flex-basis: 33.3%;justify-content: flex-start;">
+<div id="fig-1093" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-1093-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://i.ibb.co/bdXtjzw/16strokes-1093points.png" class="img-fluid figure-img" data-ref-parent="fig-over300">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-1093-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) 1093 points
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-over300" style="flex-basis: 33.3%;justify-content: flex-start;">
+<div id="fig-1127" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-1127-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://i.ibb.co/S7j9ktg/16strokes-1127points.png" class="img-fluid figure-img" data-ref-parent="fig-over300">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-1127-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b) 1127 points
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-over300" style="flex-basis: 33.3%;justify-content: flex-start;">
+<div id="fig-329" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-329-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://i.ibb.co/6vYXZmt/4strokes-329points.png" class="img-fluid figure-img" data-ref-parent="fig-over300">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-329-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(c) 329 points
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-over300-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12: Drawings with over 300 points.
+</figcaption>
+</figure>
+</div>
+<div class="page-columns page-full"><p>I also looked at the low end of the distribution and found drawings with under 50 points. There were nonsensical squiggles such as <a href="#fig-21" class="quarto-xref">Figure&nbsp;13 (a)</a> that I was happy to exclude. There were cases below the 50 point threshold such as <a href="#fig-30" class="quarto-xref">Figure&nbsp;13 (b)</a> and <a href="#fig-41" class="quarto-xref">Figure&nbsp;13 (c)</a> that looked recognizable as my drawings, but had been simplified by RDP too aggressively. </p><div class="no-row-height column-margin column-container"><span class="margin-aside">Possible Improvement: Applying RDP after bounding box separation rather than before.</span></div></div>
+<div id="fig-under50" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-under50-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-under50" style="flex-basis: 33.3%;justify-content: flex-start;">
+<div id="fig-21" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-21-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://i.ibb.co/CPRMhHr/21points.png" class="img-fluid figure-img" data-ref-parent="fig-under50">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-21-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) 21 points
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-under50" style="flex-basis: 33.3%;justify-content: flex-start;">
+<div id="fig-30" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-30-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://i.ibb.co/2Pw6zvG/30points.png" class="img-fluid figure-img" data-ref-parent="fig-under50">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-30-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b) 30 points
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-under50" style="flex-basis: 33.3%;justify-content: flex-start;">
+<div id="fig-41" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-41-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://i.ibb.co/VJP5LY4/41points.png" class="img-fluid figure-img" data-ref-parent="fig-under50">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-41-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(c) 41 points
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-under50-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;13: Drawings with under 50 points.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="training-after-bounding-boxes" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="training-after-bounding-boxes">Training after Bounding Boxes</h2>
+<div id="fig-train-bbox" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-train-bbox-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca" class="page-columns page-full">
+<img src="https://i.ibb.co/729d0KL/phase4-wandb-bboxsep-filtering.png" class="img-fluid figure-img column-page">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-train-bbox-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;14: Training and validation <a href="https://wandb.ai/andrewlook/sketchrnn-pytorch/reports/epoch20231214-bounding-box-separation-filtering--Vmlldzo2OTQ1NTUw">loss metrics</a> comparing model trained on <code>20231214</code> (beige) compared with models trained on dataset <code>20231214-filtered</code> with and without stroke augmentation (green, burgundy).
+</figcaption>
+</figure>
+</div>
+<p>After training on the unfiltered dataset <code>20231214</code>, I noticed that some drawings were devolving into a sequence of repeated face features without forming a cohesive person or face, as in <a href="#fig-gen-unfiltered" class="quarto-xref">Figure&nbsp;15</a>.</p>
+<div id="fig-gen-unfiltered" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-gen-unfiltered-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/CV2SXQ3/phase4-runid-g3hupc1l-epoch-00300-sample-0136-decoded.png" class="img-fluid figure-img"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/x51j8wR/phase4-runid-g3hupc1l-epoch-00200-sample-0180-decoded.png" class="img-fluid figure-img"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/vdrzxMj/phase4-runid-g3hupc1l-epoch-00400-sample-0136-decoded.png" class="img-fluid figure-img"></p>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-gen-unfiltered-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;15: Generated results after training on unfiltered dataset <code>20231214</code>.
+</figcaption>
+</figure>
+</div>
+<!--
+![](https://i.ibb.co/6vCfK1D/phase4-runid-g3hupc1l-epoch-00400-sample-0207-decoded.png)
+![](https://i.ibb.co/0mxFh2X/phase4-runid-g3hupc1l-epoch-00400-sample-0396-decoded.png)
+-->
+<p>The model results in <a href="#fig-gen-bbox1" class="quarto-xref">Figure&nbsp;16</a> after training on filtered dataset <code>20231214-filtered</code> appear qualitatively better to me. The best results I could find had long coherent strokes capturing part of a face and sometimes a corresponding body.</p>
+<div id="fig-gen-bbox1" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-gen-bbox1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/wh86Rm5/phase4-runid-fj4klg1i-epoch-00200-sample-0080-decoded.png" class="img-fluid figure-img"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/R28gn3K/phase4-runid-fj4klg1i-epoch-00200-sample-0291-decoded.png" class="img-fluid figure-img"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/V2MdNGf/phase4-runid-fj4klg1i-epoch-00400-sample-0186-decoded.png" class="img-fluid figure-img"></p>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-gen-bbox1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;16: Generated results after training on filtered dataset <code>20231214-filtered</code>.
+</figcaption>
+</figure>
+</div>
+<!--
+![](https://i.ibb.co/d2vfKZ2/phase4-runid-fj4klg1i-epoch-00100-sample-0080-decoded.png)
+![](https://i.ibb.co/xYWW05f/phase4-runid-fj4klg1i-epoch-00100-sample-0278-decoded.png)
+![](https://i.ibb.co/WkYTZxh/phase4-runid-fj4klg1i-epoch-00400-sample-0278-decoded.png)
+-->
+<p>The model results in <a href="#fig-gen-bbox2" class="quarto-xref">Figure&nbsp;17</a> after training with stroke-augmentation on filtered dataset <code>20231214-filtered</code> appear to be roughly of similar quality to . The best results I could find had long coherent strokes capturing part of a face and sometimes a corresponding body.</p>
+<div id="fig-gen-bbox2" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-gen-bbox2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/nmLtzS7/phase4-runid-slgleu3l-epoch-00100-sample-0244-decoded.png" class="img-fluid figure-img"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/4Mq5Gtw/phase4-runid-slgleu3l-epoch-00100-sample-0068-decoded.png" class="img-fluid figure-img"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="https://i.ibb.co/vXsBtDS/phase4-runid-slgleu3l-epoch-00100-sample-0406-decoded.png" class="img-fluid figure-img"></p>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-gen-bbox2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;17: Generated results after training on filtered dataset <code>20231214-filtered</code>, with stroke augmentation enabled.
+</figcaption>
+</figure>
+</div>
+<!--
+![](https://i.ibb.co/Fmf7RBF/phase4-runid-slgleu3l-epoch-00100-sample-0268-decoded.png)
+-->
+<!--
+TODO: takeaways
+
+- improving dataset > improving hyperparams
+- preprocessing worth the investment
+- consider filtering by embeddings of bbox-sep'd drawings
+- apply RDP late in the process.
+-->
+<blockquote class="blockquote">
+<p><em>If you want to keep reading, check out <a href="../../blog/posts/slml_part6.html">part 6</a> of my <a href="../../projects/slml.html">SLML</a> series.</em></p>
+</blockquote>
+<!--
+
+=== Phase 3 ===
+
+Dec 7:
+- [ ] 093xwcex: [likely-glitter-26\_splicedata-maxstrokes5 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/093xwcex?workspace=user-andrewlook)
+    - Dataset: v2-splice-maxstrokes5
+- [ ] dhzx8671: [pretty-firebrand-27\_splicedata-maxstrokes6 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/dhzx8671?workspace=user-andrewlook)
+    - Dataset: v2-splice-maxstrokes6
+
+=== Phase 4 ===
+
+Dec 17,18:
+- [ ] gh3hupc1l: [treasured-serenity-28\_\_epoch-20231214\_\_boundingboxes | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/g3hupc1l?workspace=user-andrewlook)
+    - Dataset: epoch-20231214-trainval
+- [ ] fj4klg1i: [eager-capybara-29 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/fj4klg1i?workspace=user-andrewlook)
+    - Dataset: epoch-20231214-filtered-trainval
+- [ ] slgleu3l: [summer-planet-30 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/slgleu3l?workspace=user-andrewlook)
+    - Dataset: epoch-20231214-filtered-trainval
+    - augment_stroke_prob=1
+- [ ] wz9rw5a4: [comfy-violet-31 | sketchrnn-pytorch – Weights & Biases](https://wandb.ai/andrewlook/sketchrnn-pytorch/runs/wz9rw5a4/overview?workspace=user-andrewlook)
+    - use_random_scale=true
+    - random_scale_factor=0.15
+
+-->
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/andrewlook\.com\/notebooks");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<script src="https://utteranc.es/client.js" repo="andrewlook/notebooks" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/andrewlook/notebooks/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer><script>videojs(video_shortcode_videojs_video1);</script>
+
+
+
+
+</body></html>

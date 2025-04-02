@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.42">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Andrew Look">
+<meta name="dcterms.date" content="2018-04-18">
+<meta name="description" content="some-description">
+
+<title>A Tour of AI Art in 2018 – andrewlook</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-16fb397360ac6373c2344189e05b0de0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="A Tour of AI Art in 2018 – andrewlook">
+<meta property="og:description" content="some-description">
+<meta property="og:site_name" content="andrewlook">
+<meta name="twitter:title" content="A Tour of AI Art in 2018 – andrewlook">
+<meta name="twitter:description" content="some-description">
+<meta name="twitter:creator" content="@andrewlook">
+<meta name="twitter:site" content="@andrewlook">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="https://i.ibb.co/GxrvZ2T/CROP-oneline-a-stoke1-5.png" alt="" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">andrew look</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog/index.html"> 
+<span class="menu-text">blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../resume/index.html"> 
+<span class="menu-text">resume</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about/index.html"> 
+<span class="menu-text">about</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/andrewlook"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text">github</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://instagram.com/andrewlookart"> <i class="bi bi-instagram" role="img">
+</i> 
+<span class="menu-text">instagram</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://twitter.com/andrewlook"> <i class="bi bi-twitter" role="img">
+</i> 
+<span class="menu-text">twitter</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#what-is-ai-art" id="toc-what-is-ai-art" class="nav-link active" data-scroll-target="#what-is-ai-art">What is AI art?</a></li>
+  <li><a href="#some-definitions" id="toc-some-definitions" class="nav-link" data-scroll-target="#some-definitions">Some Definitions</a>
+  <ul class="collapse">
+  <li><a href="#ai" id="toc-ai" class="nav-link" data-scroll-target="#ai">AI</a></li>
+  </ul></li>
+  <li><a href="#machine-learning" id="toc-machine-learning" class="nav-link" data-scroll-target="#machine-learning">Machine Learning</a></li>
+  <li><a href="#back-to-ai-art" id="toc-back-to-ai-art" class="nav-link" data-scroll-target="#back-to-ai-art">Back to AI Art</a></li>
+  <li><a href="#definition-1-making-creative-use-of-outputs-from-an-ai-tool" id="toc-definition-1-making-creative-use-of-outputs-from-an-ai-tool" class="nav-link" data-scroll-target="#definition-1-making-creative-use-of-outputs-from-an-ai-tool">Definition #1: Making creative use of outputs from an AI <em>Tool</em></a></li>
+  <li><a href="#definition-2-leveraging-how-ai-represents-information-to-deliberately-craft-an-effect" id="toc-definition-2-leveraging-how-ai-represents-information-to-deliberately-craft-an-effect" class="nav-link" data-scroll-target="#definition-2-leveraging-how-ai-represents-information-to-deliberately-craft-an-effect">Definition #2: <strong>Leveraging how AI represents information to deliberately craft an effect</strong></a></li>
+  <li><a href="#definition-3-exploring-the-concepts-within-ai-and-what-they-means-for-us" id="toc-definition-3-exploring-the-concepts-within-ai-and-what-they-means-for-us" class="nav-link" data-scroll-target="#definition-3-exploring-the-concepts-within-ai-and-what-they-means-for-us">Definition #3: <strong>Exploring the <em>Concepts</em> within AI and what they means for us</strong></a>
+  <ul class="collapse">
+  <li><a href="#example-treachery-of-imagenet" id="toc-example-treachery-of-imagenet" class="nav-link" data-scroll-target="#example-treachery-of-imagenet">Example: Treachery of Imagenet</a></li>
+  <li><a href="#example-simulating-how-humans-draw" id="toc-example-simulating-how-humans-draw" class="nav-link" data-scroll-target="#example-simulating-how-humans-draw">Example: Simulating How Humans Draw</a></li>
+  </ul></li>
+  <li><a href="#in-conclusion" id="toc-in-conclusion" class="nav-link" data-scroll-target="#in-conclusion">In Conclusion</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/andrewlook/notebooks/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../blog/index.html">blog</a></li><li class="breadcrumb-item"><a href="../../blog/posts/2018_ai_art_tour.html">posts</a></li><li class="breadcrumb-item"><a href="../../blog/posts/2018_ai_art_tour.html">A Tour of AI Art in 2018</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">A Tour of AI Art in 2018</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">machinelearning</div>
+    <div class="quarto-category">art</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    some-description
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Andrew Look </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">April 18, 2018</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>By the end of this tour, my goal is to help you understand how some existing artists are incorporating AI tools and concepts into their work, and how using AI art tools might <em>augment</em> your creativity.</p>
+<p>Disclaimer: I’m not a real expert on computer vision, neuroscience or art. But I <em>have</em> spent a couple years learning about the space, so I’ll do my best to explain things as I understand them so far.</p>
+<p>For those more familiar with AI, I plan on making some broad generalizations in the interest of brevity. If you’re interested in the technical details, I’ve done my best to include relevant links on where to go deeper.</p>
+<section id="what-is-ai-art" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-ai-art">What is AI art?</h2>
+<p>Many artistic tools come from people striving to understand how algorithms affect our lives. I’ve distilled a framework to understand different types of AI Art, and am sharing it in the hopes that it makes the concepts easier to discuss and compare.</p>
+<p>Here are 3 ways I can think of to define “AI Art”:</p>
+<ol type="1">
+<li><strong>Making creative use of outputs from an AI <em>Tool</em></strong></li>
+<li><strong>Leveraging how AI represents information to deliberately craft an <em>Effect</em></strong></li>
+<li><strong>Exploring the <em>Concepts</em> within AI and what they mean for us</strong></li>
+</ol>
+</section>
+<section id="some-definitions" class="level2">
+<h2 class="anchored" data-anchor-id="some-definitions">Some Definitions</h2>
+<p>Given the amount of cultural baggage we all associate with words like “AI” and “art”, it’s worth clarifying some definitions up front. “AI Art” has stuck as a phrase to describe an emerging category of creative work, but it might be more accurate to call it “Machine Learning Art.”</p>
+<p>The art I’m discussing here is mostly made by humans using statistical methods, not by sentient robots with their own creative ideas. Sorry to disappoint, but this post isn’t dedicated to anthropomorphic machines that paint:</p>
+<blockquote class="blockquote">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://media.giphy.com/media/8P7fmIpUYBwHgjo322/giphy.gif" class="img-fluid figure-img"></p>
+<figcaption>not this</figcaption>
+</figure>
+</div>
+<p>SPIRAL by Deepmind (<a href="https://deepmind.com/blog/learning-to-generate-images/">blog</a>, <a href="https://deepmind.com/documents/183/SPIRAL.pdf">pdf</a>, <a href="https://www.youtube.com/watch?v=iSyvwAwa7vk">youtube</a>)</p>
+</blockquote>
+<section id="ai" class="level3">
+<h3 class="anchored" data-anchor-id="ai">AI</h3>
+<p>AI is a term used in so many contexts, that it’s a bit of a loaded term. Most mentions of AI can be bucketed into one of two broad categories:</p>
+<ul>
+<li><strong>General AI</strong>: The futuristic aspiration of computers that experience consciousness</li>
+<li><strong>Specialized AI</strong>: Systems using statistics to learn patterns from data in order to make predictions.</li>
+</ul>
+<p>I’ll be focused on artistic applications of techniques that have sprung out of real-world research from the category of <strong>Specialized AI</strong>, also known as <strong>Machine Learning</strong>.</p>
+</section>
+</section>
+<section id="machine-learning" class="level2">
+<h2 class="anchored" data-anchor-id="machine-learning">Machine Learning</h2>
+<p>Machine Learning (usually) refers to a type of algorithm that (1) is built to perform a clearly-defined <strong>task</strong>, and (2) <strong>learns</strong> patterns and relationships from <strong>training data</strong></p>
+<!-- related: Explainability / Interpretability, Algorithmic Accountability -->
+<p>For example, imagine that we want to <a href="https://medium.com/@kabab/linear-regression-with-python-d4e10887ca43">predict housing prices</a>. We’d probably start with a spreadsheet of prices we know to be true, alongside features for each house that we expect to be related to the price. If we plot price vs.&nbsp;size on this toy dataset, we can start to see a slope.</p>
+<div>
+<p><img width="22%" style="display: inline" alt="housing prices table" src="https://cdn-images-1.medium.com/max/1280/1*TE_oNKRRek5io8v_-uZ9PQ.png"> <img width="75%" style="display: inline" alt="housing prices scatter plot" src="https://cdn-images-1.medium.com/max/1280/1*HUJzcLczeBFRdPPZ5HMcbw.png"></p>
+</div>
+<p>If we were to draw a line through these points, the “slope” would be what you multiply the <code>size</code> by in order to get the <code>price</code> (plus a “bias” term, if the slope doesn’t meet the Y-axis right at zero). The <strong>objective</strong> of an ML algorithm is to find a line to draw through these points that <strong>minimizes the error</strong> in its predictions. You can visualize the <strong>error</strong> as the distance from each real data point’s <code>Y</code> coordinate to the <strong>prediction</strong>: the line’s value at the corresponding <code>X</code> coordinate.</p>
+<div>
+<p><img width="45%" style="display: inline" alt="error bars" src="https://cdn-images-1.medium.com/max/1280/1*iBDH0gBBJNs-oLqUT17yng.png"> <img width="45%" style="display: inline" alt="iterative learning" src="https://cdn-images-1.medium.com/max/1280/1*xc5CSmK9d8oeKYxKxenEGg.gif"></p>
+</div>
+<p>“Art is everything that you don’t have to do.” - <a href="https://twitter.com/BBC6Music/status/648200818697572352?s=20">brian eno</a></p>
+<p>Whole books could be written in an attempt to define art, so I won’t attempt an exhaustive definition.</p>
+<blockquote class="blockquote">
+<p><img src="https://upload.wikimedia.org/wikipedia/commons/f/f6/Duchamp_Fountaine.jpg" width="400"></p>
+<p>“Fountain,” Marcel Duchamp, 1917 (<a href="https://en.wikipedia.org/wiki/Marcel_Duchamp">wikipedia</a>)</p>
+</blockquote>
+<p>The truth is that art can be defined by whoever is creating it, and art history is full of boundary-pushing acts leading onlookers to ask “but is it art?”</p>
+</section>
+<section id="back-to-ai-art" class="level2">
+<h2 class="anchored" data-anchor-id="back-to-ai-art">Back to AI Art</h2>
+<p>Now I’ll step through three possible ways to define AI art and provide some examples along the way.</p>
+<ol type="1">
+<li><strong>Making creative use of outputs from an AI <em>Tool</em></strong></li>
+<li><strong>Leveraging how AI represents information to deliberately craft an <em>Effect</em></strong></li>
+<li><strong>Exploring the <em>Concepts</em> within AI and what they mean for us</strong></li>
+</ol>
+<!--
+These definitions actually mirror the progression of my own art practice. I'll step through them in an attempt to share how my understanding of the space has evolved since I first started.
+-->
+<hr>
+</section>
+<section id="definition-1-making-creative-use-of-outputs-from-an-ai-tool" class="level2">
+<h2 class="anchored" data-anchor-id="definition-1-making-creative-use-of-outputs-from-an-ai-tool">Definition #1: Making creative use of outputs from an AI <em>Tool</em></h2>
+<p>The simplest definition of AI art is any artifact generated from a tool the makes use of AI, whether or not the artist makes this a central part of the work.</p>
+<p>Apps such as Prisma, for example, make it easy for anyone to take a photo on their phone and render it in a painterly style.</p>
+<p>Even without much context on how they work, easy-to-use tools such as <a href="https://affinelayer.com/pixsrv/">pix2pix</a> can be fun to play with and yield weird results.</p>
+<blockquote class="blockquote">
+<p><img src="https://media.giphy.com/media/fik7beSODmO75YI6Qd/giphy.gif" class="img-fluid" alt="bread_cat">?&gt;</p>
+<p><em>“Image-to-Image Translation with Conditional Adversarial Networks”</em>, Isola et al, 2017 (<a href="https://arxiv.org/abs/1611.07004">pdf</a>)</p>
+</blockquote>
+<p>We’ll look at some more in-depth approaches later (time permitting), but for now this is just fun.</p>
+<blockquote class="blockquote">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://media.giphy.com/media/wHYLEo4Z7kPJwlbO9U/giphy.gif" class="img-fluid figure-img"></p>
+<figcaption>pix2pix_pyramid_cat</figcaption>
+</figure>
+</div>
+</blockquote>
+<hr>
+</section>
+<section id="definition-2-leveraging-how-ai-represents-information-to-deliberately-craft-an-effect" class="level2">
+<h2 class="anchored" data-anchor-id="definition-2-leveraging-how-ai-represents-information-to-deliberately-craft-an-effect">Definition #2: <strong>Leveraging how AI represents information to deliberately craft an effect</strong></h2>
+<p>A slightly more complex definition of AI art is one in which an artist uses his or her understanding of the machine learning internals to achieve a specific effect. For example, it’s possible to make some interesting visual artifacts by inspecting how machine learning algorithms represent information.</p>
+<blockquote class="blockquote">
+<p><img src="https://courses.cs.washington.edu/courses/cse576/13sp/images/eigenfaces.png" width="400"></p>
+<p><a href="https://courses.cs.washington.edu/courses/cse576/13sp/projects/project3/">source</a></p>
+</blockquote>
+<p>In fact, the spooky faces came from a visualization of Eigenfaces, which sought to “learn” how to represent faces in a “latent space”. For me, this early facila recognition output brings to mind one of my favorite quotes by Brian Eno (who I’m quoting more than once in this piece since he’s had so much to say about the overlap of technology and art).</p>
+<blockquote class="blockquote">
+<p><em>“<strong>Whatever you now find weird, ugly, uncomfortable, and nasty about a new medium will surely become its signature.</strong> CD distortion, the jitteriness of digital video, the crap sound of 8-bit, all of these will be cherished and emulated as soon as they can be avoided. It’s the sound of failure. So much modern art is the sound of things going out of control. Out of a medium, pushing to its limits and breaking apart.”</em> - <a href="https://www.goodreads.com/quotes/649039-whatever-you-now-find-weird-ugly-uncomfortable-and-nasty-about">Brian Eno</a></p>
+</blockquote>
+<hr>
+<p>Recent generative algorithms have rapidly improved their ability both to learn <strong>latent spaces</strong>, and to <strong>generate</strong> images from any point in these latent spaces.</p>
+<blockquote class="blockquote">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://onionesquereality.files.wordpress.com/2009/02/face_space.jpg" class="img-fluid figure-img"></p>
+<figcaption>facespace</figcaption>
+</figure>
+</div>
+<p><em>Face Recognition using Eigenfaces,</em> Turk et al, 1991 <a href="http://www.cs.ucsb.edu/~mturk/Papers/mturk-CVPR91.pdf">pdf</a></p>
+</blockquote>
+<p>Methods of <strong>encoding</strong> real images into vectors representing a point in latent space have since improved, as have the methods of <strong>decoding</strong> latent vectors back into realistic images.</p>
+<p>When we <strong>interpolate</strong> between two points in the latent space, we can smoothly generate images at each point along the way. In the uncanny example below, I find it striking that (almost) every point in between looks like a person. Looking at this work, I can’t help thinking that these algorithms are showing us something about our innate similarity to all other humans.</p>
+<blockquote class="blockquote">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://media.giphy.com/media/1Bgck5vkuyNxSFPNmJ/giphy.gif" class="img-fluid figure-img"></p>
+<figcaption>celeb_1hr_man</figcaption>
+</figure>
+</div>
+<p><em>Progressive Growing of GANs for Improved Quality, Stability, and Variation</em>, Karras et al, 2018 (<a href="http://research.nvidia.com/publication/2017-10_Progressive-Growing-of">pdf</a>, <a href="https://www.youtube.com/watch?v=36lE9tV9vm0">youtube</a>)</p>
+</blockquote>
+<p>One striking example of a completely new type of tool leveraging this understanding is called <a href="https://vusd.github.io/toposketch/">Toposketch</a>. It allows visual navigation of latent spaces in order to gain fine-grained control over the generated artifacts. This makes me wonder what kinds of creative tools could be built to leverage the information that machines are able to derive from the increaing volume of data that’s available to us today.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://media.giphy.com/media/5BYqBxH66X3UobP3SH/giphy.gif" class="img-fluid figure-img"></p>
+<figcaption>toposketch_man_loop</figcaption>
+</figure>
+</div>
+<hr>
+</section>
+<section id="definition-3-exploring-the-concepts-within-ai-and-what-they-means-for-us" class="level2">
+<h2 class="anchored" data-anchor-id="definition-3-exploring-the-concepts-within-ai-and-what-they-means-for-us">Definition #3: <strong>Exploring the <em>Concepts</em> within AI and what they means for us</strong></h2>
+<p>Among other things, this could encompass exploring AI’s relationships to:</p>
+<ul>
+<li>our society</li>
+<li>the individual</li>
+<li>the nature of consciousness</li>
+</ul>
+<section id="example-treachery-of-imagenet" class="level3">
+<h3 class="anchored" data-anchor-id="example-treachery-of-imagenet">Example: Treachery of Imagenet</h3>
+<p>Tom White made some beautifully designed prints, each of which fools a computer vision network into believing it’s actually a picture of a specific object (see the predicted categories to the right of the image below).</p>
+<blockquote class="blockquote">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://github.com/andrewlook/tour-of-ai-art/raw/master/public/images/tom_white_adversarial_posters.jpg" class="img-fluid figure-img"></p>
+<figcaption>img</figcaption>
+</figure>
+</div>
+<p><a href="https://medium.com/artists-and-machine-intelligence/perception-engines-8a46bc598d57">source</a></p>
+</blockquote>
+<p>There’s a new field of security concerned with adversarial machine learning, concerned with how attackers can fool neural networks into misinterpreting what they see. It’s not intuitive, but the consequences can be serious - imagine a self-driving car fooled into missing a stop sign. I admire how Tom White took a complex concept and used it to make a visually appealing piece that sparks curiosity and raises awareness about concepts that may affect our lives but don’t have easy conversational entry points for outsiders.</p>
+</section>
+<section id="example-simulating-how-humans-draw" class="level3">
+<h3 class="anchored" data-anchor-id="example-simulating-how-humans-draw">Example: Simulating How Humans Draw</h3>
+<p>I’m fascinated when researchers attempt to mimic how humans draw. In particular, I’m interested in how the researchers set up an algorithm to mimic the process of drawing - they have to choose what happens next, how much the first part of the drawing affects what happens next, and how to define success.</p>
+<blockquote class="blockquote">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://media.giphy.com/media/OjY1YSX6jFROm02W0J/giphy.gif" class="img-fluid figure-img"></p>
+<figcaption>simulating how humans draw</figcaption>
+</figure>
+</div>
+<p><a href="https://deepmind.com/blog/learning-to-generate-images/">source</a></p>
+</blockquote>
+<p>In my analog artworks, I’ve noticed that sometimes I start a drawing not knowing how it will end up. Small accidents or random movements early in the drawing lead me to see something unexpected, adjust my course and capture what I saw. Oddly enough, thinking about the rigid framing of machine learning problems (input: view of the canvas, output: X,Y,Z coordinates of brush movement) has led to some fun experiments. For example, what happens if i close my eyes and draw?</p>
+<hr>
+</section>
+</section>
+<section id="in-conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="in-conclusion">In Conclusion</h2>
+<p>Given that there are several ways to define AI art (and I’m sure my list is not comprehensive), my hope is that we can broaden our view of what AI art means. While it does include fun images made using new mobile apps, I’d also like to think that there’s some more profound works out there. Works that can surprise people, help them understand the role of new technologies in their daily lives, and stoke their curiosity to learn more.</p>
+<blockquote class="blockquote">
+<p>“Stop thinking about art works as objects, and start thinking about them as triggers for experiences. … what makes a work of art ‘good’ for you is not something that is already ‘inside’ it, but something that happens inside you — so the value of the work lies in the degree to which it can help you have the kind of experience that you call art.”</p>
+<p>Brian Eno, via <a href="https://www.brainpickings.org/2013/05/15/brian-eno-diary-art/">brainpickings</a></p>
+</blockquote>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/andrewlook\.com\/notebooks");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<script src="https://utteranc.es/client.js" repo="andrewlook/notebooks" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/andrewlook/notebooks/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

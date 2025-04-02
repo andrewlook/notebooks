@@ -1,0 +1,55 @@
+[
+  {
+    "listing": "/projects/slml.html",
+    "items": [
+      "/blog/posts/slml_part0.html",
+      "/blog/posts/slml_part1.html",
+      "/blog/posts/slml_part2.html",
+      "/blog/posts/slml_part3.html",
+      "/blog/posts/slml_part4.html",
+      "/blog/posts/slml_part5.html",
+      "/blog/posts/slml_part6.html",
+      "/blog/posts/slml_part7.html"
+    ]
+  },
+  {
+    "listing": "/index.html",
+    "items": [
+      "/projects/slml.html",
+      "/projects/painting_deepdreams.html",
+      "/blog/posts/slml_part7.html",
+      "/blog/posts/slml_part6.html",
+      "/blog/posts/slml_part5.html",
+      "/blog/posts/slml_part4.html",
+      "/blog/posts/slml_part3.html",
+      "/blog/posts/slml_part2.html",
+      "/blog/posts/slml_part1.html",
+      "/blog/posts/slml_part0.html",
+      "/blog/posts/2018_ai_art_tour.html"
+    ]
+  },
+  {
+    "listing": "/blog/index.html",
+    "items": [
+      "/blog/posts/slml_part7.html",
+      "/blog/posts/slml_part6.html",
+      "/blog/posts/slml_part5.html",
+      "/blog/posts/slml_part4.html",
+      "/blog/posts/slml_part3.html",
+      "/blog/posts/slml_part2.html",
+      "/blog/posts/slml_part1.html",
+      "/blog/posts/slml_part0.html",
+      "/blog/posts/2018_ai_art_tour.html"
+    ]
+  },
+  {
+    "listing": "/jupyter/index.html",
+    "items": []
+  },
+  {
+    "listing": "/projects/painting_deepdreams.html",
+    "items": [
+      "/projects/deepdreams/desert_dreams.html"
+    ]
+  }
+]
