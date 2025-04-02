@@ -7,7 +7,7 @@ toc: false
 
 Hi, I'm Andrew Look.
 
-I'm a machine learning engineer, ex-startup founder, and part-time artist based in Brooklyn, NY.
+I'm a machine learning engineer working on [Notion AI](https://www.notion.com/product/ai). I'm also an AI advisor at [Long Journey](https://www.longjourney.vc/), where I help startups think through how to build with AI and how to hire great technical talent. Previously I was CTO at URX (YC S'13, acquired by Pinterest) and Plato Design (YC S'13). In my spare time, I like to make art - painting, drawing, pottery. More recently I've been making audio-reactive visual LED/projector art for concerts with [Titanic's End](https://www.instagram.com/titanicsend/?hl=en).
 
 ### Work
 
